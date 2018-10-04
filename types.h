@@ -3,26 +3,38 @@
 
 #include <stdint.h>
 
-//Цвет фигуры
+//Цвет
 enum {
     WHITE = 0,
     BLACK = 1
 };
 
-
 //Названия фигур
 enum {
-    PAWN = 0,
-    KNIGHT = 1,
-    BISHOP = 2,
-    ROOK = 3,
-    QUEEN = 4,
-    KING = 5,
-    EMPTY = 6
+    PAWN = 1,
+    KNIGHT = 2,
+    BISHOP = 3,
+    ROOK = 4,
+    QUEEN = 5,
+    KING = 6
 };
+
+//Рокировка
+enum Castling {
+    WS_CASTLING = 1,
+    WL_CASTLING = 2,
+    BS_CASTLING = 4,
+    BL_CASTLING = 8
+};
+
+//Обозначения фигур
+extern const char* PieceName[2];
 
 //Периименование типов
 typedef uint64_t U64;
+typedef uint32_t U32;
+typedef uint16_t U16;
+typedef uint8_t U8;
 
 //Структуры
 typedef struct Board Board;
