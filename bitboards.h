@@ -12,6 +12,16 @@ U64 rookAttacks[64];
 U64 bishopAttacks[64];
 U64 knightAttacks[64];
 
+//Массивы лучей
+U64 plus1[64];
+U64 minus1[64];
+U64 plus8[64];
+U64 minus8[64];
+U64 plus7[64];
+U64 minus7[64];
+U64 plus9[64];
+U64 minus9[64];
+
 #define bitboardCell(cell_nb) (1ull << (cell_nb))
 
 void initBitboards();
@@ -28,6 +38,5 @@ int getBit(uint64_t bitboard, int sq);
 void clearBit(uint64_t* bitboard, int sq);
 int rankOf(int sq);
 int fileOf(int sq);
-
 
 #endif

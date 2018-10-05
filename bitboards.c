@@ -6,34 +6,58 @@ void initBitboards() {
         files[i] = (72340172838076673ull << i);
     }
 
+    //Инициализация лучей
+    memset(plus1, 0, sizeof(U64) * 64);
+    memset(plus7, 0, sizeof(U64) * 64);
+    memset(plus8, 0, sizeof(U64) * 64);
+    memset(plus9, 0, sizeof(U64) * 64);
+    memset(minus1, 0, sizeof(U64) * 64);
+    memset(minus7, 0, sizeof(U64) * 64);
+    memset(minus8, 0, sizeof(U64) * 64);
+    memset(minus9, 0, sizeof(U64) * 64);
+
+    for(int sq = 0; sq < 64; ++sq) {
+        for(int r = rankOf(sq) + 1, f = fileOf(sq) + 1; r < 8 && f < 8; ++r, ++f) {
+            setBit(&plus9[sq], square(r, f));
+        }
+        for(int r = rankOf(sq) + 1, f = fileOf(sq) - 1; r < 8 && f >= 0; ++r, --f) {
+            setBit(&plus7[sq], square(r, f));
+        }
+        for(int r = rankOf(sq) - 1, f = fileOf(sq) - 1; r >= 0 && f >= 0; --r, --f) {
+            setBit(&minus9[sq], square(r, f));
+        }
+        for(int r = rankOf(sq) - 1, f = fileOf(sq) + 1; r >= 0 && f < 8; ++r, ++f) {
+            setBit(&minus7[sq], square(r, f));
+        }
+
+        for(int r = rankOf(sq) + 1; r < 8; ++r) {
+            setBit(&plus8[sq], square(r, fileOf(sq)));
+        }
+        for(int r = rankOf(sq) - 1; r >= 0; --r) {
+            setBit(&minus8[sq], square(r, fileOf(sq)));
+        }
+        for(int f = fileOf(sq) + 1; f < 8; ++f) {
+            setBit(&plus1[sq], square(rankOf(sq), f));
+        }
+        for(int f = fileOf(sq) - 1; f >= 0; --f) {
+            setBit(&minus1[sq], square(rankOf(sq), f));
+        }
+    }
+
     attacksGen();
 }
 
 void attacksGen() {
-    memset(rookAttacks, 0, sizeof(U64) * 64);
-    memset(bishopAttacks, 0, sizeof(U64) * 64);
     memset(knightAttacks, 0, sizeof(U64) * 64);
 
     //Генерация атак ладьи
     for(int sq = 0; sq < 64; ++sq) {
-        rookAttacks[sq] = (ranks[rankOf(sq)] | files[fileOf(sq)]);
-        clearBit(&rookAttacks[sq], sq);
+        rookAttacks[sq] = (minus1[sq] | plus1[sq] | minus8[sq] | plus8[sq]);
     }
 
     //Генерация атак слона
     for(int sq = 0; sq < 64; ++sq) {
-        for(int r = rankOf(sq) + 1, f = fileOf(sq) + 1; r < 8 && f < 8; ++r, ++f) {
-            setBit(&bishopAttacks[sq], square(r, f));
-        }
-        for(int r = rankOf(sq) + 1, f = fileOf(sq) - 1; r < 8 && f >= 0; ++r, --f) {
-            setBit(&bishopAttacks[sq], square(r, f));
-        }
-        for(int r = rankOf(sq) - 1, f = fileOf(sq) + 1; r >= 0 && f < 8; --r, ++f) {
-            setBit(&bishopAttacks[sq], square(r, f));
-        }
-        for(int r = rankOf(sq) - 1, f = fileOf(sq) - 1; r >= 0 && f >= 0; --r, --f) {
-            setBit(&bishopAttacks[sq], square(r, f));
-        }
+        bishopAttacks[sq] = (minus7[sq] | plus7[sq] | minus9[sq] | plus9[sq]);
     }
 
     //Генерация атак коня

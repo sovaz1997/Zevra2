@@ -1,10 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include "bitboards.h"
 #include "board.h"
 #include "movegen.h"
+#include "magic.h"
 
 int main() {
+    srand(time(0));
     
     initBitboards();    
 
@@ -17,9 +20,7 @@ int main() {
 
     uint16_t moveList[256];
     
-    for(int i = 0; i < 100000000; ++i) {
-        movegen(board, moveList);
-    }
+    movegen(board, moveList);
 
     uint16_t* curMove = moveList;
 
@@ -29,6 +30,8 @@ int main() {
         printf("%s\n", move);
         ++curMove;
     }
+
+    magicGen();
 
     free(board);
 
