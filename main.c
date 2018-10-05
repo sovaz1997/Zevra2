@@ -15,7 +15,20 @@ int main() {
     setFen(board, startpos);
     printBoard(board);
 
-    movegen(board, NULL);
+    uint16_t moveList[256];
+    
+    for(int i = 0; i < 100000000; ++i) {
+        movegen(board, moveList);
+    }
+
+    uint16_t* curMove = moveList;
+
+    while(*curMove) {
+        char move[6];
+        moveToString(*curMove, move);
+        printf("%s\n", move);
+        ++curMove;
+    }
 
     free(board);
 

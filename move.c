@@ -6,5 +6,6 @@ void moveToString(uint16_t move, char* str) {
 
     if(MoveType(move) == PROMOTION_MOVE) {
         str[4] = PieceName[BLACK][MovePromotionPiece(move)];
+        str[5] = '\0';
     }
 }

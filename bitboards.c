@@ -18,8 +18,6 @@ void attacksGen() {
     for(int sq = 0; sq < 64; ++sq) {
         rookAttacks[sq] = (ranks[rankOf(sq)] | files[fileOf(sq)]);
         clearBit(&rookAttacks[sq], sq);
-        printBitboard(rookAttacks[sq]);
-        printf("\n");
     }
 
     //Генерация атак слона
@@ -88,12 +86,12 @@ unsigned int popcount(U64 bitboard) {
     return __builtin_popcountll(bitboard);
 }
 
-unsigned int clz(unsigned int num) {
-    return __builtin_clz(num);
+unsigned int clz(U64 bitboard) {
+    return __builtin_clzll(bitboard);
 }
 
-unsigned int ctz(unsigned int num) {
-    return __builtin_ctz(num);
+unsigned int ctz(U64 bitboard) {
+    return __builtin_ctzll(bitboard);
 }
 
 void setBit(uint64_t* bitboard, int sq) {
@@ -104,8 +102,8 @@ int getBit(uint64_t bitboard, int sq) {
     return !!(bitboard & (1 << sq));
 }
 
-int clearBit(uint64_t* bitboard, int sq) {
-    (*bitboard) &= ~(1 << sq);
+void clearBit(uint64_t* bitboard, int sq) {
+    (*bitboard) ^= (1ull << sq);
 }
 
 int rankOf(int sq) {

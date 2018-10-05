@@ -20,12 +20,12 @@ void attacksGen();
 void printBitboard(U64 bitboard);
 unsigned int square(unsigned int r, unsigned int f);
 unsigned int popcount(U64 bitboard);
-unsigned int clz(unsigned int num);
-unsigned int ctz(unsigned int num);
+unsigned int clz(U64 bitboard);
+unsigned int ctz(U64 bitboard);
 
 void setBit(uint64_t* bitboard, int sq);
 int getBit(uint64_t bitboard, int sq);
-int clearBit(uint64_t* bitboard, int sq);
+void clearBit(uint64_t* bitboard, int sq);
 int rankOf(int sq);
 int fileOf(int sq);
 

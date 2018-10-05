@@ -106,6 +106,7 @@ void setPiece(Board* board, int piece, int color, int square) {
 void squareToString(int square, char* str) {
     str[0] = fileOf(square) + 'a';
     str[1] = rankOf(square) + '1';
+    str[2] = '\0';
 }
 
 int stringToSquare(char* str) {
