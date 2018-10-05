@@ -8,6 +8,9 @@
 U64 rookMagicMask[64];
 U64 bishopMagicMask[64];
 
+extern const U64 rookMagic[];
+extern const U64 bishopMagic[];
+
 void magicGen();
 U64 getAsIndex(U64 bitboard, int index);
 U64 magicFind(U64 bitboard);
