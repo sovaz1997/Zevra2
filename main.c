@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "bitboards.h"
 #include "board.h"
+#include "movegen.h"
 
 int main() {
     
@@ -13,6 +14,8 @@ int main() {
     
     setFen(board, startpos);
     printBoard(board);
+
+    movegen(board, NULL);
 
     free(board);
 

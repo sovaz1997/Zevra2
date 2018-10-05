@@ -72,21 +72,6 @@ void clearBoard(Board* board) {
     board->enpassantSquare = -1;
 }
 
-void setPiece(Board* board, int piece, int color, int square) {
-    board->pieces[piece] |= bitboardCell(square);
-    board->colours[color] |= bitboardCell(square);
-    board->squares[square] = makePiece(piece, color);
-}
-
-void squareToString(int square, char* str) {
-    str[0] = square % 8 + 'a';
-    str[1] = square / 8 + '1';
-}
-
-int stringToSquare(char* str) {
-    return ((str[0] - 'a') + (str[1] - '1') * 8);
-}
-
 void printBoard(Board* board) {
     printBoardSplitter();
 
@@ -110,6 +95,21 @@ void printBoardSplitter() {
         }
     }
     printf("\n");
+}
+
+void setPiece(Board* board, int piece, int color, int square) {
+    board->pieces[piece] |= bitboardCell(square);
+    board->colours[color] |= bitboardCell(square);
+    board->squares[square] = makePiece(piece, color);
+}
+
+void squareToString(int square, char* str) {
+    str[0] = fileOf(square) + 'a';
+    str[1] = rankOf(square) + '1';
+}
+
+int stringToSquare(char* str) {
+    return ((str[0] - 'a') + (str[1] - '1') * 8);
 }
 
 uint8_t makePiece(int piece_type, int color) {

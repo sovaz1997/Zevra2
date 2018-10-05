@@ -30,7 +30,7 @@ enum Castling {
 //Обозначения фигур
 extern const char* PieceName[2];
 
-//Периименование типов
+//Переименование типов
 typedef uint64_t U64;
 typedef uint32_t U32;
 typedef uint16_t U16;
