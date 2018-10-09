@@ -38,12 +38,13 @@ void movePiece(Board* board, int sq1, int sq2);
 void squareToString(int square, char* str);
 int stringToSquare(char* str);
 U8 makePiece(int piece_type, int color);
-int pieceColor(U8 piece);
-int pieceType(U8 piece);
 void printPiece(U8 piece);
 void makeMove(Board* board, U16 move, Undo* undo);
 void unmakeMove(Board* board, U16 move, Undo* undo);
 void setUndo(Board* board, Undo* undo, U8 capturedPiece);
 void getUndo(Board* board, Undo* undo);
+
+#define pieceType(piece) ((piece) >> 1)
+#define pieceColor(piece) ((piece) & 1)
 
 #endif

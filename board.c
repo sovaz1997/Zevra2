@@ -111,7 +111,7 @@ U8 clearPiece(Board* board, int square) {
 }
 
 void movePiece(Board* board, int sq1, int sq2) {
-    setPiece(board, pieceType(board->squares[sq1]), pieceColor(board->squares[sq2]), sq2);
+    setPiece(board, pieceType(board->squares[sq1]), pieceColor(board->squares[sq1]), sq2);
     clearPiece(board, sq1);
 }
 
@@ -127,14 +127,6 @@ int stringToSquare(char* str) {
 
 U8 makePiece(int piece_type, int color) {
     return (piece_type << 1) + color;
-}
-
-int pieceColor(U8 piece) {
-    return piece & 1;
-}
-
-int pieceType(U8 piece) {
-    return piece >> 1;
 }
 
 void printPiece(U8 piece) {
