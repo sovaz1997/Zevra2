@@ -33,6 +33,11 @@ enum {
     DOWN = 1
 };
 
+//Поиск
+enum {
+    MAX_PLY = 128
+};
+
 //Обозначения фигур
 extern const char* PieceName[2];
 
@@ -44,5 +49,6 @@ typedef uint8_t U8;
 
 //Структуры
 typedef struct Board Board;
+typedef struct Undo Undo;
 
 #endif

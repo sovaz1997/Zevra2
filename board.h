@@ -7,6 +7,7 @@
 #include <ctype.h>
 #include "types.h"
 #include "bitboards.h"
+#include "move.h"
 
 struct Board {
     int moveNumber;
@@ -19,17 +20,30 @@ struct Board {
     U8 squares[64];
 };
 
+struct Undo {
+    int ruleNumber;
+    int enpassantSquare;
+    int castling;
+    U8 capturedPiece;
+};
+
 void setFen(Board* board, char* fen);
 void getFen(Board* board, char* fen);
 void clearBoard(Board* board);
 void printBoard(Board* board);
 void printBoardSplitter();
 void setPiece(Board* board, int piece, int color, int square);
+U8 clearPiece(Board* board, int square);
+void movePiece(Board* board, int sq1, int sq2);
 void squareToString(int square, char* str);
 int stringToSquare(char* str);
-uint8_t makePiece(int piece_type, int color);
-int pieceColor(uint8_t piece);
-int piceType(uint8_t piece);
-void printPiece(uint8_t piece);
+U8 makePiece(int piece_type, int color);
+int pieceColor(U8 piece);
+int pieceType(U8 piece);
+void printPiece(U8 piece);
+void makeMove(Board* board, U16 move, Undo* undo);
+void unmakeMove(Board* board, U16 move, Undo* undo);
+void setUndo(Board* board, Undo* undo, U8 capturedPiece);
+void getUndo(Board* board, Undo* undo);
 
 #endif

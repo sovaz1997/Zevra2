@@ -5,6 +5,7 @@
 #include "board.h"
 #include "movegen.h"
 #include "magic.h"
+#include "search.h"
 
 void initEngine();
 
@@ -23,21 +24,22 @@ int main() {
     setFen(board, startpos);
     printBoard(board);
 
-    uint16_t moveList[256];
+   /* uint16_t moveList[256];
     
     //for(int i = 0; i < 100000000; ++i) {
         movegen(board, moveList);
-    //}
+    //}*/
 
-    uint16_t* curMove = moveList;
+    /*uint16_t* curMove = moveList;
 
     while(*curMove) {
         char move[6];
         moveToString(*curMove, move);
         printf("%s\n", move);
         ++curMove;
-    }
-    
+    }*/
+
+    printf("Perft result: %d\n", perftTest(board, 6, 0));
 
     free(board);
 

@@ -103,6 +103,18 @@ void setPiece(Board* board, int piece, int color, int square) {
     board->squares[square] = makePiece(piece, color);
 }
 
+U8 clearPiece(Board* board, int square) {
+    U8 pieceType = board->squares[square];
+    board->pieces[pieceType] &= ~bitboardCell(square);
+    board->squares[square] &= ~bitboardCell(square);
+    board->squares[square] == 0;
+}
+
+void movePiece(Board* board, int sq1, int sq2) {
+    setPiece(board, pieceType(board->squares[sq1]), pieceColor(board->squares[sq2]), sq2);
+    clearPiece(board, sq1);
+}
+
 void squareToString(int square, char* str) {
     str[0] = fileOf(square) + 'a';
     str[1] = rankOf(square) + '1';
@@ -113,22 +125,51 @@ int stringToSquare(char* str) {
     return ((str[0] - 'a') + (str[1] - '1') * 8);
 }
 
-uint8_t makePiece(int piece_type, int color) {
+U8 makePiece(int piece_type, int color) {
     return (piece_type << 1) + color;
 }
 
-int pieceColor(uint8_t piece) {
+int pieceColor(U8 piece) {
     return piece & 1;
 }
 
-int piceType(uint8_t piece) {
+int pieceType(U8 piece) {
     return piece >> 1;
 }
 
-void printPiece(uint8_t piece) {
+void printPiece(U8 piece) {
     if(piece) {
-        printf("%c", PieceName[pieceColor(piece)][piceType(piece)]);
+        printf("%c", PieceName[pieceColor(piece)][pieceType(piece)]);
     } else {
         printf(" ");
     }
+}
+
+void makeMove(Board* board, U16 move, Undo* undo) {
+    setUndo(board, undo, board->squares[MoveTo(move)]);
+    if(MoveType(move) == NORMAL_MOVE) {
+        movePiece(board, MoveFrom(move), MoveTo(move));
+    }
+    board->color = !board->color;
+}
+
+void unmakeMove(Board* board, U16 move, Undo* undo) {
+    getUndo(board, undo);
+    if(MoveType(move) == NORMAL_MOVE) {
+        movePiece(board, MoveTo(move), MoveFrom(move));
+        setPiece(board, pieceType(undo->capturedPiece), pieceColor(undo->capturedPiece), MoveTo(move));
+    }
+}
+
+void setUndo(Board* board, Undo* undo, U8 capturedPiece) {
+    undo->capturedPiece = capturedPiece;
+    undo->castling = board->castling;
+    undo->enpassantSquare = board->enpassantSquare;
+    undo->ruleNumber = board->ruleNumber;
+}
+
+void getUndo(Board* board, Undo* undo) {
+    board->castling = undo->castling;
+    board->ruleNumber = undo->ruleNumber;
+    board->castling = undo->castling;
 }
