@@ -27,6 +27,12 @@ enum Castling {
     BL_CASTLING = 8
 };
 
+//Направление
+enum {
+    UP = 0,
+    DOWN = 1
+};
+
 //Обозначения фигур
 extern const char* PieceName[2];
 

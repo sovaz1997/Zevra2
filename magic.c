@@ -11,14 +11,14 @@ const U64 rookMagic[] = {
 };
 
 const U64 bishopMagic[] = { 
-    0x1080001080400820, 0x8140002000300040, 0x4080100080082001, 0x500100020090004, 0x280030800800400, 0x1180018004000200, 0x680010001800200, 0x100004422008100,
-    0x100800220804008, 0x4001c00040201000, 0x1820802000801000, 0x1200801000810800, 0x4210800400080080, 0x2400808004000200, 0x1808051000200, 0x801280024100,
-    0x1080004000d02000, 0x400404010012000, 0xc020008020801000, 0x4818008009000, 0x50018001101, 0x400818002000400, 0x2000040010090802, 0x3000020000408104,
-    0x802400080208008, 0x1005001c0002000, 0x20008880203000, 0x8000900080080180, 0x200080180040080, 0x4000100801402004, 0x81000900220004, 0x8800040200008041,
-    0x800080c1002100, 0x20008100a1004000, 0x820042005020, 0x8020811000800800, 0x102820800800400, 0x800220080800400, 0x401000409000a00, 0x20088000c0800100,
-    0x1880084020004000, 0x4210200040008080, 0x200100410011, 0x400090110010020, 0x2140008008080, 0x84008022008004, 0x404010002008080, 0x210010080420004,
-    0x100400520800080, 0x400201002400440, 0x2200200410008080, 0x2101000820100100, 0x104000802048080, 0x400800a000480, 0x3801000200040100, 0x8001002040820100,
-    0x104280010021, 0x2008100401022, 0x8a000410011, 0x201900100005, 0x200080420100a, 0x4001000400020801, 0x8302100804, 0x1000600802041
+    0x10100088008021, 0x4008102400802000, 0x10018200401008, 0x4042280000240, 0x402021000000404, 0x4002080208000002, 0x858820100000, 0x10140101101000,
+    0x4000101001410400, 0x80888008420, 0x80041404004010, 0x40080841001800, 0x20211400010, 0x1020806084000, 0x800020804048400, 0x42002108021000,
+    0x20008820110200, 0x2200910040080, 0x1001004002144, 0x48002082004000, 0x42c000080a00000, 0x1000601010108, 0x1400401041020, 0x408212008400,
+    0x804200090200100, 0x21080004080840, 0x680010084040, 0x88080000202020, 0x21005001014000, 0x1208002002008400, 0x1020004088410, 0x2000404000840410,
+    0x8045000420200, 0x1082000420420, 0x2008205100020, 0x828080180200, 0x4008404040040100, 0xa0008080010802, 0x4040402008090, 0x812100104400,
+    0x1210820004080, 0x2080402202400, 0x82888001000, 0x10101148000400, 0x20080104000640, 0x1901102000040, 0x200800c4800100, 0x4008010400808020,
+    0xc010148200000, 0x9004804040004, 0x221052080000, 0x8001000042020410, 0x1000801016020000, 0x8000062004010000, 0x20040108012800, 0x10020604012000,
+    0x410800900420, 0x80004404048200, 0x400000184008810, 0x200020001840401, 0x102001010420200, 0x1002004504080, 0x80808880050, 0x202041000820080
 };
 
 void magicGen() {
@@ -44,7 +44,7 @@ void magicGen() {
         int cur_attacks_cnt = popcount(bishopMagicMask[sq]);
         max = (cur_attacks_cnt > max ? cur_attacks_cnt : max);
         
-        U64 magic = magicFind(rookMagicMask[sq]);
+        U64 magic = magicFind(bishopMagicMask[sq]);
         if(sq % 8 == 0) {
             printf("\n");
         }
@@ -78,7 +78,7 @@ U64 magicFind(U64 bitboard) {
 
         if(perfectHashTest(bitboard, magic)) {
             return magic;
-        }        
+        }
     }
 
     return magic;
@@ -128,50 +128,36 @@ void magicArraysInit() {
 
     for(int sq = 0; sq < 64; ++sq) {
         U64 bitboard = rookMagicMask[sq];
+        
         for(int i = 0; i < (1 << (popcount(bitboard))); ++i) {
             U64 occu = getAsIndex(rookMagicMask[sq], i);
 
-
-            char str[6];
-            squareToString(sq, str);
-            //printf("%s:\n", str);
-            //printf("%lld\n", occu);
             
-            U64 directAttack = plus8[sq] & occu;
-            rookPossibleMoves[sq][getMagicIndex(occu, rookMagic[sq], rookPossibleMovesSize[sq])] |= plus8[sq];
-            if(popcount(directAttack)) {
-                int blocker = ctz(directAttack);
-                rookPossibleMoves[sq][getMagicIndex(occu, rookMagic[sq], rookPossibleMovesSize[sq])] ^= plus8[blocker];
-            }
-            directAttack = plus1[sq] & occu;
-            rookPossibleMoves[sq][getMagicIndex(occu, rookMagic[sq], rookPossibleMovesSize[sq])] |= plus1[sq];
-            if(popcount(directAttack)) {
-                int blocker = ctz(directAttack);
-                rookPossibleMoves[sq][getMagicIndex(occu, rookMagic[sq], rookPossibleMovesSize[sq])] ^= plus1[blocker];
-            }
+            U64* possibleMoves = &rookPossibleMoves[sq][getMagicIndex(occu, rookMagic[sq], rookPossibleMovesSize[sq])];
+            *possibleMoves = blockerCut(sq, occu, plus8, UP, *possibleMoves);
+            *possibleMoves = blockerCut(sq, occu, plus1, UP, *possibleMoves);
+            *possibleMoves = blockerCut(sq, occu, minus8, DOWN, *possibleMoves);
+            *possibleMoves = blockerCut(sq, occu, minus1, DOWN, *possibleMoves);
 
-            directAttack = minus8[sq] & occu;
-            rookPossibleMoves[sq][getMagicIndex(occu, rookMagic[sq], rookPossibleMovesSize[sq])] |= minus8[sq];
-            if(popcount(directAttack)) {
-                int blocker = 63 - clz(directAttack);
-                rookPossibleMoves[sq][getMagicIndex(occu, rookMagic[sq], rookPossibleMovesSize[sq])] ^= minus8[blocker];
-            }
+            occu = getAsIndex(bishopMagicMask[sq], i);
 
-            directAttack = minus1[sq] & occu;
-            rookPossibleMoves[sq][getMagicIndex(occu, rookMagic[sq], rookPossibleMovesSize[sq])] |= minus1[sq];
-            if(popcount(directAttack)) {
-                int blocker = 63 - clz(directAttack);
-                rookPossibleMoves[sq][getMagicIndex(occu, rookMagic[sq], rookPossibleMovesSize[sq])] ^= minus1[blocker];
-            }
-
-            //printf("\n");
-            //if(occu == 281474976710782) {
-                //printf("%d\n", rookPossibleMovesSize[sq]);
-                //printBitboard(rookPossibleMoves[sq][getMagicIndex(occu, rookMagic[sq], rookPossibleMovesSize[sq])]);
-                //printf("%d\n", getMagicIndex(occu, rookMagic[sq], rookPossibleMovesSize[sq]));
-            //}
+            possibleMoves = &bishopPossibleMoves[sq][getMagicIndex(occu, bishopMagic[sq], bishopPossibleMovesSize[sq])];
+            *possibleMoves = blockerCut(sq, occu, plus9, UP, *possibleMoves);
+            *possibleMoves = blockerCut(sq, occu, plus7, UP, *possibleMoves);
+            *possibleMoves = blockerCut(sq, occu, minus9, DOWN, *possibleMoves);
+            *possibleMoves = blockerCut(sq, occu, minus7, DOWN, *possibleMoves);        
         }
     }
+}
+
+U64 blockerCut(int from, U64 occu, U64* directionArray, int direction, U64 possibleMoves) {
+    U64 directAttack = occu & directionArray[from];
+    possibleMoves |= directionArray[from];
+    if(popcount(directAttack)) {
+        int blocker = ((direction == UP) ? ctz(directAttack) : 63 - clz(directAttack));
+        return possibleMoves ^ directionArray[blocker];
+    }
+    return possibleMoves;
 }
 
 void preInit() {
