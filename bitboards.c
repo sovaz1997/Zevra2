@@ -26,7 +26,7 @@ void initBitboards() {
         for(int r = rankOf(sq) - 1, f = fileOf(sq) - 1; r >= 0 && f >= 0; --r, --f) {
             setBit(&minus9[sq], square(r, f));
         }
-        for(int r = rankOf(sq) - 1, f = fileOf(sq) + 1; r >= 0 && f < 8; ++r, ++f) {
+        for(int r = rankOf(sq) - 1, f = fileOf(sq) + 1; r >= 0 && f < 8; --r, ++f) {
             setBit(&minus7[sq], square(r, f));
         }
 
@@ -115,6 +115,7 @@ unsigned int clz(U64 bitboard) {
 }
 
 unsigned int ctz(U64 bitboard) {
+    
     return __builtin_ctzll(bitboard);
 }
 

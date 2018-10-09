@@ -4,7 +4,9 @@
 #include "types.h"
 #include "board.h"
 #include "move.h"
+#include "magic.h"
 
 void movegen(Board* board, uint16_t* moveList);
+uint16_t* genMovesFromBitboard(int from, U64 bitboard, uint16_t* moveList);
 
 #endif
