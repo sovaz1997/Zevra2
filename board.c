@@ -107,7 +107,7 @@ U8 clearPiece(Board* board, int square) {
     U8 pieceType = board->squares[square];
     board->pieces[pieceType] &= ~bitboardCell(square);
     board->squares[square] &= ~bitboardCell(square);
-    board->squares[square] == 0;
+    board->squares[square] = 0;
 }
 
 void movePiece(Board* board, int sq1, int sq2) {
@@ -143,6 +143,7 @@ void makeMove(Board* board, U16 move, Undo* undo) {
         movePiece(board, MoveFrom(move), MoveTo(move));
     }
     board->color = !board->color;
+    ++board->moveNumber;
 }
 
 void unmakeMove(Board* board, U16 move, Undo* undo) {
@@ -151,6 +152,8 @@ void unmakeMove(Board* board, U16 move, Undo* undo) {
         movePiece(board, MoveTo(move), MoveFrom(move));
         setPiece(board, pieceType(undo->capturedPiece), pieceColor(undo->capturedPiece), MoveTo(move));
     }
+    board->color = !board->color;
+    --board->moveNumber;
 }
 
 void setUndo(Board* board, Undo* undo, U8 capturedPiece) {

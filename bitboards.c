@@ -49,6 +49,7 @@ void initBitboards() {
 
 void attacksGen() {
     memset(knightAttacks, 0, sizeof(U64) * 64);
+    memset(pawnMoves, 0, sizeof(U64) * 64 * 2);
 
     //Генерация атак ладьи
     for(int sq = 0; sq < 64; ++sq) {
@@ -89,6 +90,28 @@ void attacksGen() {
         }
         if(r - 1 >= 0 && f - 2 >= 0) {
             setBit(&knightAttacks[sq], square(r - 1, f - 2));
+        }
+    }
+
+
+    //Генерация ходов пешки
+    for(int i = square(1, 0); i < square(7, 0); ++i) {
+        if(rankOf(i) == 1) {
+            setBit(&pawnMoves[WHITE][i], i + 8);
+            setBit(&pawnMoves[WHITE][i], i + 16);
+        } else {
+            setBit(&pawnMoves[WHITE][i], i + 8);
+        }
+        printf("%d\n",i);
+        printBitboard(pawnMoves[WHITE][i]);      
+        
+    }
+    for(int i = square(6, 7); i >= square(1, 0); --i) {
+        if(rankOf(i) == 6) {
+            setBit(&pawnMoves[BLACK][i], i - 8);
+            setBit(&pawnMoves[BLACK][i], i - 16);
+        } else {
+            setBit(&pawnMoves[BLACK][i], i - 8);
         }
     }
 }
