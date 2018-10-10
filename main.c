@@ -18,7 +18,7 @@ int main() {
 
     Board* board = (Board*) malloc(sizeof(Board));
 
-    char startpos[] = "rnbqkbnr/pppppppp/8/8/8/n7/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    char startpos[] = "1r6/2P5/8/8/2k5/8/4K3/8 w - - 0 1";
     
     setFen(board, startpos);
     printBoard(board);

@@ -8,6 +8,8 @@
 
 void movegen(Board* board, uint16_t* moveList);
 uint16_t* genMovesFromBitboard(int from, U64 bitboard, uint16_t* moveList);
+uint16_t* genPromoMovesFromBitboard(int from, U64 bitboard, uint16_t* moveList);
 uint16_t* genPawnCaptures(U64 to, int diff, uint16_t* moveList);
+//uint16_t* extendToPromoMove(uint16_t* moveList);
 
 #endif

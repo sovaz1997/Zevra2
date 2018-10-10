@@ -37,7 +37,7 @@ Move - ход, описывается 16 байтами:
 #define MoveTo(move) ((move >> 6) & 63)
 #define MoveType(move) (move & (3 << 12))
 #define MovePromotionType(move) (move & (3 << 14))
-#define MovePromotionPiece(move) (1 + (move & (3 << 14)))
+#define MovePromotionPiece(move) (2 + ((move & (3 << 14)) >> 14))
 
 #define MakeMove(from, to, flags) ((from) | (to) << 6 | (flags))
 

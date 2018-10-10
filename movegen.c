@@ -68,7 +68,10 @@ void movegen(Board* board, uint16_t* moveList) {
             }
         }
 
-        moveList = genMovesFromBitboard(from, possibleMoves, moveList);
+
+        moveList = genMovesFromBitboard(from, possibleMoves & ~(ranks[0] | ranks[7]), moveList);
+        moveList = genPromoMovesFromBitboard(from, possibleMoves & (ranks[0] | ranks[7]), moveList);
+
         clearBit(&mask, from);
     }
 
@@ -100,11 +103,42 @@ uint16_t* genMovesFromBitboard(int from, U64 bitboard, uint16_t* moveList) {
     return moveList;
 }
 
+uint16_t* genPromoMovesFromBitboard(int from, U64 bitboard, uint16_t* moveList) {
+    while(bitboard) {
+        int to = firstOne(bitboard);
+        *(moveList++) = MakeMove(from, to, QUEEN_PROMOTE_MOVE);
+        *(moveList++) = MakeMove(from, to, ROOK_PROMOTE_MOVE);
+        *(moveList++) = MakeMove(from, to, KNIGHT_PROMOTE_MOVE);
+        *(moveList++) = MakeMove(from, to, BISHOP_PROMOTE_MOVE);
+        clearBit(&bitboard, to);
+    }
+    return moveList;
+}
+
 uint16_t* genPawnCaptures(U64 to, int diff, uint16_t* moveList) {
+    
     while(to) {
         int toSq = firstOne(to);
-        *(moveList++) = MakeMove(toSq - diff, toSq, NORMAL_MOVE);
+        
+        if(rankOf(toSq) == 0 || rankOf(toSq) == 7) {
+            *(moveList++) = MakeMove(toSq - diff, toSq, QUEEN_PROMOTE_MOVE);
+            *(moveList++) = MakeMove(toSq - diff, toSq, ROOK_PROMOTE_MOVE);
+            *(moveList++) = MakeMove(toSq - diff, toSq, KNIGHT_PROMOTE_MOVE);
+            *(moveList++) = MakeMove(toSq - diff, toSq, BISHOP_PROMOTE_MOVE);
+        } else {
+            *(moveList++) = MakeMove(toSq - diff, toSq, NORMAL_MOVE);
+        }
+            
+        
         clearBit(&to, toSq);
     }
     return moveList;
 }
+/*
+uint16_t* extendToPromoMove(uint16_t* moveList) {
+    *(moveList++) |= PROMOTE_TO_QUEEN;
+    *(moveList++) |= PROMOTE_TO_ROOK;
+    *(moveList++) |= PROMOTE_TO_KNIGHT;
+    *(moveList++) |= PROMOTE_TO_BISHOP;
+    return moveList;
+}*/
