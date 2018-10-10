@@ -2,6 +2,7 @@
 #define MAGIC_H
 
 #include <stdlib.h>
+#include <inttypes.h>
 #include "types.h"
 #include "bitboards.h"
 #include "board.h"

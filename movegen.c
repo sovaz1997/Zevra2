@@ -46,6 +46,27 @@ void movegen(Board* board, uint16_t* moveList) {
         clearBit(&mask, from);
     }
 
+    mask = board->pieces[PAWN] & our;
+
+    while(mask) {
+        int from = ctz(mask);
+
+        U64 possibleMoves = pawnMoves[color][from] & ~board->colours[color];
+
+        if(color == WHITE) {
+            if(possibleMoves & occu) {
+                possibleMoves &= ~plus8[ctz(possibleMoves & occu)];
+            }
+        } else {
+            if(possibleMoves & occu) {
+                possibleMoves &= ~minus8[63 - clz(possibleMoves & occu)];
+            }
+        }
+
+        moveList = genMovesFromBitboard(from, possibleMoves, moveList);
+        clearBit(&mask, from);
+    }
+
     *moveList = 0;
 }
 

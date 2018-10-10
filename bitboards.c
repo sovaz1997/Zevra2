@@ -101,10 +101,7 @@ void attacksGen() {
             setBit(&pawnMoves[WHITE][i], i + 16);
         } else {
             setBit(&pawnMoves[WHITE][i], i + 8);
-        }
-        printf("%d\n",i);
-        printBitboard(pawnMoves[WHITE][i]);      
-        
+        }        
     }
     for(int i = square(6, 7); i >= square(1, 0); --i) {
         if(rankOf(i) == 6) {

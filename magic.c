@@ -106,9 +106,7 @@ int perfectHashTest(U64 bitboard, U64 magic) {
     return 1;
 }
 
-int getMagicIndex(U64 configuration, U64 magic, int size) {
-    U64 tmp;
-  
+int getMagicIndex(U64 configuration, U64 magic, int size) {  
     return (configuration * magic) >> (64 - size);
 }
 

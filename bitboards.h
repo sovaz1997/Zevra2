@@ -34,9 +34,9 @@ unsigned int popcount(U64 bitboard);
 unsigned int clz(U64 bitboard);
 unsigned int ctz(U64 bitboard);
 
-void setBit(uint64_t* bitboard, int sq);
-int getBit(uint64_t bitboard, int sq);
-void clearBit(uint64_t* bitboard, int sq);
+void setBit(U64* bitboard, int sq);
+int getBit(U64 bitboard, int sq);
+void clearBit(U64* bitboard, int sq);
 int rankOf(int sq);
 int fileOf(int sq);
 

@@ -195,11 +195,6 @@ int isEqual(Board* b1, Board* b2) {
     }
     for(int i = 1; i < 7; ++i) {
         if(b1->pieces[i] != b2->pieces[i]) {
-            printf("%lld\n", b1->pieces[i]);
-            printBitboard(b1->pieces[i]);
-            printf("%lld\n", b2->pieces[i]);
-            printf("\n");
-            printBitboard(b2->pieces[i]);
             return 0;
         }
     }

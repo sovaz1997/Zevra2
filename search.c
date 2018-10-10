@@ -1,9 +1,6 @@
 #include "search.h"
 
 U64 perftTest(Board* board, int depth, int height) {
-    if(height == 1) {
-        printBoard(board);
-    }
     if(!depth) {
         return 1;
     }
@@ -20,7 +17,6 @@ U64 perftTest(Board* board, int depth, int height) {
             printf("%s\n", mv);
         }
         
-        Board b = *board;
         makeMove(board, *curMove, &undo);
         result += perftTest(board, depth - 1, height + 1);
         unmakeMove(board, *curMove, &undo);

@@ -2,8 +2,8 @@ CC = gcc
 CFLAGS = -std=c11 -m64
 SRC = *.c
 OPTIMIZATIONS = -O3 -march=native -flto
-WARNINGS = -Wall -pedantic
-DEBUG = -g -O0 -fno-omit-frame-pointer -gdwarf-2
+WARNINGS = 
+DEBUG = -g -Wall -pedantic -O0 -fno-omit-frame-pointer -gdwarf-2
 OUTPUT = zevra
 
 all:
