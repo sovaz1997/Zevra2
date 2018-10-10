@@ -98,15 +98,16 @@ void printBoardSplitter() {
 }
 
 void setPiece(Board* board, int piece, int color, int square) {
+    clearPiece(board, square);
     board->pieces[piece] |= bitboardCell(square);
     board->colours[color] |= bitboardCell(square);
     board->squares[square] = makePiece(piece, color);
 }
 
-U8 clearPiece(Board* board, int square) {
-    U8 pieceType = board->squares[square];
-    board->pieces[pieceType] &= ~bitboardCell(square);
-    board->squares[square] &= ~bitboardCell(square);
+void clearPiece(Board* board, int square) {
+    U8 piece = board->squares[square];
+    board->pieces[pieceType(piece)] &= ~bitboardCell(square);
+    board->colours[pieceColor(piece)] &= ~bitboardCell(square);
     board->squares[square] = 0;
 }
 
@@ -150,7 +151,9 @@ void unmakeMove(Board* board, U16 move, Undo* undo) {
     getUndo(board, undo);
     if(MoveType(move) == NORMAL_MOVE) {
         movePiece(board, MoveTo(move), MoveFrom(move));
-        setPiece(board, pieceType(undo->capturedPiece), pieceColor(undo->capturedPiece), MoveTo(move));
+        if(undo->capturedPiece) {
+            setPiece(board, pieceType(undo->capturedPiece), pieceColor(undo->capturedPiece), MoveTo(move));
+        }
     }
     board->color = !board->color;
     --board->moveNumber;
@@ -167,4 +170,49 @@ void getUndo(Board* board, Undo* undo) {
     board->castling = undo->castling;
     board->ruleNumber = undo->ruleNumber;
     board->castling = undo->castling;
+}
+
+int isEqual(Board* b1, Board* b2) {
+    if(b1->moveNumber != b2->moveNumber) {
+        printf("moveNumber\n");
+        return 0;
+    }
+    if(b1->ruleNumber != b2->ruleNumber) {
+        printf("ruleNumber\n");
+        return 0;
+    }
+    if(b1->color != b2->color) {
+        printf("ruleNumber\n");
+        return 0;
+    }
+    if(b1->enpassantSquare != b2->enpassantSquare) {
+        printf("ruleNumber\n");
+        return 0;
+    }
+    if(b1->castling != b2->castling) {
+        printf("castling\n");
+        return 0;
+    }
+    for(int i = 1; i < 7; ++i) {
+        if(b1->pieces[i] != b2->pieces[i]) {
+            printf("%lld\n", b1->pieces[i]);
+            printBitboard(b1->pieces[i]);
+            printf("%lld\n", b2->pieces[i]);
+            printf("\n");
+            printBitboard(b2->pieces[i]);
+            return 0;
+        }
+    }
+    for(int i = 0; i < 2; ++i) {
+        if(b1->colours[i] != b2->colours[i]) {
+            return 0;
+        }
+    }
+    for(int i = 0; i < 64; ++i) {
+        if(b1->squares[i] != b2->squares[i]) {
+            return 0;
+        }
+    }
+    return 1;
+
 }

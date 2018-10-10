@@ -39,7 +39,7 @@ int main() {
         ++curMove;
     }*/
 
-    printf("Perft result: %d\n", perftTest(board, 2, 0));
+    printf("Perft result: %d\n", perftTest(board, 9, 0));
 
     free(board);
 

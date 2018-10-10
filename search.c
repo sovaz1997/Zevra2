@@ -20,16 +20,10 @@ U64 perftTest(Board* board, int depth, int height) {
             printf("%s\n", mv);
         }
         
-        //Board b = *board;
+        Board b = *board;
         makeMove(board, *curMove, &undo);
-
-        /*if(!height) {
-            printBoard(board);
-        }*/
         result += perftTest(board, depth - 1, height + 1);
         unmakeMove(board, *curMove, &undo);
-
-        
 
         ++curMove;
     }

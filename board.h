@@ -27,13 +27,15 @@ struct Undo {
     U8 capturedPiece;
 };
 
+int isEqual(Board* b1, Board* b2);
+
 void setFen(Board* board, char* fen);
 void getFen(Board* board, char* fen);
 void clearBoard(Board* board);
 void printBoard(Board* board);
 void printBoardSplitter();
 void setPiece(Board* board, int piece, int color, int square);
-U8 clearPiece(Board* board, int square);
+void clearPiece(Board* board, int square);
 void movePiece(Board* board, int sq1, int sq2);
 void squareToString(int square, char* str);
 int stringToSquare(char* str);

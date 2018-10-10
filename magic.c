@@ -85,7 +85,7 @@ U64 magicFind(U64 bitboard) {
 }
 
 int perfectHashTest(U64 bitboard, U64 magic) {
-    int size = 1 << popcount(bitboard);
+    const int size = 1 << popcount(bitboard);
     
     int array[size];
 
