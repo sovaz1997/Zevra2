@@ -134,21 +134,29 @@ unsigned int clz(U64 bitboard) {
     return __builtin_clzll(bitboard);
 }
 
+unsigned int firstOne(U64 bitboard) {
+    return ctz(bitboard);
+}
+
+unsigned int lastOne(U64 bitboard) {
+    return 63 - clz(bitboard);
+}
+
 unsigned int ctz(U64 bitboard) {
     
     return __builtin_ctzll(bitboard);
 }
 
 void setBit(uint64_t* bitboard, int sq) {
-    (*bitboard) |= (1ull << sq);
+    (*bitboard) |= bitboardCell(sq);
 }
 
 int getBit(uint64_t bitboard, int sq) {
-    return !!(bitboard & (1 << sq));
+    return !!(bitboard & bitboardCell(sq));
 }
 
 void clearBit(uint64_t* bitboard, int sq) {
-    (*bitboard) ^= (1ull << sq);
+    (*bitboard) &= ~bitboardCell(sq);
 }
 
 int rankOf(int sq) {

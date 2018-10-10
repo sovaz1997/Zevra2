@@ -33,6 +33,8 @@ unsigned int square(unsigned int r, unsigned int f);
 unsigned int popcount(U64 bitboard);
 unsigned int clz(U64 bitboard);
 unsigned int ctz(U64 bitboard);
+unsigned int firstOne(U64 bitboard);
+unsigned int lastOne(U64 bitboard);
 
 void setBit(U64* bitboard, int sq);
 int getBit(U64 bitboard, int sq);

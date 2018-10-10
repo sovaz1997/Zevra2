@@ -58,7 +58,7 @@ U64 getAsIndex(U64 bitboard, int index) {
 
 
     for(int shift = 0; bitboard; ++shift) {
-        int sq = ctz(bitboard);
+        int sq = firstOne(bitboard);
 
         if((1ull << shift) & index) {
             setBit(&result, sq);
@@ -152,7 +152,7 @@ U64 blockerCut(int from, U64 occu, U64* directionArray, int direction, U64 possi
     U64 directAttack = occu & directionArray[from];
     possibleMoves |= directionArray[from];
     if(popcount(directAttack)) {
-        int blocker = ((direction == UP) ? ctz(directAttack) : 63 - clz(directAttack));
+        int blocker = ((direction == UP) ? ctz(directAttack) : lastOne(directAttack));
         return possibleMoves ^ directionArray[blocker];
     }
     return possibleMoves;

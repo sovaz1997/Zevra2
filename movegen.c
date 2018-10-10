@@ -11,7 +11,7 @@ void movegen(Board* board, uint16_t* moveList) {
     U64 occu = (our | enemy);
 
     while(mask) {
-        int from = ctz(mask);
+        int from = firstOne(mask);
         U64 possibleMoves = rookPossibleMoves[from][getMagicIndex(occu & rookMagicMask[from] & ~bitboardCell(from), rookMagic[from], rookPossibleMovesSize[from])];
         moveList = genMovesFromBitboard(from, possibleMoves & ~our, moveList);
         clearBit(&mask, from);
@@ -20,7 +20,7 @@ void movegen(Board* board, uint16_t* moveList) {
     mask = board->pieces[BISHOP] & our;
 
     while(mask) {
-        int from = ctz(mask);
+        int from = firstOne(mask);
         U64 possibleMoves = bishopPossibleMoves[from][getMagicIndex(occu & bishopMagicMask[from] & ~bitboardCell(from), bishopMagic[from], bishopPossibleMovesSize[from])];
         moveList = genMovesFromBitboard(from, possibleMoves & ~our, moveList);
         clearBit(&mask, from);
@@ -29,7 +29,7 @@ void movegen(Board* board, uint16_t* moveList) {
     mask = board->pieces[QUEEN] & our;
 
     while(mask) {
-        int from = ctz(mask);
+        int from = firstOne(mask);
         U64 possibleMoves = rookPossibleMoves[from][getMagicIndex(occu & rookMagicMask[from] & ~bitboardCell(from), rookMagic[from], rookPossibleMovesSize[from])];
         possibleMoves |= bishopPossibleMoves[from][getMagicIndex(occu & bishopMagicMask[from] & ~bitboardCell(from), bishopMagic[from], bishopPossibleMovesSize[from])];
         moveList = genMovesFromBitboard(from, possibleMoves & ~our, moveList);
@@ -39,7 +39,7 @@ void movegen(Board* board, uint16_t* moveList) {
     mask = board->pieces[KNIGHT] & our;
 
     while(mask) {
-        int from = ctz(mask);
+        int from = firstOne(mask);
 
         U64 possibleMoves = knightAttacks[from] & ~board->colours[color];
         moveList = genMovesFromBitboard(from, possibleMoves & ~our, moveList);
@@ -49,17 +49,17 @@ void movegen(Board* board, uint16_t* moveList) {
     mask = board->pieces[PAWN] & our;
 
     while(mask) {
-        int from = ctz(mask);
+        int from = firstOne(mask);
 
         U64 possibleMoves = pawnMoves[color][from] & ~board->colours[color];
 
         if(color == WHITE) {
             if(possibleMoves & occu) {
-                possibleMoves &= ~plus8[ctz(possibleMoves & occu)];
+                possibleMoves &= ~plus8[firstOne(possibleMoves & occu)];
             }
         } else {
             if(possibleMoves & occu) {
-                possibleMoves &= ~minus8[63 - clz(possibleMoves & occu)];
+                possibleMoves &= ~minus8[lastOne(possibleMoves & occu)];
             }
         }
 
@@ -72,7 +72,7 @@ void movegen(Board* board, uint16_t* moveList) {
 
 uint16_t* genMovesFromBitboard(int from, U64 bitboard, uint16_t* moveList) {
     while(bitboard) {
-        int to = ctz(bitboard);
+        int to = firstOne(bitboard);
         *(moveList++) = MakeMove(from, to, NORMAL_MOVE);
         clearBit(&bitboard, to);
     }

@@ -99,15 +99,15 @@ void printBoardSplitter() {
 
 void setPiece(Board* board, int piece, int color, int square) {
     clearPiece(board, square);
-    board->pieces[piece] |= bitboardCell(square);
-    board->colours[color] |= bitboardCell(square);
+    setBit(&board->pieces[piece], square);
+    setBit(&board->colours[color], square);
     board->squares[square] = makePiece(piece, color);
 }
 
 void clearPiece(Board* board, int square) {
     U8 piece = board->squares[square];
-    board->pieces[pieceType(piece)] &= ~bitboardCell(square);
-    board->colours[pieceColor(piece)] &= ~bitboardCell(square);
+    clearBit(&board->pieces[pieceType(piece)], square);
+    clearBit(&board->colours[pieceColor(piece)], square);
     board->squares[square] = 0;
 }
 
