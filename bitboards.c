@@ -6,6 +6,11 @@ void initBitboards() {
         files[i] = (72340172838076673ull << i);
     }
 
+    shortCastlingBitboard[WHITE] = bitboardCell(square(0, 4)) | bitboardCell(square(0, 7));
+    longCastlingBitboard[WHITE] = bitboardCell(square(0, 4)) | bitboardCell(square(0, 0));
+    shortCastlingBitboard[BLACK] = bitboardCell(square(7, 4)) | bitboardCell(square(7, 7));
+    longCastlingBitboard[BLACK] = bitboardCell(square(7, 4)) | bitboardCell(square(7, 0));
+
     //Инициализация лучей
     memset(plus1, 0, sizeof(U64) * 64);
     memset(plus7, 0, sizeof(U64) * 64);

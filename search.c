@@ -11,6 +11,7 @@ U64 perftTest(Board* board, int depth, int height) {
     U16* curMove = moves[height];
     Undo undo;
     while(*curMove) {
+        Board b = *board;
         makeMove(board, *curMove, &undo);
         U64 count = 0;
         if(!inCheck(board, !board->color)) {
@@ -19,13 +20,18 @@ U64 perftTest(Board* board, int depth, int height) {
             if(!height) {
                 char mv[6];
                 moveToString(*curMove, mv);
-                printf("%s: %d\n", mv, count);
+                printf("%s: %llu\n", mv, count);
             }
         }
 
         result += count;
 
         unmakeMove(board, *curMove, &undo);
+
+        if(!isEqual(&b, board)) {
+            printf("!!!!!!!!!!!!\n");
+        }
+        //*board = b;
 
         ++curMove;
     }

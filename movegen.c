@@ -106,6 +106,39 @@ void movegen(Board* board, uint16_t* moveList) {
         moveList = genPawnCaptures(leftAttacks, -7, moveList);
     }
 
+    //Рокировки
+    U8 king = makePiece(KING, color);
+    U8 rook = makePiece(ROOK, color);
+    int castlingRank = (color == WHITE ? 0 : 7);
+
+    if((board->castling & shortCastlingBitboard[color]) == shortCastlingBitboard[color]) {
+        if(board->squares[square(castlingRank, 4)] == king
+        && board->squares[square(castlingRank, 7)] == rook
+        && !board->squares[square(castlingRank, 5)]
+        && !board->squares[square(castlingRank, 6)]) {
+            if(!attackedSquare(board, square(castlingRank, 4), color)
+            && !attackedSquare(board, square(castlingRank, 5), color)
+            && !attackedSquare(board, square(castlingRank, 6), color)) {
+                *(moveList++) = MakeMove(square(castlingRank, 4), square(castlingRank, 6), CASTLE_MOVE);
+            }
+        }
+    }
+
+    if((board->castling & longCastlingBitboard[color]) == longCastlingBitboard[color]) {
+        if(board->squares[square(castlingRank, 4)] == king
+        && board->squares[square(castlingRank, 0)] == rook
+        && !board->squares[square(castlingRank, 3)]
+        && !board->squares[square(castlingRank, 2)]
+        && !board->squares[square(castlingRank, 1)]
+        ) {
+            if(!attackedSquare(board, square(castlingRank, 4), color)
+            && !attackedSquare(board, square(castlingRank, 3), color)
+            && !attackedSquare(board, square(castlingRank, 2), color)) {
+                *(moveList++) = MakeMove(square(castlingRank, 4), square(castlingRank, 2), CASTLE_MOVE);
+            }
+        }
+    }
+
     *moveList = 0;
 }
 

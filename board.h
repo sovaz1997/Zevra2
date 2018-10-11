@@ -10,11 +10,11 @@
 #include "move.h"
 
 struct Board {
-    int moveNumber;
     int ruleNumber;
-    int color;
     int enpassantSquare;
-    int castling;
+    U64 castling;
+    int moveNumber;
+    int color;
     U64 pieces[7];
     U64 colours[2];
     U8 squares[64];
@@ -23,7 +23,7 @@ struct Board {
 struct Undo {
     int ruleNumber;
     int enpassantSquare;
-    int castling;
+    U64 castling;
     U8 capturedPiece;
 };
 

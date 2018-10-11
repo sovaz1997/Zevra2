@@ -19,13 +19,14 @@ int main() {
     Board* board = (Board*) malloc(sizeof(Board));
 
 
-    char startpos[] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    char startpos[] = "r3kbnr/8/8/8/8/3q3b/7B/RN1QKBNR b KQkq - 2 3";
     //char startpos[] = "r1b1k2r/p3bp1p/2nppqpn/1pp5/2PP4/PPNBPN1P/5PP1/R1BQK2R w KQkq - 1 10";
     
     setFen(board, startpos);
     printBoard(board);
     //moveGenTest(board);
     printf("All: %llu\n", perftTest(board, 5, 0));
+    printBoard(board);
     free(board);
 
     return 0;

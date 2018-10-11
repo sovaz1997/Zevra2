@@ -39,7 +39,7 @@ Move - ход, описывается 16 байтами:
 #define MovePromotionType(move) (move & (3 << 14))
 #define MovePromotionPiece(move) (2 + ((move & (3 << 14)) >> 14))
 
-#define MakeMove(from, to, flags) ((from) | (to) << 6 | (flags))
+#define MakeMove(from, to, flags) ((from) | ((to) << 6) | (flags))
 
 //Функции
 void moveToString(U16 move, char* str);

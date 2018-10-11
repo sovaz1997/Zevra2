@@ -40,13 +40,13 @@ void setFen(Board* board, char* fen) {
 
     while(*castlings_str) {
         if(*castlings_str == 'K') {
-            board->castling |= WS_CASTLING;
+            board->castling |= shortCastlingBitboard[WHITE];
         } else if(*castlings_str == 'Q') {
-            board->castling |= WL_CASTLING;
+            board->castling |= longCastlingBitboard[WHITE];
         } else if(*castlings_str == 'k') {
-            board->castling |= BL_CASTLING;
+            board->castling |= shortCastlingBitboard[BLACK];
         } else if(*castlings_str == 'q') {
-            board->castling |= BL_CASTLING;
+            board->castling |= longCastlingBitboard[BLACK];
         }
 
         ++castlings_str;
@@ -144,21 +144,40 @@ void printPiece(U8 piece) {
 
 void makeMove(Board* board, U16 move, Undo* undo) {
     setUndo(board, undo, board->squares[MoveTo(move)]);
-    if(MoveType(move) == NORMAL_MOVE) {
-        movePiece(board, MoveFrom(move), MoveTo(move));
+    
+    movePiece(board, MoveFrom(move), MoveTo(move));
+    if(MoveType(move) == CASTLE_MOVE) {
+        U8 king = makePiece(KING, board->color);
+        int castlingRank = (board->color == WHITE ? 0 : 7);
+        if(board->squares[square(castlingRank, 6)] == king) {
+            movePiece(board, square(castlingRank, 7), square(castlingRank, 5));
+        } else if(board->squares[square(castlingRank, 2)] == king) {
+            movePiece(board, square(castlingRank, 0), square(castlingRank, 3));
+        }
     }
     board->color = !board->color;
     ++board->moveNumber;
+    board->castling &= (board->pieces[KING] | board->pieces[ROOK]);
 }
 
 void unmakeMove(Board* board, U16 move, Undo* undo) {
     getUndo(board, undo);
-    if(MoveType(move) == NORMAL_MOVE) {
-        movePiece(board, MoveTo(move), MoveFrom(move));
-        if(undo->capturedPiece) {
-            setPiece(board, pieceType(undo->capturedPiece), pieceColor(undo->capturedPiece), MoveTo(move));
+    if(MoveType(move) == CASTLE_MOVE) {
+        int castlingRank = (!board->color == WHITE ? 0 : 7);
+        U8 king = makePiece(KING, !board->color);        
+
+        if(board->squares[square(castlingRank, 6)] == king) {
+            movePiece(board, square(castlingRank, 5), square(castlingRank, 7));
+        } else if(board->squares[square(castlingRank, 2)] == king) {
+            movePiece(board, square(castlingRank, 3), square(castlingRank, 0));
         }
     }
+
+    movePiece(board, MoveTo(move), MoveFrom(move));
+    if(undo->capturedPiece) {
+        setPiece(board, pieceType(undo->capturedPiece), pieceColor(undo->capturedPiece), MoveTo(move));
+    }
+    
     board->color = !board->color;
     --board->moveNumber;
 }
@@ -173,7 +192,7 @@ void setUndo(Board* board, Undo* undo, U8 capturedPiece) {
 void getUndo(Board* board, Undo* undo) {
     board->castling = undo->castling;
     board->ruleNumber = undo->ruleNumber;
-    board->castling = undo->castling;
+    board->enpassantSquare = undo->enpassantSquare;
 }
 
 int isEqual(Board* b1, Board* b2) {
@@ -199,6 +218,10 @@ int isEqual(Board* b1, Board* b2) {
     }
     for(int i = 1; i < 7; ++i) {
         if(b1->pieces[i] != b2->pieces[i]) {
+            printf("pieces\n");
+            printBitboard(b1->pieces[i]);
+            printf("\n");
+            printBitboard(b2->pieces[i]);
             return 0;
         }
     }

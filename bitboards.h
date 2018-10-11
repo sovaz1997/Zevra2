@@ -30,6 +30,10 @@ U64 unSquareBitboard[64];
 
 #define bitboardCell(cell_nb) (1ull << (cell_nb))
 
+//битбоарды для определения возможности рокировки
+U64 shortCastlingBitboard[2];
+U64 longCastlingBitboard[2];
+
 void initBitboards();
 void attacksGen();
 
