@@ -213,42 +213,50 @@ int isEqual(Board* b1, Board* b2) {
 }
 
 int attackedSquare(Board* board, int sq, int color) {
-    U8 attackPiece = firstAttacker(board, plus8[sq]);
+    if(sq == 52) {
+        printf("%d\n", sq);
+    }
+
+    U64 occu = board->colours[color] | board->colours[!color];
+
+    U8 attackPiece = firstAttacker(board, plus8[sq] & occu);
     if(attackPiece == makePiece(QUEEN, !color) || attackPiece == makePiece(ROOK, !color)) {
         return 1;
     }
 
-    attackPiece = firstAttacker(board, plus1[sq]);
+    attackPiece = firstAttacker(board, plus1[sq] & occu);
     if(attackPiece == makePiece(QUEEN, !color) || attackPiece == makePiece(ROOK, !color)) {
         return 1;
     }
 
-    attackPiece = firstAttacker(board, plus7[sq]);
+    attackPiece = firstAttacker(board, plus7[sq] & occu);
     if(attackPiece == makePiece(QUEEN, !color) || attackPiece == makePiece(BISHOP, !color)) {
         return 1;
     }
 
-    attackPiece = firstAttacker(board, plus9[sq]);
+    attackPiece = firstAttacker(board, plus9[sq] & occu);
     if(attackPiece == makePiece(QUEEN, !color) || attackPiece == makePiece(BISHOP, !color)) {
         return 1;
     }
 
-    attackPiece = lastAttacker(board, minus8[sq]);
+    attackPiece = lastAttacker(board, minus8[sq] & occu);
     if(attackPiece == makePiece(QUEEN, !color) || attackPiece == makePiece(ROOK, !color)) {
         return 1;
     }
 
-    attackPiece = lastAttacker(board, minus1[sq]);
+    attackPiece = lastAttacker(board, minus1[sq] & occu);
     if(attackPiece == makePiece(QUEEN, !color) || attackPiece == makePiece(ROOK, !color)) {
         return 1;
     }
 
-    attackPiece = lastAttacker(board, minus7[sq]);
+    attackPiece = lastAttacker(board, minus7[sq] & occu);
     if(attackPiece == makePiece(QUEEN, !color) || attackPiece == makePiece(BISHOP, !color)) {
         return 1;
     }
 
-    attackPiece = lastAttacker(board, minus9[sq]);
+    attackPiece = lastAttacker(board, minus9[sq] & occu);
+    
+    
     if(attackPiece == makePiece(QUEEN, !color) || attackPiece == makePiece(BISHOP, !color)) {
         return 1;
     }
