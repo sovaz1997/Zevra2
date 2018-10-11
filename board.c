@@ -263,6 +263,10 @@ int attackedSquare(Board* board, int sq, int color) {
         return 1;
     }
 
+    if(knightAttacks[sq] & (board->colours[!color] & board->pieces[KNIGHT])) {
+        return 1;
+    }
+
     U64 enemyPawns = board->colours[!color] & board->pieces[PAWN];
     if(color == WHITE) {
         U64 attackedSquares = ((enemyPawns << 9) & ~files[7]) | ((enemyPawns << 7) & ~files[0]);

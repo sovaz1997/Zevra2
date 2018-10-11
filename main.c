@@ -20,11 +20,12 @@ int main() {
 
 
     char startpos[] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    //char startpos[] = "r1b1k2r/p3bp1p/2nppqpn/1pp5/2PP4/PPNBPN1P/5PP1/R1BQK2R w KQkq - 1 10";
     
     setFen(board, startpos);
     printBoard(board);
     //moveGenTest(board);
-    printf("All: %llu\n", perftTest(board, 6, 0));
+    printf("All: %llu\n", perftTest(board, 5, 0));
     free(board);
 
     return 0;
