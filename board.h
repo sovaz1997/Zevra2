@@ -45,6 +45,11 @@ void makeMove(Board* board, U16 move, Undo* undo);
 void unmakeMove(Board* board, U16 move, Undo* undo);
 void setUndo(Board* board, Undo* undo, U8 capturedPiece);
 void getUndo(Board* board, Undo* undo);
+int attackedSquare(Board* board, int sq, int color);
+int inCheck(Board* board, int color);
+
+U8 firstAttacker(Board* board, U64 bitboard);
+U8 lastAttacker(Board* board, U64 bitboard);
 
 #define pieceType(piece) ((piece) >> 1)
 #define pieceColor(piece) ((piece) & 1)

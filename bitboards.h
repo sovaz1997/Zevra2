@@ -11,6 +11,7 @@ U64 ranks[8];
 U64 rookAttacks[64];
 U64 bishopAttacks[64];
 U64 knightAttacks[64];
+U64 kingAttacks[64];
 U64 pawnMoves[2][64];
 
 //Массивы лучей

@@ -93,6 +93,39 @@ void attacksGen() {
         }
     }
 
+    //Генерация атак короля
+
+    for(int sq = 0; sq < 64; ++sq) {
+        int r = rankOf(sq);
+        int f = fileOf(sq);
+
+        if(r + 1 < 8 && f + 1 < 8) {
+            setBit(&kingAttacks[sq], square(r + 1, f + 1));
+        }
+        if(r + 1 < 8 && f - 1 >= 0) {
+            setBit(&kingAttacks[sq], square(r + 1, f - 1));
+        }
+        if(r + 1 < 8) {
+            setBit(&kingAttacks[sq], square(r + 1, f));
+        }
+
+        if(r - 1 >= 0 && f + 1 < 8) {
+            setBit(&kingAttacks[sq], square(r - 1, f + 1));
+        }
+        if(r - 1 >= 0 && f - 1 >= 0) {
+            setBit(&kingAttacks[sq], square(r - 1, f - 1));
+        }
+        if(r - 1 >= 0) {
+            setBit(&kingAttacks[sq], square(r - 1, f));
+        }
+
+        if(f + 1 < 8) {
+            setBit(&kingAttacks[sq], square(r, f + 1));
+        }
+        if(f - 1 >= 0) {
+            setBit(&kingAttacks[sq], square(r, f - 1));
+        }
+    }
 
     //Генерация ходов пешки
     for(int i = square(1, 0); i < square(7, 0); ++i) {

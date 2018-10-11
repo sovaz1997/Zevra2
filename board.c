@@ -211,3 +211,85 @@ int isEqual(Board* b1, Board* b2) {
     return 1;
 
 }
+
+int attackedSquare(Board* board, int sq, int color) {
+    U8 attackPiece = firstAttacker(board, plus8[sq]);
+    if(attackPiece == makePiece(QUEEN, !color) || attackPiece == makePiece(ROOK, !color)) {
+        return 1;
+    }
+
+    attackPiece = firstAttacker(board, plus1[sq]);
+    if(attackPiece == makePiece(QUEEN, !color) || attackPiece == makePiece(ROOK, !color)) {
+        return 1;
+    }
+
+    attackPiece = firstAttacker(board, plus7[sq]);
+    if(attackPiece == makePiece(QUEEN, !color) || attackPiece == makePiece(BISHOP, !color)) {
+        return 1;
+    }
+
+    attackPiece = firstAttacker(board, plus9[sq]);
+    if(attackPiece == makePiece(QUEEN, !color) || attackPiece == makePiece(BISHOP, !color)) {
+        return 1;
+    }
+
+    attackPiece = lastAttacker(board, minus8[sq]);
+    if(attackPiece == makePiece(QUEEN, !color) || attackPiece == makePiece(ROOK, !color)) {
+        return 1;
+    }
+
+    attackPiece = lastAttacker(board, minus1[sq]);
+    if(attackPiece == makePiece(QUEEN, !color) || attackPiece == makePiece(ROOK, !color)) {
+        return 1;
+    }
+
+    attackPiece = lastAttacker(board, minus7[sq]);
+    if(attackPiece == makePiece(QUEEN, !color) || attackPiece == makePiece(BISHOP, !color)) {
+        return 1;
+    }
+
+    attackPiece = lastAttacker(board, minus9[sq]);
+    if(attackPiece == makePiece(QUEEN, !color) || attackPiece == makePiece(BISHOP, !color)) {
+        return 1;
+    }
+
+    U64 enemyPawns = board->colours[!color] & board->pieces[PAWN];
+    if(color == WHITE) {
+        U64 attackedSquares = ((enemyPawns << 9) & ~files[7]) | ((enemyPawns << 7) & ~files[0]);
+        if(attackedSquares & bitboardCell(sq)) {
+            return 1;
+        }
+    } else {
+        U64 attackedSquares = ((enemyPawns >> 9) & ~files[0]) | ((enemyPawns >> 7) & ~files[7]);
+        if(attackedSquares & bitboardCell(sq)) {
+            return 1;
+        }
+    }
+
+    if(kingAttacks[firstOne(board->colours[!color] & board->pieces[KING])] & bitboardCell(sq)) {
+        return 1;
+    }
+
+    return 0;
+}
+
+int inCheck(Board* board, int color) {
+    int kingPosition = firstOne(board->colours[color] & board->pieces[KING]);
+    return attackedSquare(board, kingPosition, color);
+}
+
+U8 firstAttacker(Board* board, U64 bitboard) {
+    if(!bitboard) {
+        return 0;
+    }
+
+    return board->squares[firstOne(bitboard)];
+}
+
+U8 lastAttacker(Board* board, U64 bitboard) {
+    if(!bitboard) {
+        return 0;
+    }
+
+    return board->squares[lastOne(bitboard)];
+}
