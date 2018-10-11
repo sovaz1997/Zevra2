@@ -24,6 +24,10 @@ U64 minus7[64];
 U64 plus9[64];
 U64 minus9[64];
 
+//Маски
+U64 squareBitboard[64];
+U64 unSquareBitboard[64];
+
 #define bitboardCell(cell_nb) (1ull << (cell_nb))
 
 void initBitboards();

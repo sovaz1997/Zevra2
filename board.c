@@ -105,6 +105,10 @@ void setPiece(Board* board, int piece, int color, int square) {
 }
 
 void clearPiece(Board* board, int square) {
+    if(!board->squares[square]) {
+        return;
+    }
+    
     U8 piece = board->squares[square];
     clearBit(&board->pieces[pieceType(piece)], square);
     clearBit(&board->colours[pieceColor(piece)], square);
@@ -213,68 +217,66 @@ int isEqual(Board* b1, Board* b2) {
 }
 
 int attackedSquare(Board* board, int sq, int color) {
-    if(sq == 52) {
-        printf("%d\n", sq);
-    }
-
     U64 occu = board->colours[color] | board->colours[!color];
 
+    U8 enemyQueen = makePiece(QUEEN, !color);
+    U8 enemyRook = makePiece(ROOK, !color);
+    U8 enemyBishop = makePiece(BISHOP, !color);
+
     U8 attackPiece = firstAttacker(board, plus8[sq] & occu);
-    if(attackPiece == makePiece(QUEEN, !color) || attackPiece == makePiece(ROOK, !color)) {
+    if(attackPiece == enemyQueen || attackPiece == enemyRook) {
         return 1;
     }
 
     attackPiece = firstAttacker(board, plus1[sq] & occu);
-    if(attackPiece == makePiece(QUEEN, !color) || attackPiece == makePiece(ROOK, !color)) {
+    if(attackPiece == enemyQueen || attackPiece == enemyRook) {
         return 1;
     }
 
     attackPiece = firstAttacker(board, plus7[sq] & occu);
-    if(attackPiece == makePiece(QUEEN, !color) || attackPiece == makePiece(BISHOP, !color)) {
+    if(attackPiece == enemyQueen || attackPiece == enemyBishop) {
         return 1;
     }
 
     attackPiece = firstAttacker(board, plus9[sq] & occu);
-    if(attackPiece == makePiece(QUEEN, !color) || attackPiece == makePiece(BISHOP, !color)) {
+    if(attackPiece == enemyQueen || attackPiece == enemyBishop) {
         return 1;
     }
 
     attackPiece = lastAttacker(board, minus8[sq] & occu);
-    if(attackPiece == makePiece(QUEEN, !color) || attackPiece == makePiece(ROOK, !color)) {
+    if(attackPiece == enemyQueen || attackPiece == enemyRook) {
         return 1;
     }
 
     attackPiece = lastAttacker(board, minus1[sq] & occu);
-    if(attackPiece == makePiece(QUEEN, !color) || attackPiece == makePiece(ROOK, !color)) {
+    if(attackPiece == enemyQueen || attackPiece == enemyRook) {
         return 1;
     }
 
     attackPiece = lastAttacker(board, minus7[sq] & occu);
-    if(attackPiece == makePiece(QUEEN, !color) || attackPiece == makePiece(BISHOP, !color)) {
+    if(attackPiece == enemyQueen || attackPiece == enemyBishop) {
         return 1;
     }
 
     attackPiece = lastAttacker(board, minus9[sq] & occu);
-    
-    
-    if(attackPiece == makePiece(QUEEN, !color) || attackPiece == makePiece(BISHOP, !color)) {
+    if(attackPiece == enemyQueen || attackPiece == enemyBishop) {
         return 1;
     }
 
     U64 enemyPawns = board->colours[!color] & board->pieces[PAWN];
     if(color == WHITE) {
         U64 attackedSquares = ((enemyPawns << 9) & ~files[7]) | ((enemyPawns << 7) & ~files[0]);
-        if(attackedSquares & bitboardCell(sq)) {
+        if(attackedSquares & squareBitboard[sq]) {
             return 1;
         }
     } else {
         U64 attackedSquares = ((enemyPawns >> 9) & ~files[0]) | ((enemyPawns >> 7) & ~files[7]);
-        if(attackedSquares & bitboardCell(sq)) {
+        if(attackedSquares & squareBitboard[sq]) {
             return 1;
         }
     }
 
-    if(kingAttacks[firstOne(board->colours[!color] & board->pieces[KING])] & bitboardCell(sq)) {
+    if(kingAttacks[firstOne(board->colours[!color] & board->pieces[KING])] & squareBitboard[sq]) {
         return 1;
     }
 

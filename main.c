@@ -24,7 +24,7 @@ int main() {
     setFen(board, startpos);
     printBoard(board);
     //moveGenTest(board);
-    printf("All: %llu\n", perftTest(board, 4, 0));
+    printf("All: %llu\n", perftTest(board, 6, 0));
     free(board);
 
     return 0;

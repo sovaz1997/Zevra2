@@ -15,6 +15,13 @@ void initBitboards() {
     memset(minus7, 0, sizeof(U64) * 64);
     memset(minus8, 0, sizeof(U64) * 64);
     memset(minus9, 0, sizeof(U64) * 64);
+    memset(squareBitboard, 0, sizeof(U64) * 64);
+    memset(unSquareBitboard, 0, sizeof(U64) * 64);
+
+    for(int sq = 0; sq < 64; ++sq) {
+        squareBitboard[sq] = bitboardCell(sq);
+        unSquareBitboard[sq] = ~squareBitboard[sq];
+    }
 
     for(int sq = 0; sq < 64; ++sq) {
         for(int r = rankOf(sq) + 1, f = fileOf(sq) + 1; r < 8 && f < 8; ++r, ++f) {
@@ -181,15 +188,15 @@ unsigned int ctz(U64 bitboard) {
 }
 
 void setBit(uint64_t* bitboard, int sq) {
-    (*bitboard) |= bitboardCell(sq);
+    (*bitboard) |= squareBitboard[sq];
 }
 
 int getBit(uint64_t bitboard, int sq) {
-    return !!(bitboard & bitboardCell(sq));
+    return !!(bitboard & squareBitboard[sq]);
 }
 
 void clearBit(uint64_t* bitboard, int sq) {
-    (*bitboard) &= ~bitboardCell(sq);
+    (*bitboard) &= unSquareBitboard[sq];
 }
 
 int rankOf(int sq) {
