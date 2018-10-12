@@ -34,6 +34,7 @@ U64 unSquareBitboard[64];
 U64 shortCastlingBitboard[2];
 U64 longCastlingBitboard[2];
 
+
 void initBitboards();
 void attacksGen();
 

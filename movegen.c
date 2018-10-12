@@ -83,7 +83,6 @@ void movegen(Board* board, uint16_t* moveList) {
             }
         }
 
-
         moveList = genMovesFromBitboard(from, possibleMoves & ~(ranks[0] | ranks[7]), moveList);
         moveList = genPromoMovesFromBitboard(from, possibleMoves & (ranks[0] | ranks[7]), moveList);
 
@@ -92,18 +91,28 @@ void movegen(Board* board, uint16_t* moveList) {
 
     //Пешка (взятия)
     mask = board->pieces[PAWN] & our;
+    U64 rightAttacks, leftAttacks;
 
     if(color == WHITE) {
-        U64 rightAttacks = (mask << 9) & ~files[0] & enemy;
-        moveList = genPawnCaptures(rightAttacks, 9, moveList);
-        U64 leftAttacks = (mask << 7) & ~files[7] & enemy;
-        moveList = genPawnCaptures(leftAttacks, 7, moveList);
-    } else {
-        U64 rightAttacks = (mask >> 9) & ~files[7] & enemy;
-        moveList = genPawnCaptures(rightAttacks, -9, moveList);
+        rightAttacks = (mask << 9) & ~files[0] & enemy;
+        moveList = genPawnCaptures(rightAttacks, 9, moveList, NORMAL_MOVE);
+        leftAttacks = (mask << 7) & ~files[7] & enemy;
+        moveList = genPawnCaptures(leftAttacks, 7, moveList, NORMAL_MOVE);
 
-        U64 leftAttacks = (mask >> 7) & ~files[0] & enemy;
-        moveList = genPawnCaptures(leftAttacks, -7, moveList);
+        rightAttacks = (mask << 9) & squareBitboard[board->enpassantSquare];
+        moveList = genPawnCaptures(rightAttacks, 9, moveList, ENPASSANT_MOVE);
+        leftAttacks = (mask << 7) & squareBitboard[board->enpassantSquare];
+        moveList = genPawnCaptures(leftAttacks, 7, moveList, ENPASSANT_MOVE);
+    } else {
+        rightAttacks = (mask >> 9) & ~files[7] & enemy;
+        moveList = genPawnCaptures(rightAttacks, -9, moveList, NORMAL_MOVE);
+        leftAttacks = (mask >> 7) & ~files[0] & enemy;
+        moveList = genPawnCaptures(leftAttacks, -7, moveList, NORMAL_MOVE);
+
+        rightAttacks = (mask >> 9) & squareBitboard[board->enpassantSquare];
+        moveList = genPawnCaptures(rightAttacks, -9, moveList, ENPASSANT_MOVE);
+        leftAttacks = (mask >> 7) & squareBitboard[board->enpassantSquare];
+        moveList = genPawnCaptures(leftAttacks, -7, moveList, ENPASSANT_MOVE);
     }
 
     //Рокировки
@@ -163,7 +172,7 @@ uint16_t* genPromoMovesFromBitboard(int from, U64 bitboard, uint16_t* moveList) 
     return moveList;
 }
 
-uint16_t* genPawnCaptures(U64 to, int diff, uint16_t* moveList) {
+uint16_t* genPawnCaptures(U64 to, int diff, uint16_t* moveList, U16 flags) {
     
     while(to) {
         int toSq = firstOne(to);
@@ -174,7 +183,7 @@ uint16_t* genPawnCaptures(U64 to, int diff, uint16_t* moveList) {
             *(moveList++) = MakeMove(toSq - diff, toSq, KNIGHT_PROMOTE_MOVE);
             *(moveList++) = MakeMove(toSq - diff, toSq, BISHOP_PROMOTE_MOVE);
         } else {
-            *(moveList++) = MakeMove(toSq - diff, toSq, NORMAL_MOVE);
+            *(moveList++) = MakeMove(toSq - diff, toSq, NORMAL_MOVE | flags);
         }
             
         

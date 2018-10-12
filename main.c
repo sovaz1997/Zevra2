@@ -25,7 +25,14 @@ int main() {
     setFen(board, startpos);
     printBoard(board);
     //moveGenTest(board);
-    printf("All: %llu\n", perftTest(board, 6, 0));
+
+    clock_t start = clock();
+    U64 nodes = perftTest(board, 6, 0);
+    printf("Nodes: %llu\n", nodes);
+    clock_t end = clock();
+    if(end - start) {
+        printf("Speed: %d\n", nodes / (end - start));
+    }
     printBoard(board);
     free(board);
 

@@ -53,7 +53,7 @@ void setFen(Board* board, char* fen) {
     }
 
     //Установка поля взятия на проходе
-    board->enpassantSquare = (*enpassantSquare_str == '-' ? -1 : stringToSquare(enpassantSquare_str));
+    board->enpassantSquare = (*enpassantSquare_str == '-' ? 0 : stringToSquare(enpassantSquare_str));
     
     //Установка номера ходв без взятий и проведений пешек
     board->ruleNumber = atoi(ruleNumber_str);
@@ -146,6 +146,7 @@ void makeMove(Board* board, U16 move, Undo* undo) {
     setUndo(board, undo, board->squares[MoveTo(move)]);
     
     movePiece(board, MoveFrom(move), MoveTo(move));
+    int epClear = 1;
     if(MoveType(move) == CASTLE_MOVE) {
         U8 king = makePiece(KING, board->color);
         int castlingRank = (board->color == WHITE ? 0 : 7);
@@ -154,7 +155,33 @@ void makeMove(Board* board, U16 move, Undo* undo) {
         } else if(board->squares[square(castlingRank, 2)] == king) {
             movePiece(board, square(castlingRank, 0), square(castlingRank, 3));
         }
+    } else if(MoveType(move) == PROMOTION_MOVE) {
+        setPiece(board, MovePromotionPiece(move), board->color, MoveTo(move));
+    } else if(MoveType(move) == ENPASSANT_MOVE) {
+        if(board->color == WHITE) {
+            clearPiece(board, board->enpassantSquare - 8);
+        } else {
+            clearPiece(board, board->enpassantSquare + 8);
+        }
+    } else {
+        if(board->squares[MoveTo(move)] == makePiece(PAWN, board->color)) {
+            if(abs(MoveTo(move) - MoveFrom(move)) > 8) {
+                if(board->color == WHITE) {
+                    board->enpassantSquare = MoveTo(move) - 8;
+                } else {
+                    board->enpassantSquare = MoveTo(move) + 8;
+                }
+                
+                epClear = 0;
+            }
+        }
     }
+
+    if(epClear) {
+        board->enpassantSquare = 0;
+    }
+
+
     board->color = !board->color;
     ++board->moveNumber;
     board->castling &= (board->pieces[KING] | board->pieces[ROOK]);
@@ -171,9 +198,20 @@ void unmakeMove(Board* board, U16 move, Undo* undo) {
         } else if(board->squares[square(castlingRank, 2)] == king) {
             movePiece(board, square(castlingRank, 3), square(castlingRank, 0));
         }
+    } else if(MoveType(move) == ENPASSANT_MOVE) {
+        if(!board->color == WHITE) {
+            setPiece(board, PAWN, board->color, undo->enpassantSquare - 8);
+        } else {
+            setPiece(board, PAWN, board->color, undo->enpassantSquare + 8);
+        }
     }
 
     movePiece(board, MoveTo(move), MoveFrom(move));
+
+     if(MoveType(move) == PROMOTION_MOVE) {
+        setPiece(board, PAWN, !board->color, MoveFrom(move));
+    }
+
     if(undo->capturedPiece) {
         setPiece(board, pieceType(undo->capturedPiece), pieceColor(undo->capturedPiece), MoveTo(move));
     }
@@ -291,7 +329,7 @@ int attackedSquare(Board* board, int sq, int color) {
     }
 
     U64 enemyPawns = board->colours[!color] & board->pieces[PAWN];
-    if(color == WHITE) {
+    if(!color == WHITE) {
         U64 attackedSquares = ((enemyPawns << 9) & ~files[7]) | ((enemyPawns << 7) & ~files[0]);
         if(attackedSquares & squareBitboard[sq]) {
             return 1;
