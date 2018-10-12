@@ -165,7 +165,7 @@ void makeMove(Board* board, U16 move, Undo* undo) {
         }
     } else {
         if(board->squares[MoveTo(move)] == makePiece(PAWN, board->color)) {
-            if(abs(MoveTo(move) - MoveFrom(move)) > 8) {
+            if(abs(MoveTo(move) - MoveFrom(move)) == 16) {
                 if(board->color == WHITE) {
                     board->enpassantSquare = MoveTo(move) - 8;
                 } else {

@@ -12,6 +12,7 @@ U64 perftTest(Board* board, int depth, int height) {
     Undo undo;
     while(*curMove) {
         makeMove(board, *curMove, &undo);
+
         U64 count = 0;
         if(!inCheck(board, !board->color)) {
             count = perftTest(board, depth - 1, height + 1);
