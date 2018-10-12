@@ -7,5 +7,6 @@
 extern char startpos[];
 
 void uciInterface(Board* board);
+void printEngineInfo();
 
 #endif

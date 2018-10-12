@@ -3,7 +3,7 @@
 char startpos[] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 void uciInterface(Board* board) {
-    printf("id name Zevra v2.0 dev\nid author Oleg Smirnov\n");
+    printEngineInfo();
     setFen(board, startpos);
 
     char buff[65536];
@@ -51,7 +51,17 @@ void uciInterface(Board* board) {
 
         } else if(!strcmp(cmd, "d")) {
             printBoard(board);
+        } else if(!strcmp(cmd, "quit")) {
+            free(str);
+            break;
+        } else if(!strcmp(cmd, "uci")) {
+            printEngineInfo();
         }
+
         free(str);
     }
+}
+
+void printEngineInfo() {
+    printf("id name Zevra v2.0 dev\nid author Oleg Smirnov\n");
 }
