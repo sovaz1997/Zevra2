@@ -99,20 +99,24 @@ void movegen(Board* board, uint16_t* moveList) {
         leftAttacks = (mask << 7) & ~files[7] & enemy;
         moveList = genPawnCaptures(leftAttacks, 7, moveList, NORMAL_MOVE);
 
-        rightAttacks = (mask << 9) & squareBitboard[board->enpassantSquare];
-        moveList = genPawnCaptures(rightAttacks, 9, moveList, ENPASSANT_MOVE);
-        leftAttacks = (mask << 7) & squareBitboard[board->enpassantSquare];
-        moveList = genPawnCaptures(leftAttacks, 7, moveList, ENPASSANT_MOVE);
+        if(board->enpassantSquare) {
+            rightAttacks = (mask << 9) & ~files[0] & squareBitboard[board->enpassantSquare];
+            moveList = genPawnCaptures(rightAttacks, 9, moveList, ENPASSANT_MOVE);
+            leftAttacks = (mask << 7) & ~files[7] & squareBitboard[board->enpassantSquare];
+            moveList = genPawnCaptures(leftAttacks, 7, moveList, ENPASSANT_MOVE);
+        }
     } else {
         rightAttacks = (mask >> 9) & ~files[7] & enemy;
         moveList = genPawnCaptures(rightAttacks, -9, moveList, NORMAL_MOVE);
         leftAttacks = (mask >> 7) & ~files[0] & enemy;
         moveList = genPawnCaptures(leftAttacks, -7, moveList, NORMAL_MOVE);
 
-        rightAttacks = (mask >> 9) & squareBitboard[board->enpassantSquare];
-        moveList = genPawnCaptures(rightAttacks, -9, moveList, ENPASSANT_MOVE);
-        leftAttacks = (mask >> 7) & squareBitboard[board->enpassantSquare];
-        moveList = genPawnCaptures(leftAttacks, -7, moveList, ENPASSANT_MOVE);
+        if(board->enpassantSquare) {
+            rightAttacks = (mask >> 9) & ~files[7] & squareBitboard[board->enpassantSquare];
+            moveList = genPawnCaptures(rightAttacks, -9, moveList, ENPASSANT_MOVE);
+            leftAttacks = (mask >> 7) & ~files[0] & squareBitboard[board->enpassantSquare];
+            moveList = genPawnCaptures(leftAttacks, -7, moveList, ENPASSANT_MOVE);
+        }
     }
 
     //Рокировки

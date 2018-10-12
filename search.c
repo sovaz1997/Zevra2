@@ -20,6 +20,9 @@ U64 perftTest(Board* board, int depth, int height) {
             if(!height) {
                 char mv[6];
                 moveToString(*curMove, mv);
+                for(int i = 0; i < height; ++i) {
+                    printf(" ");
+                }
                 printf("%s: %llu\n", mv, count);
             }
         }

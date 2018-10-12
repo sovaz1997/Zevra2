@@ -330,12 +330,12 @@ int attackedSquare(Board* board, int sq, int color) {
 
     U64 enemyPawns = board->colours[!color] & board->pieces[PAWN];
     if(!color == WHITE) {
-        U64 attackedSquares = ((enemyPawns << 9) & ~files[7]) | ((enemyPawns << 7) & ~files[0]);
+        U64 attackedSquares = ((enemyPawns << 9) & ~files[0]) | ((enemyPawns << 7) & ~files[7]);
         if(attackedSquares & squareBitboard[sq]) {
             return 1;
         }
     } else {
-        U64 attackedSquares = ((enemyPawns >> 9) & ~files[0]) | ((enemyPawns >> 7) & ~files[7]);
+        U64 attackedSquares = ((enemyPawns >> 9) & ~files[7]) | ((enemyPawns >> 7) & ~files[0]);
         if(attackedSquares & squareBitboard[sq]) {
             return 1;
         }

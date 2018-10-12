@@ -10,6 +10,7 @@
 void initEngine();
 
 void moveGenTest(Board* board);
+void perft(Board* board, int depth);
 
 int main() {
     srand(time(0));
@@ -19,21 +20,12 @@ int main() {
     Board* board = (Board*) malloc(sizeof(Board));
 
 
-    char startpos[] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-    //char startpos[] = "r1b1k2r/p3bp1p/2nppqpn/1pp5/2PP4/PPNBPN1P/5PP1/R1BQK2R w KQkq - 1 10";
+    char startpos[] = "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10";
     
     setFen(board, startpos);
-    printBoard(board);
-    //moveGenTest(board);
 
-    clock_t start = clock();
-    U64 nodes = perftTest(board, 6, 0);
-    printf("Nodes: %llu\n", nodes);
-    clock_t end = clock();
-    if(end - start) {
-        printf("Speed: %d\n", nodes / (end - start));
-    }
-    printBoard(board);
+    perft(board, 9);
+    
     free(board);
 
     return 0;
@@ -56,4 +48,17 @@ void moveGenTest(Board* board) {
         ++cur;
     }
     printf("Count: %d\n", cur - moves);
+}
+
+void perft(Board* board, int depth) {
+    for(int i = 1; i <= depth; ++i) {
+        clock_t start = clock();
+        U64 nodes = perftTest(board, i, 0);
+        clock_t end = clock();
+        if(!(end - start)) {
+            end = start + 1;
+        }
+        
+        printf("Perft %d: %llu; speed: %d\n", i, nodes, nodes / (end - start));
+    }
 }
