@@ -37,7 +37,7 @@ void uciInterface(Board* board) {
             cmd = strtok_r(NULL, " ", &context);
             int cmd_success_input = 0;
             if(startposStr) {
-                setFen(board, fen);
+                setFen(board, startpos);
                 cmd_success_input = 1;
             } else if(fen) {
                 setFen(board, fen);
@@ -46,7 +46,6 @@ void uciInterface(Board* board) {
             
             if(cmd_success_input) {
                 char* moveRange = strstr(cmd, "moves") + strlen("moves ");
-                //printf("%s\n", moveRange);
                 setMovesRange(board, moves);
             }
 
