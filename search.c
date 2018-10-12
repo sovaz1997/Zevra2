@@ -36,3 +36,16 @@ U64 perftTest(Board* board, int depth, int height) {
 
     return result;
 }
+
+void perft(Board* board, int depth) {
+    for(int i = 1; i <= depth; ++i) {
+        clock_t start = clock();
+        U64 nodes = perftTest(board, i, 0);
+        clock_t end = clock();
+        if(!(end - start)) {
+            end = start + 1;
+        }
+        
+        printf("Perft %d: %llu; speed: %d\n", i, nodes, nodes / (end - start));
+    }
+}

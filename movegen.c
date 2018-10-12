@@ -15,9 +15,6 @@ void movegen(Board* board, uint16_t* moveList) {
 
         int from = firstOne(mask);
         U64 possibleMoves = rookPossibleMoves[from][getMagicIndex(occu & rookMagicMask[from] & unSquareBitboard[from], rookMagic[from], rookPossibleMovesSize[from])];
-        //printBitboard(occu & rookMagicMask[from] & ~bitboardCell(from));
-        //printf("%d\n", getMagicIndex(occu & rookMagicMask[from] & ~bitboardCell(from), rookMagic[from], rookPossibleMovesSize[from]));
-
         moveList = genMovesFromBitboard(from, possibleMoves & ~our, moveList);
         clearBit(&mask, from);
     }

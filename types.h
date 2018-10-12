@@ -19,14 +19,6 @@ enum {
     KING = 6
 };
 
-//Рокировка
-enum Castling {
-    WS_CASTLING = 1,
-    WL_CASTLING = 2,
-    BS_CASTLING = 4,
-    BL_CASTLING = 8
-};
-
 //Направление
 enum {
     UP = 0,

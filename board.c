@@ -67,6 +67,16 @@ void getFen(Board* board, char* fen) {
 
 }
 
+void setMovesRange(Board* board, char* moves) {
+    char* context = NULL;
+    char* move = strtok_r(moves, " ", &context);
+    while(move) {
+        printf("%s\n", move);
+        move = strtok_r(NULL, " ", &context);
+    }
+    
+}
+
 void clearBoard(Board* board) {
     memset(board, 0, sizeof(*board));
     board->enpassantSquare = -1;
