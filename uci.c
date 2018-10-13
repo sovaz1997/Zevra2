@@ -33,6 +33,12 @@ void uciInterface(Board* board) {
                 char* depth_str = strtok_r(NULL, " ", &context);
                 perft(board, atoi(depth_str));
             }
+            if(!strcmp(go_param, "depth")) {
+                char* depth_str = strtok_r(NULL, " ", &context);
+                iterativeDeeping(board, atoi(depth_str));
+
+                
+            }
         } else if(!strcmp(cmd, "position")) {
             cmd = strtok_r(NULL, " ", &context);
             int cmd_success_input = 0;
@@ -56,6 +62,7 @@ void uciInterface(Board* board) {
             break;
         } else if(!strcmp(cmd, "uci")) {
             printEngineInfo();
+            printf("uciok\n");
         } else if(!strcmp(cmd, "eval")) {
             printf("Eval: %d\n", fullEval(board));
         }
@@ -66,4 +73,17 @@ void uciInterface(Board* board) {
 
 void printEngineInfo() {
     printf("id name Zevra v2.0 dev\nid author Oleg Smirnov\n");
+}
+
+void printScore(int score) {
+    if(abs(score) < MATE_SCORE - 100) {
+        printf("score cp %d", score);
+    } else {
+        if(score < 0) {
+            printf("score mate %d", (MATE_SCORE - score) / 2);
+        } else {
+            printf("score mate %d", (MATE_SCORE - score + 1) / 2);
+        }
+        
+    }
 }

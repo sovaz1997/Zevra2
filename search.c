@@ -1,5 +1,68 @@
 #include "search.h"
 
+void iterativeDeeping(Board* board, int depth) {
+    SearchInfo searchInfo;
+    char bestMove[6];
+    for(int i = 1; i <= depth; ++i) {
+        memset(&searchInfo, 0, sizeof(SearchInfo));
+        int eval = search(board, &searchInfo, -MATE_SCORE, MATE_SCORE, i, 0);
+        moveToString(searchInfo.bestMove, bestMove);
+        printf("info depth %d nodes %d ", i, searchInfo.nodesCount);
+        printScore(eval);
+        printf(" pv %s\n", bestMove);
+    }
+
+    printf("bestmove %s\n", bestMove);
+}
+
+int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth, int height) {
+    if(!depth) {
+        ++searchInfo->nodesCount;
+        return fullEval(board);
+    }
+
+    movegen(board, moves[height]);
+
+    U16* curMove = moves[height];
+    Undo undo;
+
+    int movesCount = 0;
+    while(*curMove) {
+        makeMove(board, *curMove, &undo);
+
+        if(!inCheck(board, !board->color)) {
+            ++movesCount;
+
+            int eval = -search(board, searchInfo, -beta, -alpha, depth - 1, height + 1);
+
+            if(eval > alpha) {
+                alpha = eval;
+                if(!height) {
+                    searchInfo->bestMove = *curMove;
+                }
+            }
+            if(alpha >= beta) {
+                unmakeMove(board, *curMove, &undo);
+                break;
+            }
+        }
+
+        unmakeMove(board, *curMove, &undo);
+
+        ++curMove;
+    }
+
+    if(!movesCount) {
+        if(inCheck(board, board->color)) {
+            return -MATE_SCORE + height;
+        } else {
+            return 0;
+        }
+    }
+
+    return alpha;
+}
+
 U64 perftTest(Board* board, int depth, int height) {
     if(!depth) {
         return 1;

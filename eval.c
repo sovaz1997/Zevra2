@@ -38,27 +38,21 @@ int psqtEval(Board* board) {
 
     U64 mask = board->pieces[PAWN];
     eval += psqtPieceEval(board, mask, pawnPST);
-    printf("%d\n", eval);
     
     mask = board->pieces[KNIGHT];
     eval += psqtPieceEval(board, mask, knightPST);
-    printf("%d\n", eval);
 
     mask = board->pieces[BISHOP];
     eval += psqtPieceEval(board, mask, bishopPST);
-    printf("%d\n", eval);
 
     mask = board->pieces[ROOK];
     eval += psqtPieceEval(board, mask, rookPST);
-    printf("%d\n", eval);
 
     mask = board->pieces[QUEEN];
     eval += psqtPieceEval(board, mask, queenPST);
-    printf("%d\n", eval);
 
     mask = board->pieces[KING];
     eval += psqtPieceEval(board, mask, kingPST);
-    printf("%d\n", eval);
     
     return eval;
 }
@@ -69,7 +63,7 @@ int psqtPieceEval(Board* board, U64 mask, const int* pstTable) {
     while(mask) {
         int sq = firstOne(mask);
         if(squareBitboard[sq] & board->colours[WHITE]) {
-            eval += *(pstTable + square(rankOf(7 - rankOf(sq)), fileOf(sq)));
+            eval += *(pstTable + square(7 - rankOf(sq), fileOf(sq)));
             
         } else {
             eval -= *(pstTable + sq);

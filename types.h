@@ -27,7 +27,8 @@ enum {
 
 //Поиск
 enum {
-    MAX_PLY = 128
+    MAX_PLY = 128,
+    MATE_SCORE = 30000
 };
 
 //Обозначения фигур
@@ -42,5 +43,6 @@ typedef uint8_t U8;
 //Структуры
 typedef struct Board Board;
 typedef struct Undo Undo;
+typedef struct SearchInfo SearchInfo;
 
 #endif
