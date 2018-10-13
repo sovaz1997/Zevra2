@@ -56,6 +56,8 @@ void uciInterface(Board* board) {
             break;
         } else if(!strcmp(cmd, "uci")) {
             printEngineInfo();
+        } else if(!strcmp(cmd, "eval")) {
+            printf("Eval: %d\n", fullEval(board));
         }
 
         free(str);

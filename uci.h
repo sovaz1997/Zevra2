@@ -3,6 +3,7 @@
 
 #include "board.h"
 #include "search.h"
+#include "eval.h"
 
 extern char startpos[];
 
