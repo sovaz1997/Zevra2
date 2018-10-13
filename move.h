@@ -3,6 +3,7 @@
 
 #include "types.h"
 #include "board.h"
+#include "movegen.h"
 
 /*
 Move - ход, описывается 16 байтами:
@@ -43,5 +44,6 @@ Move - ход, описывается 16 байтами:
 
 //Функции
 void moveToString(U16 move, char* str);
+U16 stringToMove(Board* board, char* str);
 
 #endif

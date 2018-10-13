@@ -70,11 +70,11 @@ void getFen(Board* board, char* fen) {
 void setMovesRange(Board* board, char* moves) {
     char* context = NULL;
     char* move = strtok_r(moves, " ", &context);
+    Undo undo;
     while(move) {
-        printf("%s\n", move);
+        makeMove(board, stringToMove(board, move), &undo);
         move = strtok_r(NULL, " ", &context);
     }
-    
 }
 
 void clearBoard(Board* board) {

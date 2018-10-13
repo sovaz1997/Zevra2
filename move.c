@@ -9,3 +9,20 @@ void moveToString(uint16_t move, char* str) {
         str[5] = '\0';
     }
 }
+
+U16 stringToMove(Board* board, char* str) {
+    U16 moveList[256];
+    movegen(board, moveList);
+
+    U16* ptr = moveList;
+    while(*ptr) {
+        char cmp_str[6];
+        moveToString(*ptr, cmp_str);
+        if(!strcmp(cmp_str, str)) {
+            return *ptr;
+        }
+        ++ptr;
+    }
+
+    return 0;
+}
