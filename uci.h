@@ -10,5 +10,6 @@ extern char startpos[];
 void uciInterface(Board* board);
 void printEngineInfo();
 void printScore(int score);
+void input(char* str);
 
 #endif

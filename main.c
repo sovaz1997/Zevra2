@@ -18,4 +18,5 @@ int main() {
 void initEngine() {
     initBitboards();
     magicArraysInit();
+    initSearch();
 }

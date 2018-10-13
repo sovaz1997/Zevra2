@@ -152,6 +152,100 @@ void movegen(Board* board, uint16_t* moveList) {
     *moveList = 0;
 }
 
+void attackgen(Board* board, uint16_t* moveList) {
+    int color = board->color;
+    
+    U64 our = board->colours[color]; //наши фигуры
+    U64 enemy = board->colours[!color]; //чужие фигуры
+    U64 occu = (our | enemy); //все фигуры
+
+    //Ладья
+    U64 mask = board->pieces[ROOK] & our;
+
+    while(mask) {
+
+        int from = firstOne(mask);
+        U64 possibleMoves = rookPossibleMoves[from][getMagicIndex(occu & rookMagicMask[from] & unSquareBitboard[from], rookMagic[from], rookPossibleMovesSize[from])];
+        moveList = genMovesFromBitboard(from, possibleMoves & ~our & enemy, moveList);
+        clearBit(&mask, from);
+    }
+
+    //Слон
+    mask = board->pieces[BISHOP] & our;
+
+    while(mask) {
+        int from = firstOne(mask);
+        U64 possibleMoves = bishopPossibleMoves[from][getMagicIndex(occu & bishopMagicMask[from] & unSquareBitboard[from], bishopMagic[from], bishopPossibleMovesSize[from])];
+        moveList = genMovesFromBitboard(from, possibleMoves & ~our & enemy, moveList);
+        clearBit(&mask, from);
+    }
+
+    //Ферзь
+    mask = board->pieces[QUEEN] & our;
+
+    while(mask) {
+        int from = firstOne(mask);
+        U64 possibleMoves = rookPossibleMoves[from][getMagicIndex(occu & rookMagicMask[from] & unSquareBitboard[from], rookMagic[from], rookPossibleMovesSize[from])];
+        possibleMoves |= bishopPossibleMoves[from][getMagicIndex(occu & bishopMagicMask[from] & unSquareBitboard[from], bishopMagic[from], bishopPossibleMovesSize[from])];
+        moveList = genMovesFromBitboard(from, possibleMoves & ~our & enemy, moveList);
+        clearBit(&mask, from);
+    }
+
+    //Конь
+    mask = board->pieces[KNIGHT] & our;
+
+    while(mask) {
+        int from = firstOne(mask);
+
+        U64 possibleMoves = knightAttacks[from];
+        moveList = genMovesFromBitboard(from, possibleMoves & ~our & enemy, moveList);
+        clearBit(&mask, from);
+    }
+
+    //Король
+    mask = board->pieces[KING] & our;
+
+    while(mask) {
+        int from = firstOne(mask);
+
+        U64 possibleMoves = kingAttacks[from];
+        moveList = genMovesFromBitboard(from, possibleMoves & ~our & enemy, moveList);
+        clearBit(&mask, from);
+    }
+
+    //Пешка (взятия)
+    mask = board->pieces[PAWN] & our;
+    U64 rightAttacks, leftAttacks;
+
+    if(color == WHITE) {
+        rightAttacks = (mask << 9) & ~files[0] & enemy;
+        moveList = genPawnCaptures(rightAttacks, 9, moveList, NORMAL_MOVE);
+        leftAttacks = (mask << 7) & ~files[7] & enemy;
+        moveList = genPawnCaptures(leftAttacks, 7, moveList, NORMAL_MOVE);
+
+        if(board->enpassantSquare) {
+            rightAttacks = (mask << 9) & ~files[0] & squareBitboard[board->enpassantSquare];
+            moveList = genPawnCaptures(rightAttacks, 9, moveList, ENPASSANT_MOVE);
+            leftAttacks = (mask << 7) & ~files[7] & squareBitboard[board->enpassantSquare];
+            moveList = genPawnCaptures(leftAttacks, 7, moveList, ENPASSANT_MOVE);
+        }
+    } else {
+        rightAttacks = (mask >> 9) & ~files[7] & enemy;
+        moveList = genPawnCaptures(rightAttacks, -9, moveList, NORMAL_MOVE);
+        leftAttacks = (mask >> 7) & ~files[0] & enemy;
+        moveList = genPawnCaptures(leftAttacks, -7, moveList, NORMAL_MOVE);
+
+        if(board->enpassantSquare) {
+            rightAttacks = (mask >> 9) & ~files[7] & squareBitboard[board->enpassantSquare];
+            moveList = genPawnCaptures(rightAttacks, -9, moveList, ENPASSANT_MOVE);
+            leftAttacks = (mask >> 7) & ~files[0] & squareBitboard[board->enpassantSquare];
+            moveList = genPawnCaptures(leftAttacks, -7, moveList, ENPASSANT_MOVE);
+        }
+    }
+
+    *moveList = 0;
+}
+
 uint16_t* genMovesFromBitboard(int from, U64 bitboard, uint16_t* moveList) {
     while(bitboard) {
         int to = firstOne(bitboard);

@@ -10,7 +10,8 @@ void uciInterface(Board* board) {
     char* context;
 
     while(1) {
-        scanf("%[^\n]%*c", buff);
+        input(buff);
+
         char* str = strdup(buff);
         
         char* fen = strstr(str, "fen");
@@ -65,7 +66,11 @@ void uciInterface(Board* board) {
             printf("uciok\n");
         } else if(!strcmp(cmd, "eval")) {
             printf("Eval: %d\n", fullEval(board));
+        } else if(!strcmp(cmd, "isready")) {
+            printf("readyok\n");
         }
+
+        fflush(stdout);
 
         free(str);
     }
@@ -84,6 +89,17 @@ void printScore(int score) {
         } else {
             printf("score mate %d", (MATE_SCORE - score + 1) / 2);
         }
-        
+    }
+}
+
+void input(char* str) {
+    fgets(str, 65536, stdin);
+    char* ptr = strchr(str, '\n');
+    if (ptr) {
+        *ptr = '\0';
+    } 
+    ptr = strchr(str, '\r');
+    if (ptr) {
+        *ptr = '\0';
     }
 }
