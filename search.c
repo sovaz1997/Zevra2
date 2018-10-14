@@ -5,7 +5,7 @@ void iterativeDeeping(Board* board, TimeManager tm) {
     char bestMove[6];
     
     resetSearchInfo(&searchInfo, tm);
-
+    clearTT();
     for(int i = 1; i <= tm.depth; ++i) {
         startTimer(&searchInfo.timer);
         int eval = search(board, &searchInfo, -MATE_SCORE, MATE_SCORE, i, 0);
@@ -26,15 +26,21 @@ void iterativeDeeping(Board* board, TimeManager tm) {
 }
 
 int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth, int height) {
-    if(isDraw(board) && height) {
-        return 0;
-    }
+    U64 keyPosition = board->key;
+    Transposition* ttEntry = &tt[keyPosition & ttIndex];
 
     if(!depth) {
         return quiesceSearch(board, searchInfo, alpha, beta, height);
     }
 
+    ++searchInfo->nodesCount;
+
     int root = (height ? 0 : 1);
+    if(isDraw(board) && !root) {
+        return 0;
+    }
+
+    int extensions = inCheck(board, board->color);
 
     if(depth >= 1) {
         if(searchInfo->tm.searchType == FixedTime) {
@@ -45,7 +51,15 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         }
     }
 
-    ++searchInfo->nodesCount;
+    if(ttEntry->evalType && ttEntry->depth >= depth && !root && ttEntry->key == keyPosition) {
+        if(ttEntry->evalType == lowerbound) {
+            alpha = max(alpha, ttEntry->eval);
+        } else if(ttEntry->evalType == upperbound) {
+            beta = min(beta, ttEntry->eval);
+        } else if(ttEntry->evalType == exact) {
+            return ttEntry->eval;
+        }
+    }
 
     movegen(board, moves[height]);
     moveOrdering(board, moves[height], searchInfo, height);
@@ -54,6 +68,11 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     Undo undo;
 
     int movesCount = 0;
+
+    Transposition new_tt;
+
+
+    int oldAlpha = alpha;
     while(*curMove) {
         if(searchInfo->abort) {
             return 0;
@@ -68,7 +87,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         
         ++movesCount;
 
-        int eval = -search(board, searchInfo, -beta, -alpha, depth - 1, height + 1);        
+        int eval = -search(board, searchInfo, -beta, -alpha, depth - 1 + extensions, height + 1);        
         unmakeMove(board, *curMove, &undo);
         
         if(root) {
@@ -85,11 +104,19 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
             }
 
             searchInfo->killer[board->color][height] = *curMove;
+
+            setTransposition(&new_tt, keyPosition, alpha, (alpha >= beta ? exact : lowerbound), depth, *curMove);
+            replaceTransposition(ttEntry, new_tt);
         }
         if(alpha >= beta) {
             break;
         }
         ++curMove;
+    }
+
+    if(oldAlpha == alpha) {
+        setTransposition(&new_tt, keyPosition, alpha, upperbound, depth, 0);
+        replaceTransposition(ttEntry, new_tt);
     }
 
     if(!movesCount) {
@@ -270,4 +297,13 @@ void initSearch() {
 void resetSearchInfo(SearchInfo* info, TimeManager tm) {
     memset(info, 0, sizeof(SearchInfo));
     info->tm = tm;
+}
+
+void replaceTransposition(Transposition* tr, Transposition new_tr) {
+    if(new_tr.depth > tr->depth) {
+        if(new_tr.evalType == upperbound && tr->evalType != upperbound) {
+            return;
+        }
+        *tr = new_tr;
+    }
 }

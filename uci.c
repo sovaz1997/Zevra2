@@ -64,6 +64,7 @@ void uciInterface(Board* board) {
             printBoard(board);
         } else if(!strcmp(cmd, "quit")) {
             free(str);
+            free(tt);
             break;
         } else if(!strcmp(cmd, "uci")) {
             printEngineInfo();

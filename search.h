@@ -8,6 +8,10 @@
 #include "eval.h"
 #include "uci.h"
 #include "timemanager.h"
+#include "transposition.h"
+
+#define min(a, b) (a < b ? a : b)
+#define max(a, b) (a > b ? a : b)
 
 struct SearchInfo {
     U64 nodesCount;
@@ -16,6 +20,14 @@ struct SearchInfo {
     TimeManager tm;
     int abort;
     U16 killer[2][MAX_PLY + 1];
+};
+
+//Тип оценки
+enum {
+    empty = 0,
+    lowerbound = 1,
+    upperbound = 2,
+    exact = 3
 };
 
 U16 moves[MAX_PLY][256];
@@ -31,5 +43,6 @@ void moveOrdering(Board* board, U16* moves, SearchInfo* searchInfo, int height);
 void sort(U16* moves, int count);
 void initSearch();
 void resetSearchInfo(SearchInfo* info, TimeManager tm);
+void replaceTransposition(Transposition* tr, Transposition new_tr);
 
 #endif

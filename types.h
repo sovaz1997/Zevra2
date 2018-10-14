@@ -47,5 +47,6 @@ typedef struct SearchInfo SearchInfo;
 typedef struct GameInfo GameInfo;
 typedef struct Timer Timer;
 typedef struct TimeManager TimeManager;
+typedef struct Transposition Transposition;
 
 #endif
