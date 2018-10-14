@@ -32,12 +32,6 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     U64 keyPosition = board->key;
     Transposition* ttEntry = &tt[keyPosition & ttIndex];
 
-    if(!depth) {
-        return quiesceSearch(board, searchInfo, alpha, beta, height);
-    }
-
-    ++searchInfo->nodesCount;
-
     int root = (height ? 0 : 1);
     if(isDraw(board) && !root || searchInfo->abort) {
         return 0;
@@ -62,11 +56,24 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
         if(ttEntry->evalType == lowerbound) {
             alpha = max(alpha, score);
+            if(alpha >= beta) {
+                return score;
+            }
         } else if(ttEntry->evalType == upperbound) {
             beta = min(beta, score);
         } else if(ttEntry->evalType == exact) {
             return score;
         }
+
+        if(alpha >= beta) {
+            return beta;
+        }
+    }
+
+    ++searchInfo->nodesCount;
+
+    if(!depth) {
+        return quiesceSearch(board, searchInfo, alpha, beta, height);
     }
 
     movegen(board, moves[height]);
@@ -112,7 +119,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
                 searchInfo->history[MoveFrom(*curMove)][MoveTo(*curMove)] += (depth * depth);
             }
 
-            setTransposition(&new_tt, keyPosition, alpha, (alpha >= beta ? exact : lowerbound), depth, *curMove);
+            setTransposition(&new_tt, keyPosition, alpha, (alpha >= beta ? lowerbound : exact), depth, *curMove);
         }
         if(alpha >= beta) {
             break;
@@ -331,9 +338,9 @@ void replaceTransposition(Transposition* tr, Transposition new_tr, int height) {
     } else if(score < -MATE_SCORE + 100) {
         score -= height;
     }
-    new_tr.eval = score;
 
     if(new_tr.depth > tr->depth) {
+        new_tr.eval = score;
         if(new_tr.evalType == upperbound && tr->evalType != upperbound) {
             return;
         }
