@@ -37,12 +37,12 @@ void uciInterface(Board* board) {
             if(!strcmp(go_param, "perft")) {
                 char* depth_str = strtok_r(NULL, " ", &context);
                 perft(board, atoi(depth_str));
-            }
-            if(!strcmp(go_param, "depth")) {
+            } else if(!strcmp(go_param, "depth")) {
                 char* depth_str = strtok_r(NULL, " ", &context);
-                iterativeDeeping(board, atoi(depth_str));
-
-                
+                iterativeDeeping(board, createFixDepthTm(atoi(depth_str)));
+            } else if(!strcmp(go_param, "movetime")) {
+                char* time_str = strtok_r(NULL, " ", &context);
+                iterativeDeeping(board, createFixTimeTm(atoll(time_str)));
             }
         } else if(!strcmp(cmd, "position")) {
             cmd = strtok_r(NULL, " ", &context);

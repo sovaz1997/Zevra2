@@ -45,5 +45,7 @@ typedef struct Board Board;
 typedef struct Undo Undo;
 typedef struct SearchInfo SearchInfo;
 typedef struct GameInfo GameInfo;
+typedef struct Timer Timer;
+typedef struct TimeManager TimeManager;
 
 #endif

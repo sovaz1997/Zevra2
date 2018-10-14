@@ -1,15 +1,24 @@
 #include "search.h"
 
-void iterativeDeeping(Board* board, int depth) {
+void iterativeDeeping(Board* board, TimeManager tm) {
     SearchInfo searchInfo;
     char bestMove[6];
-    for(int i = 1; i <= depth; ++i) {
-        memset(&searchInfo, 0, sizeof(SearchInfo));
+    
+    resetSearchInfo(&searchInfo, tm);
+
+    for(int i = 1; i <= tm.depth; ++i) {
+        startTimer(&searchInfo.timer);
         int eval = search(board, &searchInfo, -MATE_SCORE, MATE_SCORE, i, 0);
+
+        if(searchInfo.abort) {
+            break;
+        }
+        
         moveToString(searchInfo.bestMove, bestMove);
         printf("info depth %d nodes %d ", i, searchInfo.nodesCount);
         printScore(eval);
         printf(" pv %s\n", bestMove);
+        printf("%d\n", getTime(&searchInfo.timer));
         fflush(stdout);
     }
 
@@ -24,6 +33,15 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
     if(!depth) {
         return quiesceSearch(board, searchInfo, alpha, beta, height);
+    }
+
+    if(depth >= 3) {
+        if(searchInfo->tm.searchType == FixedTime) {
+            if(getTime(&searchInfo->timer) >= searchInfo->tm.time) {
+                searchInfo->abort = 1;
+                return 0;
+            }
+        }
     }
 
     ++searchInfo->nodesCount;
@@ -46,8 +64,12 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         
         ++movesCount;
 
-        int eval = -search(board, searchInfo, -beta, -alpha, depth - 1, height + 1);
+        int eval = -search(board, searchInfo, -beta, -alpha, depth - 1, height + 1);        
         unmakeMove(board, *curMove, &undo);
+
+        if(searchInfo->abort) {
+            return 0;   
+        }
         
         if(eval > alpha) {
             alpha = eval;
@@ -218,4 +240,9 @@ void initSearch() {
             mvvLvaScores[attacker][victim] = victimScore - attacker;
         }
     }
+}
+
+void resetSearchInfo(SearchInfo* info, TimeManager tm) {
+    memset(info, 0, sizeof(SearchInfo));
+    info->tm = tm;
 }
