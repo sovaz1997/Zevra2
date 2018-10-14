@@ -9,10 +9,10 @@ void setTransposition(Transposition* entry, U64 key, int eval, int evalType, int
 }
 
 void initTT() {
-    ttSize = (1 << 16);
+    ttSize = (1 << 22);
     tt = (Transposition*) malloc(sizeof(Transposition) * ttSize);
     ttIndex = 0;
-    for(int i = 0; i < 16; ++i) {
+    for(int i = 0; i < 22; ++i) {
         ttIndex |= (1 << i);
     }
 }

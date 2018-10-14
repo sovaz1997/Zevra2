@@ -106,7 +106,6 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
             searchInfo->killer[board->color][height] = *curMove;
 
             setTransposition(&new_tt, keyPosition, alpha, (alpha >= beta ? exact : lowerbound), depth, *curMove);
-            replaceTransposition(ttEntry, new_tt);
         }
         if(alpha >= beta) {
             break;
@@ -116,8 +115,9 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
     if(oldAlpha == alpha) {
         setTransposition(&new_tt, keyPosition, alpha, upperbound, depth, 0);
-        replaceTransposition(ttEntry, new_tt);
     }
+
+    replaceTransposition(ttEntry, new_tt);
 
     if(!movesCount) {
         if(inCheck(board, board->color)) {
@@ -232,6 +232,7 @@ void perft(Board* board, int depth) {
 
 void moveOrdering(Board* board, U16* moves, SearchInfo* searchInfo, int height) {
     U16* ptr = moves;
+    U16 hashMove = tt[board->key & ttIndex].move;
     int i;
 
     for(i = 0; *ptr; ++i) {
@@ -239,15 +240,17 @@ void moveOrdering(Board* board, U16* moves, SearchInfo* searchInfo, int height) 
         U16 toPiece = pieceType(board->squares[MoveTo(*ptr)]);
         U16 fromPiece = pieceType(board->squares[MoveFrom(*ptr)]);
         
-        if(toPiece) {
+        if(hashMove == *ptr) {
+            movePrice[i] = 10000;
+        } else if(toPiece) {
             movePrice[i] = mvvLvaScores[fromPiece][toPiece];
+        } else if(searchInfo->killer[board->color][height] == *ptr) {
+            movePrice[i] = 10;
         }
+
         if(searchInfo->bestMove == *ptr && !height) {
             movePrice[i] = 1000;
-        }
-        if(searchInfo->killer[board->color][height] == *ptr) {
-            movePrice[i] = 100;
-        }
+        } 
 
         ++ptr;
     }
