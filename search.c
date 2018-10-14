@@ -48,7 +48,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     ++searchInfo->nodesCount;
 
     movegen(board, moves[height]);
-    moveOrdering(board, moves[height], searchInfo, root);
+    moveOrdering(board, moves[height], searchInfo, height);
 
     U16* curMove = moves[height];
     Undo undo;
@@ -74,7 +74,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         if(root) {
             char moveStr[6];
             moveToString(*curMove, moveStr);
-            printf("info curr %s currmovenumber %d\n", moveStr, movesCount);
+            printf("info move %s currmovenumber %d\n", moveStr, movesCount);
             fflush(stdout);
         }
         
@@ -83,6 +83,8 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
             if(root) {
                 searchInfo->bestMove = *curMove;
             }
+
+            searchInfo->killer[board->color][height] = *curMove;
         }
         if(alpha >= beta) {
             break;
@@ -120,7 +122,7 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
     }
 
     attackgen(board, moves[height]);
-    moveOrdering(board, moves[height], searchInfo, 0);
+    moveOrdering(board, moves[height], searchInfo, height);
     U16* curMove = moves[height];
     Undo undo;
     while(*curMove) {
@@ -201,7 +203,7 @@ void perft(Board* board, int depth) {
     }
 }
 
-void moveOrdering(Board* board, U16* moves, SearchInfo* searchInfo, int root) {
+void moveOrdering(Board* board, U16* moves, SearchInfo* searchInfo, int height) {
     U16* ptr = moves;
     int i;
 
@@ -213,8 +215,11 @@ void moveOrdering(Board* board, U16* moves, SearchInfo* searchInfo, int root) {
         if(toPiece) {
             movePrice[i] = mvvLvaScores[fromPiece][toPiece];
         }
-        if(searchInfo->bestMove == *ptr && root) {
+        if(searchInfo->bestMove == *ptr && !height) {
             movePrice[i] = 1000;
+        }
+        if(searchInfo->killer[board->color][height] == *ptr) {
+            movePrice[i] = 100;
         }
 
         ++ptr;
