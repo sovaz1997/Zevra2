@@ -34,6 +34,8 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         return quiesceSearch(board, searchInfo, alpha, beta, height);
     }
 
+    int root = (height ? 0 : 1);
+
     if(depth >= 1) {
         if(searchInfo->tm.searchType == FixedTime) {
             if(getTime(&searchInfo->timer) >= searchInfo->tm.time) {
@@ -46,13 +48,16 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     ++searchInfo->nodesCount;
 
     movegen(board, moves[height]);
-    moveOrdering(board, moves[height], searchInfo);
+    moveOrdering(board, moves[height], searchInfo, root);
 
     U16* curMove = moves[height];
     Undo undo;
 
     int movesCount = 0;
     while(*curMove) {
+        if(searchInfo->abort) {
+            return 0;
+        }
         makeMove(board, *curMove, &undo);
 
         if(inCheck(board, !board->color)) {
@@ -65,14 +70,17 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
         int eval = -search(board, searchInfo, -beta, -alpha, depth - 1, height + 1);        
         unmakeMove(board, *curMove, &undo);
-
-        if(searchInfo->abort) {
-            return 0;   
+        
+        if(root) {
+            char moveStr[6];
+            moveToString(*curMove, moveStr);
+            printf("info curr %s currmovenumber %d\n", moveStr, movesCount);
+            fflush(stdout);
         }
         
         if(eval > alpha) {
             alpha = eval;
-            if(!height) {
+            if(root) {
                 searchInfo->bestMove = *curMove;
             }
         }
@@ -94,8 +102,11 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 }
 
 int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int height) {
-    if(searchInfo->abort) {
-        return 0;   
+    if(searchInfo->tm.searchType == FixedTime) {
+        if(getTime(&searchInfo->timer) >= searchInfo->tm.time) {
+            searchInfo->abort = 1;
+            return 0;
+        }
     }
 
     ++searchInfo->nodesCount;
@@ -109,10 +120,14 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
     }
 
     attackgen(board, moves[height]);
-    //moveOrdering(board, moves[height], searchInfo);
+    moveOrdering(board, moves[height], searchInfo, 0);
     U16* curMove = moves[height];
     Undo undo;
     while(*curMove) {
+        if(searchInfo->abort) {
+            return 0;
+        }
+
         makeMove(board, *curMove, &undo);
     
         if(inCheck(board, !board->color)) {
@@ -124,7 +139,6 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
         int score = -quiesceSearch(board, searchInfo, -beta, -alpha, height + 1);
 
         unmakeMove(board, *curMove, &undo);
-    
         if(score >= beta) {
             return beta;
         }
@@ -187,7 +201,7 @@ void perft(Board* board, int depth) {
     }
 }
 
-void moveOrdering(Board* board, U16* moves, SearchInfo* searchInfo) {
+void moveOrdering(Board* board, U16* moves, SearchInfo* searchInfo, int root) {
     U16* ptr = moves;
     int i;
 
@@ -198,6 +212,9 @@ void moveOrdering(Board* board, U16* moves, SearchInfo* searchInfo) {
         
         if(toPiece) {
             movePrice[i] = mvvLvaScores[fromPiece][toPiece];
+        }
+        if(searchInfo->bestMove == *ptr && root) {
+            movePrice[i] = 1000;
         }
 
         ++ptr;
@@ -214,14 +231,14 @@ void sort(U16* moves, int count) {
         keyMove = moves[i];
         j = i - 1; 
     
-        while (j >= 0 && movePrice[j] > key) { 
+        while (j >= 0 && movePrice[j] < key) { 
             movePrice[j + 1] = movePrice[j];
             moves[j + 1] = moves[j];
             --j;
         } 
         movePrice[j + 1] = key;
         moves[j + 1] = keyMove;
-    } 
+    }
 }
 
 void initSearch() {

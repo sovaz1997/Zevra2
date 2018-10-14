@@ -26,7 +26,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int height);
 U64 perftTest(Board* board, int depth, int height);
 void perft(Board* board, int depth);
-void moveOrdering(Board* board, U16* moves, SearchInfo* searchInfo);
+void moveOrdering(Board* board, U16* moves, SearchInfo* searchInfo, int root);
 void sort(U16* moves, int count);
 void initSearch();
 void resetSearchInfo(SearchInfo* info, TimeManager tm);
