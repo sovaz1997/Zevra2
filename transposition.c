@@ -15,6 +15,7 @@ void initTT() {
     for(int i = 0; i < 22; ++i) {
         ttIndex |= (1 << i);
     }
+    clearTT();
 }
 
 void clearTT() {

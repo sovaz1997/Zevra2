@@ -71,7 +71,6 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
     Transposition new_tt;
 
-
     int oldAlpha = alpha;
     while(*curMove) {
         if(searchInfo->abort) {
@@ -103,7 +102,10 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
                 searchInfo->bestMove = *curMove;
             }
 
-            searchInfo->killer[board->color][height] = *curMove;
+            if(!undo.capturedPiece) {
+                searchInfo->killer[board->color][height] = *curMove;
+                searchInfo->history[MoveFrom(*curMove)][MoveTo(*curMove)] += (depth * depth);
+            }
 
             setTransposition(&new_tt, keyPosition, alpha, (alpha >= beta ? exact : lowerbound), depth, *curMove);
         }
@@ -241,15 +243,17 @@ void moveOrdering(Board* board, U16* moves, SearchInfo* searchInfo, int height) 
         U16 fromPiece = pieceType(board->squares[MoveFrom(*ptr)]);
         
         if(hashMove == *ptr) {
-            movePrice[i] = 10000;
+            movePrice[i] = 1000000000;
         } else if(toPiece) {
-            movePrice[i] = mvvLvaScores[fromPiece][toPiece];
+            movePrice[i] = mvvLvaScores[fromPiece][toPiece] * 1000000;
         } else if(searchInfo->killer[board->color][height] == *ptr) {
-            movePrice[i] = 10;
+            movePrice[i] = 100000;
+        } else {
+            movePrice[i] = searchInfo->history[MoveFrom(*ptr)][MoveTo(*ptr)];
         }
 
         if(searchInfo->bestMove == *ptr && !height) {
-            movePrice[i] = 1000;
+            movePrice[i] = 1000000000;
         } 
 
         ++ptr;
@@ -284,11 +288,11 @@ void initSearch() {
                 victimScore = 50;
             } else if(victim == ROOK) {
                 victimScore = 40;
-            } else if(victimScore == BISHOP) {
+            } else if(victim == BISHOP) {
                 victimScore = 30;
-            } else if(victimScore == KNIGHT) {
+            } else if(victim == KNIGHT) {
                 victimScore = 20;
-            } else if(victimScore == PAWN) {
+            } else if(victim == PAWN) {
                 victimScore = 10;
             }
 
@@ -300,6 +304,7 @@ void initSearch() {
 void resetSearchInfo(SearchInfo* info, TimeManager tm) {
     memset(info, 0, sizeof(SearchInfo));
     info->tm = tm;
+    memset(info->history, 0, 64 * 64);
 }
 
 void replaceTransposition(Transposition* tr, Transposition new_tr) {
