@@ -44,6 +44,6 @@ void moveOrdering(Board* board, U16* moves, SearchInfo* searchInfo, int height);
 void sort(U16* moves, int count);
 void initSearch();
 void resetSearchInfo(SearchInfo* info, TimeManager tm);
-void replaceTransposition(Transposition* tr, Transposition new_tr);
+void replaceTransposition(Transposition* tr, Transposition new_tr, int height);
 
 #endif

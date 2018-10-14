@@ -6,8 +6,8 @@ void iterativeDeeping(Board* board, TimeManager tm) {
     
     resetSearchInfo(&searchInfo, tm);
     clearTT();
+    startTimer(&searchInfo.timer);
     for(int i = 1; i <= tm.depth; ++i) {
-        startTimer(&searchInfo.timer);
         int eval = search(board, &searchInfo, -MATE_SCORE, MATE_SCORE, i, 0);
 
         if(searchInfo.abort) {
@@ -26,6 +26,9 @@ void iterativeDeeping(Board* board, TimeManager tm) {
 }
 
 int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth, int height) {
+    if(searchInfo->abort) {
+        return 0;
+    }
     U64 keyPosition = board->key;
     Transposition* ttEntry = &tt[keyPosition & ttIndex];
 
@@ -36,28 +39,33 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     ++searchInfo->nodesCount;
 
     int root = (height ? 0 : 1);
-    if(isDraw(board) && !root) {
+    if(isDraw(board) && !root || searchInfo->abort) {
         return 0;
     }
 
     int extensions = inCheck(board, board->color);
 
-    if(depth >= 1) {
-        if(searchInfo->tm.searchType == FixedTime) {
-            if(getTime(&searchInfo->timer) >= searchInfo->tm.time) {
-                searchInfo->abort = 1;
-                return 0;
-            }
+    if(searchInfo->tm.searchType == FixedTime && depth >= 3) {
+        if(getTime(&searchInfo->timer) >= searchInfo->tm.time) {
+            searchInfo->abort = 1;
+            return 0;
         }
     }
 
     if(ttEntry->evalType && ttEntry->depth >= depth && !root && ttEntry->key == keyPosition) {
+        int score = ttEntry->eval;
+        if(score > MATE_SCORE - 100) {
+            score -= height;
+        } else if(score < -MATE_SCORE + 100) {
+            score += height;
+        }
+
         if(ttEntry->evalType == lowerbound) {
-            alpha = max(alpha, ttEntry->eval);
+            alpha = max(alpha, score);
         } else if(ttEntry->evalType == upperbound) {
-            beta = min(beta, ttEntry->eval);
+            beta = min(beta, score);
         } else if(ttEntry->evalType == exact) {
-            return ttEntry->eval;
+            return score;
         }
     }
 
@@ -73,9 +81,6 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
     int oldAlpha = alpha;
     while(*curMove) {
-        if(searchInfo->abort) {
-            return 0;
-        }
         makeMove(board, *curMove, &undo);
 
         if(inCheck(board, !board->color)) {
@@ -115,11 +120,15 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         ++curMove;
     }
 
+    if(searchInfo->abort) {
+            return 0;
+    }
+
     if(oldAlpha == alpha) {
         setTransposition(&new_tt, keyPosition, alpha, upperbound, depth, 0);
     }
 
-    replaceTransposition(ttEntry, new_tt);
+    replaceTransposition(ttEntry, new_tt, height);
 
     if(!movesCount) {
         if(inCheck(board, board->color)) {
@@ -138,6 +147,10 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
             searchInfo->abort = 1;
             return 0;
         }
+    }
+
+    if(searchInfo->abort) {
+            return 0;
     }
 
     ++searchInfo->nodesCount;
@@ -177,6 +190,10 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
            alpha = score;
         }
         ++curMove;
+    }
+
+    if(searchInfo->abort) {
+            return 0;
     }
 
     return alpha;
@@ -307,7 +324,15 @@ void resetSearchInfo(SearchInfo* info, TimeManager tm) {
     memset(info->history, 0, 64 * 64);
 }
 
-void replaceTransposition(Transposition* tr, Transposition new_tr) {
+void replaceTransposition(Transposition* tr, Transposition new_tr, int height) {
+    int score = new_tr.eval;
+    if(score > MATE_SCORE - 100) {
+        score += height;
+    } else if(score < -MATE_SCORE + 100) {
+        score -= height;
+    }
+    new_tr.eval = score;
+
     if(new_tr.depth > tr->depth) {
         if(new_tr.evalType == upperbound && tr->evalType != upperbound) {
             return;
