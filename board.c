@@ -94,6 +94,8 @@ void printBoard(Board* board) {
         printf("\n");
         printBoardSplitter();
     }
+
+    printf("Key: %llx\n", board->key);
 }
 
 void printBoardSplitter() {
@@ -112,6 +114,7 @@ void setPiece(Board* board, int piece, int color, int square) {
     setBit(&board->pieces[piece], square);
     setBit(&board->colours[color], square);
     board->squares[square] = makePiece(piece, color);
+    board->key ^= zobristKeys[board->squares[square]][square];
 }
 
 void clearPiece(Board* board, int square) {
@@ -120,6 +123,8 @@ void clearPiece(Board* board, int square) {
     }
     
     U8 piece = board->squares[square];
+    board->key ^= zobristKeys[board->squares[square]][square];
+
     clearBit(&board->pieces[pieceType(piece)], square);
     clearBit(&board->colours[pieceColor(piece)], square);
     board->squares[square] = 0;
@@ -195,6 +200,9 @@ void makeMove(Board* board, U16 move, Undo* undo) {
     board->color = !board->color;
     ++board->moveNumber;
     board->castling &= (board->pieces[KING] | board->pieces[ROOK]);
+    board->key = ~board->key;
+
+    addMoveToHist(board);
 }
 
 void unmakeMove(Board* board, U16 move, Undo* undo) {
@@ -228,6 +236,9 @@ void unmakeMove(Board* board, U16 move, Undo* undo) {
     
     board->color = !board->color;
     --board->moveNumber;
+    board->key = ~board->key;
+
+    revertMoveFromHist(board);
 }
 
 void setUndo(Board* board, Undo* undo, U8 capturedPiece) {
@@ -377,4 +388,30 @@ U8 lastAttacker(Board* board, U64 bitboard) {
     }
 
     return board->squares[lastOne(bitboard)];
+}
+
+void addMoveToHist(Board* board) {
+    board->gameInfo->moveHistory[board->gameInfo->moveCount] = board->key;
+    ++board->gameInfo->moveCount;
+}
+
+void revertMoveFromHist(Board* board) {
+    --board->gameInfo->moveCount;
+}
+
+int isDraw(Board* board) {
+    GameInfo* gameInfo = board->gameInfo;
+    int rpt = 0;
+    U64 currentKey = board->key;
+    for(int i = gameInfo->moveCount; i >= 0; --i) {
+        if(gameInfo->moveHistory[i] == currentKey) {
+            ++rpt;
+        }
+    }
+
+    if(rpt > 2) {
+        return 1;
+    }
+
+    return 0;
 }

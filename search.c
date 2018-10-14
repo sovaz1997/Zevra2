@@ -10,12 +10,18 @@ void iterativeDeeping(Board* board, int depth) {
         printf("info depth %d nodes %d ", i, searchInfo.nodesCount);
         printScore(eval);
         printf(" pv %s\n", bestMove);
+        fflush(stdout);
     }
 
     printf("bestmove %s\n", bestMove);
+    fflush(stdout);
 }
 
 int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth, int height) {
+    if(isDraw(board)) {
+        return 0;
+    }
+
     if(!depth) {
         return quiesceSearch(board, searchInfo, alpha, beta, height);
     }

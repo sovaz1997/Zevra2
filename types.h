@@ -44,5 +44,6 @@ typedef uint8_t U8;
 typedef struct Board Board;
 typedef struct Undo Undo;
 typedef struct SearchInfo SearchInfo;
+typedef struct GameInfo GameInfo;
 
 #endif

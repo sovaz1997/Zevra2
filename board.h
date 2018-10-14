@@ -8,6 +8,12 @@
 #include "types.h"
 #include "bitboards.h"
 #include "move.h"
+#include "zobrist.h"
+
+struct GameInfo {
+    U64 moveHistory[8192];
+    int moveCount;
+};
 
 struct Board {
     int ruleNumber;
@@ -18,6 +24,8 @@ struct Board {
     U64 pieces[7];
     U64 colours[2];
     U8 squares[64];
+    U64 key;
+    GameInfo* gameInfo;
 };
 
 struct Undo {
@@ -48,6 +56,11 @@ void setUndo(Board* board, Undo* undo, U8 capturedPiece);
 void getUndo(Board* board, Undo* undo);
 int attackedSquare(Board* board, int sq, int color);
 int inCheck(Board* board, int color);
+
+void addMoveToHist(Board* board);
+void revertMoveFromHist(Board* board);
+
+int isDraw(Board* board);
 
 U8 firstAttacker(Board* board, U64 bitboard);
 U8 lastAttacker(Board* board, U64 bitboard);

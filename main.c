@@ -3,6 +3,7 @@
 #include "uci.h"
 #include "board.h"
 #include "magic.h"
+#include "zobrist.h"
 
 void initEngine();
 
@@ -17,6 +18,7 @@ int main() {
 
 void initEngine() {
     initBitboards();
+    zobristInit();
     magicArraysInit();
     initSearch();
 }

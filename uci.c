@@ -9,6 +9,10 @@ void uciInterface(Board* board) {
     char buff[65536];
     char* context;
 
+    GameInfo gameInfo;
+    gameInfo.moveCount = 0;
+    board->gameInfo = &gameInfo;
+
     while(1) {
         input(buff);
 
