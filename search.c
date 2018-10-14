@@ -1,15 +1,15 @@
 #include "search.h"
 
 void iterativeDeeping(Board* board, TimeManager tm) {
+    ++ttAge;
     SearchInfo searchInfo;
     char bestMove[6];
-    
+
     resetSearchInfo(&searchInfo, tm);
-    clearTT();
     startTimer(&searchInfo.timer);
     for(int i = 1; i <= tm.depth; ++i) {
         int eval = search(board, &searchInfo, -MATE_SCORE, MATE_SCORE, i, 0);
-
+        
         if(searchInfo.abort) {
             break;
         }
@@ -21,6 +21,7 @@ void iterativeDeeping(Board* board, TimeManager tm) {
         fflush(stdout);
     }
 
+    printf("info nodes %d time %d\n", searchInfo.nodesCount, getTime(&searchInfo.timer));
     printf("bestmove %s\n", bestMove);
     fflush(stdout);
 }
@@ -119,7 +120,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
                 searchInfo->history[MoveFrom(*curMove)][MoveTo(*curMove)] += (depth * depth);
             }
 
-            setTransposition(&new_tt, keyPosition, alpha, (alpha >= beta ? lowerbound : exact), depth, *curMove);
+            setTransposition(&new_tt, keyPosition, alpha, (alpha >= beta ? lowerbound : exact), depth, *curMove, ttAge);
         }
         if(alpha >= beta) {
             break;
@@ -132,7 +133,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     }
 
     if(oldAlpha == alpha) {
-        setTransposition(&new_tt, keyPosition, alpha, upperbound, depth, 0);
+        setTransposition(&new_tt, keyPosition, alpha, upperbound, depth, 0, ttAge);
     }
 
     replaceTransposition(ttEntry, new_tt, height);
@@ -337,6 +338,11 @@ void replaceTransposition(Transposition* tr, Transposition new_tr, int height) {
         score += height;
     } else if(score < -MATE_SCORE + 100) {
         score -= height;
+    }
+
+    if(tr->age + 5 < ttAge) {
+        *tr = new_tr;
+        return;
     }
 
     if(new_tr.depth > tr->depth) {

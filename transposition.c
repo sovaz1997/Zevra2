@@ -1,11 +1,12 @@
 #include "transposition.h"
 
-void setTransposition(Transposition* entry, U64 key, int eval, int evalType, int depth, U16 move) {
+void setTransposition(Transposition* entry, U64 key, int eval, int evalType, int depth, U16 move, int age) {
     entry->key = key;
     entry->eval = eval;
     entry->evalType = evalType;
     entry->move = move;
     entry->depth = depth;
+    entry->age = age;
 }
 
 void initTT() {
@@ -20,4 +21,5 @@ void initTT() {
 
 void clearTT() {
     memset(tt, 0, sizeof(Transposition) * ttSize);
+    ttAge = 0;
 }

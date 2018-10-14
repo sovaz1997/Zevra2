@@ -56,7 +56,6 @@ void uciInterface(Board* board) {
             }
             
             if(cmd_success_input) {
-                char* moveRange = strstr(cmd, "moves") + strlen("moves ");
                 setMovesRange(board, moves);
             }
 
