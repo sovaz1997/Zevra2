@@ -405,7 +405,7 @@ int isDraw(Board* board) {
     GameInfo* gameInfo = board->gameInfo;
     int rpt = 0;
     U64 currentKey = board->key;
-    for(int i = gameInfo->moveCount; i >= 0; --i) {
+    for(int i = gameInfo->moveCount - 1; i >= 0; --i) {
         if(gameInfo->moveHistory[i] == currentKey) {
             ++rpt;
         }

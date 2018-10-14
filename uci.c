@@ -45,6 +45,7 @@ void uciInterface(Board* board) {
                 iterativeDeeping(board, createFixTimeTm(atoll(time_str)));
             }
         } else if(!strcmp(cmd, "position")) {
+            gameInfo.moveCount = 0;
             cmd = strtok_r(NULL, " ", &context);
             int cmd_success_input = 0;
             if(startposStr) {

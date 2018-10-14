@@ -47,7 +47,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         }
     }
 
-    if(ttEntry->evalType && ttEntry->depth >= depth && !root && ttEntry->key == keyPosition) {
+    if(ttEntry->evalType && ttEntry->depth >= depth && !root && ttEntry->key == keyPosition && depth > 2) {
         int score = ttEntry->eval;
         if(score > MATE_SCORE - 100) {
             score -= height;
