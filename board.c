@@ -78,8 +78,10 @@ void setMovesRange(Board* board, char* moves) {
 }
 
 void clearBoard(Board* board) {
+    GameInfo* gameInfo = board->gameInfo;
     memset(board, 0, sizeof(*board));
-    board->enpassantSquare = -1;
+    board->gameInfo = gameInfo;
+    board->enpassantSquare = 0;
 }
 
 void printBoard(Board* board) {

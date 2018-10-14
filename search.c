@@ -15,10 +15,9 @@ void iterativeDeeping(Board* board, TimeManager tm) {
         }
         
         moveToString(searchInfo.bestMove, bestMove);
-        printf("info depth %d nodes %d ", i, searchInfo.nodesCount);
+        printf("info depth %d nodes %d time %d ", i, searchInfo.nodesCount, getTime(&searchInfo.timer));
         printScore(eval);
         printf(" pv %s\n", bestMove);
-        printf("%d\n", getTime(&searchInfo.timer));
         fflush(stdout);
     }
 
@@ -27,7 +26,7 @@ void iterativeDeeping(Board* board, TimeManager tm) {
 }
 
 int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth, int height) {
-    if(isDraw(board)) {
+    if(isDraw(board) && height) {
         return 0;
     }
 
@@ -35,7 +34,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         return quiesceSearch(board, searchInfo, alpha, beta, height);
     }
 
-    if(depth >= 3) {
+    if(depth >= 1) {
         if(searchInfo->tm.searchType == FixedTime) {
             if(getTime(&searchInfo->timer) >= searchInfo->tm.time) {
                 searchInfo->abort = 1;
@@ -95,6 +94,10 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 }
 
 int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int height) {
+    if(searchInfo->abort) {
+        return 0;   
+    }
+
     ++searchInfo->nodesCount;
     
     int val = fullEval(board);

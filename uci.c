@@ -89,7 +89,7 @@ void printScore(int score) {
         printf("score cp %d", score);
     } else {
         if(score < 0) {
-            printf("score mate %d", (MATE_SCORE - score) / 2);
+            printf("score mate %d", (-MATE_SCORE - score) / 2);
         } else {
             printf("score mate %d", (MATE_SCORE - score + 1) / 2);
         }
