@@ -73,12 +73,12 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         }
     }
 
-    if(!depth) {
+    if(depth <= 0) {
         return quiesceSearch(board, searchInfo, alpha, beta, height);
     }
 
     //Null Move pruning
-
+    
     int R = 2 + depth / 6;
     if(!extensions && !pvNode && !searchInfo->nullMoveSearch && depth > R) {
         
@@ -116,14 +116,24 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         
         ++movesCount;
 
+        int reductions = lmr[min(depth, MAX_PLY - 1)][min(63, movesCount)];
+        int quiteMove = (searchInfo->killer[board->color][height] != *curMove && !inCheck(board, board->color) && !undo.capturedPiece);
+
         int eval;
         if(movesCount == 1) {
             eval = -search(board, searchInfo, -beta, -alpha, depth - 1 + extensions, height + 1);
         } else {
-            eval = -search(board, searchInfo, -alpha - 1, -alpha, depth - 1 + extensions, height + 1);
+            if(movesCount > 3 && quiteMove) {
+                eval = -search(board, searchInfo, -alpha - 1, -alpha, depth - 1 + extensions - reductions, height + 1);
+                if(eval > alpha && eval < beta) {
+                    eval = -search(board, searchInfo, -beta, -alpha, depth - 1 + extensions, height + 1);
+                }
+            } else {
+                eval = -search(board, searchInfo, -alpha - 1, -alpha, depth - 1 + extensions, height + 1);
 
-            if(eval > alpha && eval < beta) {
-                eval = -search(board, searchInfo, -beta, -alpha, depth - 1 + extensions, height + 1);
+                if(eval > alpha && eval < beta) {
+                    eval = -search(board, searchInfo, -beta, -alpha, depth - 1 + extensions, height + 1);
+                }
             }
         }
 
@@ -334,23 +344,17 @@ void sort(U16* moves, int count) {
 }
 
 void initSearch() {
-    for(int attacker = 0; attacker < 7; ++attacker) {
-        for(int victim = 0; victim < 7; ++victim) {
+    for(int attacker = 1; attacker < 7; ++attacker) {
+        for(int victim = 1; victim < 7; ++victim) {
             int victimScore = 0;
-            if(victim == QUEEN) {
-                victimScore = 50;
-            } else if(victim == ROOK) {
-                victimScore = 40;
-            } else if(victim == BISHOP) {
-                victimScore = 30;
-            } else if(victim == KNIGHT) {
-                victimScore = 20;
-            } else if(victim == PAWN) {
-                victimScore = 10;
-            }
-
-            mvvLvaScores[attacker][victim] = victimScore - attacker;
+            mvvLvaScores[attacker][victim] = 64 * victim - attacker;
         }
+    }
+
+    for(int i = 0; i < MAX_PLY; ++i) {
+        for(int j = 0; j < 64; ++j) {
+            lmr[i][j]  = 0.75 + log(i) * log(j) / 2.25;
+        }   
     }
 }
 

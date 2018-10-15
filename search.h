@@ -1,6 +1,7 @@
 #ifndef SEARCH_H
 #define SEARCH_H
 
+#include <math.h>
 #include <time.h>
 #include "types.h"
 #include "board.h"
@@ -35,6 +36,7 @@ enum {
 U16 moves[MAX_PLY][256];
 int movePrice[256];
 int mvvLvaScores[7][7];
+int lmr[MAX_PLY][64];
 
 void iterativeDeeping(Board* board, TimeManager tm);
 int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth, int height);
