@@ -111,3 +111,20 @@ void input(char* str) {
         *ptr = '\0';
     }
 }
+
+void printPV(Board* board, int depth) {
+    Transposition* cur = &tt[board->key & ttIndex];
+
+    int moveCount = board->gameInfo->moveCount;
+    Board b = *board;
+    Undo undo;
+    for(int i = 0; (cur->evalType == lowerbound || cur->evalType == exact) && !isDraw(board) && i < depth + 20; ++i) {
+        char mv[6];
+        moveToString(cur->move, mv);
+        printf("%s ", mv);
+        makeMove(board, cur->move, &undo);
+        cur = &tt[board->key & ttIndex];
+    }
+    *board = b;
+    board->gameInfo->moveCount = moveCount;
+}

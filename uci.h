@@ -8,6 +8,7 @@
 extern char startpos[];
 
 void uciInterface(Board* board);
+void printPV(Board* board, int depth);
 void printEngineInfo();
 void printScore(int score);
 void input(char* str);
