@@ -37,6 +37,8 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     Transposition* ttEntry = &tt[keyPosition & ttIndex];
 
     int root = (height ? 0 : 1);
+    int pvNode = (beta - alpha > 1);
+
     if(isDraw(board) && !root || searchInfo->abort) {
         return 0;
     }
@@ -73,6 +75,24 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
     if(!depth) {
         return quiesceSearch(board, searchInfo, alpha, beta, height);
+    }
+
+    //Null Move pruning
+
+    int R = 2 + depth / 6;
+    if(!extensions && !pvNode && !searchInfo->nullMoveSearch && depth > R) {
+        
+        makeNullMove(board);
+        searchInfo->nullMoveSearch = 1;
+
+        int eval = -search(board, searchInfo, -beta, -beta + 1, depth - 1 - R, height + 1);
+
+        searchInfo->nullMoveSearch = 0;
+        unmakeNullMove(board);
+
+        if(eval >= beta) {
+            return beta;
+        }
     }
 
     movegen(board, moves[height]);

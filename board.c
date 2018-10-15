@@ -243,6 +243,16 @@ void unmakeMove(Board* board, U16 move, Undo* undo) {
     revertMoveFromHist(board);
 }
 
+void makeNullMove(Board* board) {
+    board->color = !board->color;
+    board->key ^= nullMoveKey;
+}
+
+void unmakeNullMove(Board* board) {
+    board->color = !board->color;
+    board->key ^= nullMoveKey;
+}
+
 void setUndo(Board* board, Undo* undo, U8 capturedPiece) {
     undo->capturedPiece = capturedPiece;
     undo->castling = board->castling;

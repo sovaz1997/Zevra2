@@ -60,6 +60,9 @@ int inCheck(Board* board, int color);
 void addMoveToHist(Board* board);
 void revertMoveFromHist(Board* board);
 
+void makeNullMove(Board* board);
+void unmakeNullMove(Board* board);
+
 int isDraw(Board* board);
 int repeatCount(Board* board);
 

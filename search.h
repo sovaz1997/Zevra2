@@ -21,6 +21,7 @@ struct SearchInfo {
     int abort;
     U16 killer[2][MAX_PLY + 1];
     int history[64][64];
+    int nullMoveSearch;
 };
 
 //Тип оценки

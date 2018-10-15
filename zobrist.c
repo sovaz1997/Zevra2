@@ -25,4 +25,6 @@ void zobristInit() {
     for(int i = 0; i < 64; ++i) {
         zobristEnpassantKeys[i] = rand64();
     }
+
+    nullMoveKey = rand64();
 }

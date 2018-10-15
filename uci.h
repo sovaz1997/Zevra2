@@ -12,5 +12,6 @@ void printPV(Board* board, int depth);
 void printEngineInfo();
 void printScore(int score);
 void input(char* str);
+int findMove(char* move, Board* board);
 
 #endif

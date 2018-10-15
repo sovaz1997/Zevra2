@@ -118,13 +118,38 @@ void printPV(Board* board, int depth) {
     int moveCount = board->gameInfo->moveCount;
     Board b = *board;
     Undo undo;
+
+    
     for(int i = 0; (cur->evalType == lowerbound || cur->evalType == exact) && !isDraw(board) && i < depth + 20; ++i) {
         char mv[6];
         moveToString(cur->move, mv);
-        printf("%s ", mv);
+
+        
+        if(findMove(mv, board)) {
+            printf("%s ", mv);
+        } else {
+            break;
+        }
         makeMove(board, cur->move, &undo);
         cur = &tt[board->key & ttIndex];
     }
     *board = b;
     board->gameInfo->moveCount = moveCount;
+}
+
+int findMove(char* move, Board* board) {
+    U16 moves[256];
+    movegen(board, moves);
+
+    U16* curMove = moves;
+    while(*curMove) {
+        char mv[6];
+        moveToString(*curMove, mv);
+        if(!strcmp(move, mv)) {
+            return 1;
+        }
+        ++curMove;
+    }
+
+    return 0;
 }
