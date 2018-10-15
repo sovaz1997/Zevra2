@@ -43,6 +43,9 @@ void uciInterface(Board* board) {
             } else if(!strcmp(go_param, "movetime")) {
                 char* time_str = strtok_r(NULL, " ", &context);
                 iterativeDeeping(board, createFixTimeTm(atoll(time_str)));
+            } else if(!strcmp(go_param, "infinite")) {
+                char* time_str = strtok_r(NULL, " ", &context);
+                iterativeDeeping(board, createFixDepthTm(MAX_PLY));
             }
         } else if(!strcmp(cmd, "position")) {
             gameInfo.moveCount = 0;

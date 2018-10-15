@@ -10,7 +10,7 @@ void iterativeDeeping(Board* board, TimeManager tm) {
     for(int i = 1; i <= tm.depth; ++i) {
         int eval = search(board, &searchInfo, -MATE_SCORE, MATE_SCORE, i, 0);
         
-        if(searchInfo.abort) {
+        if(searchInfo.abort && i > 1) {
             break;
         }
         
@@ -39,7 +39,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         return 0;
     }
 
-    int extensions = 0;//!!inCheck(board, board->color);
+    int extensions = !!inCheck(board, board->color);
 
     if(searchInfo->tm.searchType == FixedTime && depth >= 3) {
         if(getTime(&searchInfo->timer) >= searchInfo->tm.time) {
@@ -94,7 +94,17 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         
         ++movesCount;
 
-        int eval = -search(board, searchInfo, -beta, -alpha, depth - 1 + extensions, height + 1);
+        int eval;
+        if(movesCount == 1) {
+            eval = -search(board, searchInfo, -beta, -alpha, depth - 1 + extensions, height + 1);
+        } else {
+            eval = -search(board, searchInfo, -alpha - 1, -alpha, depth - 1 + extensions, height + 1);
+
+            if(eval > alpha && eval < beta) {
+                eval = -search(board, searchInfo, -beta, -alpha, depth - 1 + extensions, height + 1);
+            }
+        }
+
         unmakeMove(board, *curMove, &undo);
         
         if(root) {
