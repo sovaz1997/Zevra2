@@ -39,7 +39,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         return 0;
     }
 
-    int extensions = !!inCheck(board, board->color);
+    int extensions = 0;//!!inCheck(board, board->color);
 
     if(searchInfo->tm.searchType == FixedTime && depth >= 3) {
         if(getTime(&searchInfo->timer) >= searchInfo->tm.time) {
@@ -52,7 +52,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
     ++searchInfo->nodesCount;
 
-    if(ttEntry->evalType && ttEntry->depth >= depth && !root && ttEntry->key == keyPosition && repeatCount(board) <= 1) {
+    if(ttEntry->evalType && ttEntry->depth >= depth && !root && ttEntry->key == keyPosition && depth > 1) {
         int score = ttEntry->eval;
         if(score > MATE_SCORE - 100) {
             score -= height;
@@ -60,9 +60,9 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
             score += height;
         }
 
-        if(ttEntry->evalType == lowerbound && ttEntry->eval >= beta) {
+        if(ttEntry->evalType == lowerbound && score >= beta) {
             return score;
-        } else if(ttEntry->evalType == upperbound && ttEntry->eval <= alpha) {
+        } else if(ttEntry->evalType == upperbound && score <= alpha) {
             return score;
         } else if(ttEntry->evalType == exact) {
             return score;
