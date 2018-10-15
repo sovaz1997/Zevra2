@@ -402,18 +402,22 @@ void revertMoveFromHist(Board* board) {
 }
 
 int isDraw(Board* board) {
+    if(repeatCount(board) >= 2) {
+        return 1;
+    }
+
+    return 0;
+}
+
+int repeatCount(Board* board) {
     GameInfo* gameInfo = board->gameInfo;
     int rpt = 0;
     U64 currentKey = board->key;
-    for(int i = gameInfo->moveCount - 1; i >= 0; --i) {
+    for(int i = gameInfo->moveCount - 1, j = 0; i >= 0 && j < 10; --i, ++j) {
         if(gameInfo->moveHistory[i] == currentKey) {
             ++rpt;
         }
     }
 
-    if(rpt > 2) {
-        return 1;
-    }
-
-    return 0;
+    return rpt;
 }

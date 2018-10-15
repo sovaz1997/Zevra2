@@ -61,6 +61,7 @@ void addMoveToHist(Board* board);
 void revertMoveFromHist(Board* board);
 
 int isDraw(Board* board);
+int repeatCount(Board* board);
 
 U8 firstAttacker(Board* board, U64 bitboard);
 U8 lastAttacker(Board* board, U64 bitboard);

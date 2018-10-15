@@ -21,7 +21,7 @@ void iterativeDeeping(Board* board, TimeManager tm) {
         fflush(stdout);
     }
 
-    printf("info nodes %d time %d\n", searchInfo.nodesCount, getTime(&searchInfo.timer));
+    printf("info nodes %llu time %d\n", searchInfo.nodesCount, getTime(&searchInfo.timer));
     printf("bestmove %s\n", bestMove);
     fflush(stdout);
 }
@@ -30,6 +30,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     if(searchInfo->abort) {
         return 0;
     }
+
     U64 keyPosition = board->key;
     Transposition* ttEntry = &tt[keyPosition & ttIndex];
 
@@ -38,7 +39,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         return 0;
     }
 
-    int extensions = inCheck(board, board->color);
+    int extensions = !!inCheck(board, board->color);
 
     if(searchInfo->tm.searchType == FixedTime && depth >= 3) {
         if(getTime(&searchInfo->timer) >= searchInfo->tm.time) {
@@ -47,7 +48,11 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         }
     }
 
-    if(ttEntry->evalType && ttEntry->depth >= depth && !root && ttEntry->key == keyPosition && depth > 2) {
+    Undo undo;
+
+    ++searchInfo->nodesCount;
+
+    if(ttEntry->evalType && ttEntry->depth >= depth && !root && ttEntry->key == keyPosition && repeatCount(board) <= 1) {
         int score = ttEntry->eval;
         if(score > MATE_SCORE - 100) {
             score -= height;
@@ -55,23 +60,14 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
             score += height;
         }
 
-        if(ttEntry->evalType == lowerbound) {
-            alpha = max(alpha, score);
-            if(alpha >= beta) {
-                return score;
-            }
-        } else if(ttEntry->evalType == upperbound) {
-            beta = min(beta, score);
+        if(ttEntry->evalType == lowerbound && ttEntry->eval >= beta) {
+            return score;
+        } else if(ttEntry->evalType == upperbound && ttEntry->eval <= alpha) {
+            return score;
         } else if(ttEntry->evalType == exact) {
             return score;
         }
-
-        if(alpha >= beta) {
-            return beta;
-        }
     }
-
-    ++searchInfo->nodesCount;
 
     if(!depth) {
         return quiesceSearch(board, searchInfo, alpha, beta, height);
@@ -81,7 +77,6 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     moveOrdering(board, moves[height], searchInfo, height);
 
     U16* curMove = moves[height];
-    Undo undo;
 
     int movesCount = 0;
 
@@ -99,7 +94,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         
         ++movesCount;
 
-        int eval = -search(board, searchInfo, -beta, -alpha, depth - 1 + extensions, height + 1);        
+        int eval = -search(board, searchInfo, -beta, -alpha, depth - 1 + extensions, height + 1);
         unmakeMove(board, *curMove, &undo);
         
         if(root) {
@@ -211,6 +206,7 @@ U64 perftTest(Board* board, int depth, int height) {
     if(!depth) {
         return 1;
     }
+
 
     movegen(board, moves[height]);
 
