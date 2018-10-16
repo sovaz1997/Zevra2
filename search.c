@@ -125,8 +125,11 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         } else {
             if(movesCount >= 3 && quiteMove && !pvNode) {
                 eval = -search(board, searchInfo, -alpha - 1, -alpha, depth - 1 + extensions - reductions, height + 1);
-                if(eval > alpha && eval < beta) {
-                    eval = -search(board, searchInfo, -beta, -alpha, depth - 1 + extensions, height + 1);
+                if(eval > alpha) {
+                    eval = -search(board, searchInfo, -alpha - 1, -alpha, depth - 1 + extensions, height + 1);
+                    if(eval > alpha && eval < beta) {
+                        eval = -search(board, searchInfo, -beta, -alpha, depth - 1 + extensions, height + 1);
+                    }
                 }
             } else {
                 eval = -search(board, searchInfo, -alpha - 1, -alpha, depth - 1 + extensions, height + 1);
