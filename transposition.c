@@ -9,17 +9,30 @@ void setTransposition(Transposition* entry, U64 key, int eval, int evalType, int
     entry->age = age;
 }
 
-void initTT() {
-    ttSize = (1 << 22);
+void initTT(int size) {
+    ttSize = sizeToTTCount(size);
     tt = (Transposition*) malloc(sizeof(Transposition) * ttSize);
-    ttIndex = 0;
-    for(int i = 0; i < 22; ++i) {
-        ttIndex |= (1 << i);
-    }
+    ttIndex = ttSize - 1;
     clearTT();
+}
+
+void reallocTT() {
+    
 }
 
 void clearTT() {
     memset(tt, 0, sizeof(Transposition) * ttSize);
     ttAge = 0;
+}
+
+U64 sizeToTTCount(U64 size) {
+    U64 count;
+    size *= (1024 * 1024);
+    for(count = 1; count * sizeof(Transposition) <= size; count *= 2);
+
+    if(count * sizeof(Transposition) > size) {
+        count /= 2;
+    }
+
+    return count;
 }
