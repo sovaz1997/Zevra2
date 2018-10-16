@@ -152,14 +152,14 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
                 searchInfo->bestMove = *curMove;
             }
 
+            setTransposition(&new_tt, keyPosition, alpha, (alpha >= beta ? lowerbound : exact), depth, *curMove, ttAge);
+        }
+        if(alpha >= beta) {
             if(!undo.capturedPiece) {
                 searchInfo->killer[board->color][height] = *curMove;
                 searchInfo->history[MoveFrom(*curMove)][MoveTo(*curMove)] += (depth * depth);
             }
 
-            setTransposition(&new_tt, keyPosition, alpha, (alpha >= beta ? lowerbound : exact), depth, *curMove, ttAge);
-        }
-        if(alpha >= beta) {
             break;
         }
         ++curMove;
