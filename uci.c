@@ -46,6 +46,37 @@ void uciInterface(Board* board) {
             } else if(!strcmp(go_param, "infinite")) {
                 char* time_str = strtok_r(NULL, " ", &context);
                 iterativeDeeping(board, createFixDepthTm(MAX_PLY));
+            } else {
+                int wtime = 0, btime = 0, winc = 0, binc = 0, movestogo = 0;
+
+                while(1) {
+                    if(!go_param) {
+                        break;
+                    }
+
+                    
+
+                    if(!strcmp(go_param, "wtime")) {
+                        char* tm = strtok_r(NULL, " ", &context);
+                        wtime = atoi(tm);
+                    } else if(!strcmp(go_param, "btime")) {
+                        char* tm = strtok_r(NULL, " ", &context);
+                        btime = atoi(tm);
+                    } else if(!strcmp(go_param, "winc")) {
+                        char* inc = strtok_r(NULL, " ", &context);
+                        winc = atoi(inc);
+                    } else if(!strcmp(go_param, "binc")) {
+                        char* inc = strtok_r(NULL, " ", &context);
+                        binc = atoi(inc);
+                    } else if(!strcmp(go_param, "movestogo")) {
+                        char* mtg = strtok_r(NULL, " ", &context);
+                        binc = atoi(mtg);
+                    }
+
+                    go_param = strtok_r(NULL, " ", &context);
+                }
+
+                iterativeDeeping(board, createTournamentTm(board, wtime, btime, winc, binc, movestogo));
             }
         } else if(!strcmp(cmd, "position")) {
             gameInfo.moveCount = 0;

@@ -1,6 +1,6 @@
 #include "search.h"
 
-void iterativeDeeping(Board* board, TimeManager tm) {
+void iterativeDeeping(Board* board, TimeManager tm) {    
     ++ttAge;
     SearchInfo searchInfo;
     char bestMove[6];
@@ -45,11 +45,9 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
     int extensions = !!inCheck(board, board->color);
 
-    if(searchInfo->tm.searchType == FixedTime && depth >= 3) {
-        if(getTime(&searchInfo->timer) >= searchInfo->tm.time) {
-            searchInfo->abort = 1;
-            return 0;
-        }
+    if(depth >= 3 && testAbort(getTime(&searchInfo->timer), &searchInfo->tm)) {
+        searchInfo->abort = 1;
+        return 0;
     }
 
     Undo undo;
@@ -190,11 +188,9 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 }
 
 int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int height) {
-    if(searchInfo->tm.searchType == FixedTime) {
-        if(getTime(&searchInfo->timer) >= searchInfo->tm.time) {
-            searchInfo->abort = 1;
-            return 0;
-        }
+    if(testAbort(getTime(&searchInfo->timer), &searchInfo->tm)) {
+        searchInfo->abort = 1;
+        return 0;
     }
 
     if(searchInfo->abort) {
