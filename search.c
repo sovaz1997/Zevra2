@@ -73,15 +73,15 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         }
     }
 
-    if(depth <= 0) {
+    if(depth <= 0 && !extensions) {
         return quiesceSearch(board, searchInfo, alpha, beta, height);
     }
 
     //Null Move pruning
     
     int R = 2 + depth / 6;
-    if(!extensions && !pvNode && !searchInfo->nullMoveSearch && depth > R) {
-        
+    int staticEval = fullEval(board);
+    if(!extensions && !searchInfo->nullMoveSearch && depth > R && (staticEval >= beta || depth < 4)) {
         makeNullMove(board);
         searchInfo->nullMoveSearch = 1;
 
@@ -117,13 +117,13 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         ++movesCount;
 
         int reductions = lmr[min(depth, MAX_PLY - 1)][min(63, movesCount)];
-        int quiteMove = (searchInfo->killer[board->color][height] != *curMove && !inCheck(board, board->color) && !undo.capturedPiece);
+        int quiteMove = (searchInfo->killer[board->color][height] != *curMove && !inCheck(board, board->color) && !undo.capturedPiece && !extensions);
 
         int eval;
         if(movesCount == 1) {
             eval = -search(board, searchInfo, -beta, -alpha, depth - 1 + extensions, height + 1);
         } else {
-            if(movesCount > 3 && quiteMove) {
+            if(movesCount >= 3 && quiteMove && !pvNode) {
                 eval = -search(board, searchInfo, -alpha - 1, -alpha, depth - 1 + extensions - reductions, height + 1);
                 if(eval > alpha && eval < beta) {
                     eval = -search(board, searchInfo, -beta, -alpha, depth - 1 + extensions, height + 1);
