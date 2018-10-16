@@ -73,7 +73,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         }
     }
 
-    if(depth <= 0 /*&& !extensions*/) {
+    if(depth <= 0 && !extensions) {
         return quiesceSearch(board, searchInfo, alpha, beta, height);
     }
 
