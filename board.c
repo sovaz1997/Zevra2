@@ -164,6 +164,8 @@ void makeMove(Board* board, U16 move, Undo* undo) {
 
     if(MoveType(move) == NORMAL_MOVE && !board->squares[MoveTo(move)] && pieceType(board->squares[MoveFrom(move)]) != PAWN) {
         ++board->ruleNumber;
+    } else {
+        board->ruleNumber = 0;
     }
     
     movePiece(board, MoveFrom(move), MoveTo(move));
@@ -426,7 +428,7 @@ int isDraw(Board* board) {
     if(repeatCount(board) >= 2) {
         return 1;
     }
-
+    
     if(board->ruleNumber >= 100) {
         return 1;
     }
