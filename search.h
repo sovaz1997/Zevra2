@@ -57,5 +57,6 @@ void sort(U16* moves, int count);
 void initSearch();
 void resetSearchInfo(SearchInfo* info, TimeManager tm);
 void replaceTransposition(Transposition* tr, Transposition new_tr, int height);
+void setAbort(int val);
 
 #endif

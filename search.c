@@ -55,9 +55,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     int extensions = !!inCheck(board, board->color);
 
     if(depth >= 3 && testAbort(getTime(&searchInfo->timer), &searchInfo->tm)) {
-        pthread_mutex_lock(&mutex);
-        ABORT = 1;
-        pthread_mutex_unlock(&mutex);
+        setAbort(1);
         return 0;
     }
 
@@ -200,7 +198,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
 int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int height) {
     if(testAbort(getTime(&searchInfo->timer), &searchInfo->tm)) {
-        ABORT = 1;
+        setAbort(1);
         return 0;
     }
 
@@ -372,9 +370,7 @@ void resetSearchInfo(SearchInfo* info, TimeManager tm) {
     memset(info, 0, sizeof(SearchInfo));
     info->tm = tm;
     memset(info->history, 0, 64 * 64);
-    pthread_mutex_lock(&mutex);
-    ABORT = 0;
-    pthread_mutex_unlock(&mutex);
+    setAbort(0);
 }
 
 void replaceTransposition(Transposition* tr, Transposition new_tr, int height) {
@@ -397,4 +393,10 @@ void replaceTransposition(Transposition* tr, Transposition new_tr, int height) {
         }
         replaceTranspositionEntry(tr, &new_tr);
     }
+}
+
+void setAbort(int val) {
+    pthread_mutex_lock(&mutex);
+    ABORT = val;
+    pthread_mutex_unlock(&mutex);
 }

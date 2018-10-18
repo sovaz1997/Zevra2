@@ -130,9 +130,7 @@ void runSearch(SearchArgs* args) {
         input(buff);
 
         if(!strcmp(buff, "stop")) {
-            pthread_mutex_lock(&mutex);
-            ABORT = 1;
-            pthread_mutex_unlock(&mutex);
+            setAbort(1);
             return;
         }
     }
