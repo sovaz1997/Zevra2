@@ -33,50 +33,58 @@ void uciInterface(Board* board) {
 
         if(!strcmp(cmd, "go")) {
             char* go_param = strtok_r(NULL, " ", &context);
-
+            TimeManager tm;
             if(!strcmp(go_param, "perft")) {
                 char* depth_str = strtok_r(NULL, " ", &context);
                 perft(board, atoi(depth_str));
-            } else if(!strcmp(go_param, "depth")) {
-                char* depth_str = strtok_r(NULL, " ", &context);
-                iterativeDeeping(board, createFixDepthTm(atoi(depth_str)));
-            } else if(!strcmp(go_param, "movetime")) {
-                char* time_str = strtok_r(NULL, " ", &context);
-                iterativeDeeping(board, createFixTimeTm(atoll(time_str)));
-            } else if(!strcmp(go_param, "infinite")) {
-                char* time_str = strtok_r(NULL, " ", &context);
-                iterativeDeeping(board, createFixDepthTm(MAX_PLY));
             } else {
-                int wtime = 0, btime = 0, winc = 0, binc = 0, movestogo = 0;
+                TimeManager tm;
+                if(!strcmp(go_param, "depth")) {
+                    char* depth_str = strtok_r(NULL, " ", &context);
+                    tm = createFixDepthTm(atoi(depth_str));
+                } else if(!strcmp(go_param, "movetime")) {
+                    char* time_str = strtok_r(NULL, " ", &context);
+                    tm = createFixTimeTm(atoll(time_str));
+                } else if(!strcmp(go_param, "infinite")) {
+                    char* time_str = strtok_r(NULL, " ", &context);
+                    tm = createFixDepthTm(MAX_PLY);
+                } else {
+                    int wtime = 0, btime = 0, winc = 0, binc = 0, movestogo = 0;
 
-                while(1) {
-                    if(!go_param) {
-                        break;
+                    while(1) {
+                        if(!go_param) {
+                            break;
+                        }
+
+                        if(!strcmp(go_param, "wtime")) {
+                            char* tm = strtok_r(NULL, " ", &context);
+                            wtime = atoi(tm);
+                        } else if(!strcmp(go_param, "btime")) {
+                            char* tm = strtok_r(NULL, " ", &context);
+                            btime = atoi(tm);
+                        } else if(!strcmp(go_param, "winc")) {
+                            char* inc = strtok_r(NULL, " ", &context);
+                            winc = atoi(inc);
+                        } else if(!strcmp(go_param, "binc")) {
+                            char* inc = strtok_r(NULL, " ", &context);
+                            binc = atoi(inc);
+                        } else if(!strcmp(go_param, "movestogo")) {
+                            char* mtg = strtok_r(NULL, " ", &context);
+                            binc = atoi(mtg);
+                        }
+
+                        go_param = strtok_r(NULL, " ", &context);
                     }
 
-                    
-
-                    if(!strcmp(go_param, "wtime")) {
-                        char* tm = strtok_r(NULL, " ", &context);
-                        wtime = atoi(tm);
-                    } else if(!strcmp(go_param, "btime")) {
-                        char* tm = strtok_r(NULL, " ", &context);
-                        btime = atoi(tm);
-                    } else if(!strcmp(go_param, "winc")) {
-                        char* inc = strtok_r(NULL, " ", &context);
-                        winc = atoi(inc);
-                    } else if(!strcmp(go_param, "binc")) {
-                        char* inc = strtok_r(NULL, " ", &context);
-                        binc = atoi(inc);
-                    } else if(!strcmp(go_param, "movestogo")) {
-                        char* mtg = strtok_r(NULL, " ", &context);
-                        binc = atoi(mtg);
-                    }
-
-                    go_param = strtok_r(NULL, " ", &context);
+                    tm = createTournamentTm(board, wtime, btime, winc, binc, movestogo);
                 }
 
-                iterativeDeeping(board, createTournamentTm(board, wtime, btime, winc, binc, movestogo));
+                SearchArgs args;
+                args.board = board;
+                args.tm = tm;
+                
+                runSearch(&args);
+                //pthread_create(&searchThread, NULL, &go, &args);
             }
         } else if(!strcmp(cmd, "position")) {
             gameInfo.moveCount = 0;
@@ -112,6 +120,22 @@ void uciInterface(Board* board) {
         fflush(stdout);
 
         free(str);
+    }
+}
+
+void runSearch(SearchArgs* args) {
+    pthread_t searchThread;
+    pthread_create(&searchThread, NULL, &go, args);
+    char buff[9];
+    while(1) {
+        input(buff);
+
+        if(!strcmp(buff, "stop")) {
+            pthread_mutex_lock(&mutex);
+            ABORT = 1;
+            pthread_mutex_unlock(&mutex);
+            return;
+        }
     }
 }
 

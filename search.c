@@ -1,5 +1,13 @@
 #include "search.h"
 
+void* go(void* thread_data) {
+    SearchArgs* args = thread_data;
+    //Board* board = (SearchArgs*)thread_data->board;
+    //TimeManager tm = (SearchArgs*)thread_data->tm;
+
+    iterativeDeeping(args->board, args->tm);
+}
+
 void iterativeDeeping(Board* board, TimeManager tm) {    
     ++ttAge;
     SearchInfo searchInfo;
@@ -10,7 +18,7 @@ void iterativeDeeping(Board* board, TimeManager tm) {
     for(int i = 1; i <= tm.depth; ++i) {
         int eval = search(board, &searchInfo, -MATE_SCORE, MATE_SCORE, i, 0);
         
-        if(searchInfo.abort && i > 1) {
+        if(ABORT && i > 1) {
             break;
         }
         
@@ -29,7 +37,7 @@ void iterativeDeeping(Board* board, TimeManager tm) {
 }
 
 int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth, int height) {
-    if(searchInfo->abort) {
+    if(ABORT) {
         return 0;
     }
 
@@ -39,14 +47,16 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     int root = (height ? 0 : 1);
     int pvNode = (beta - alpha > 1);
 
-    if(isDraw(board) && !root || searchInfo->abort) {
+    if(isDraw(board) && !root || ABORT) {
         return 0;
     }
 
     int extensions = !!inCheck(board, board->color);
 
     if(depth >= 3 && testAbort(getTime(&searchInfo->timer), &searchInfo->tm)) {
-        searchInfo->abort = 1;
+        pthread_mutex_lock(&mutex);
+        ABORT = 1;
+        pthread_mutex_unlock(&mutex);
         return 0;
     }
 
@@ -143,7 +153,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         if(root) {
             char moveStr[6];
             moveToString(*curMove, moveStr);
-            printf("info move %s currmovenumber %d\n", moveStr, movesCount);
+            printf("info currmove %s currmovenumber %d\n", moveStr, movesCount);
             fflush(stdout);
         }
         
@@ -166,7 +176,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         ++curMove;
     }
 
-    if(searchInfo->abort) {
+    if(ABORT) {
             return 0;
     }
 
@@ -189,11 +199,11 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
 int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int height) {
     if(testAbort(getTime(&searchInfo->timer), &searchInfo->tm)) {
-        searchInfo->abort = 1;
+        ABORT = 1;
         return 0;
     }
 
-    if(searchInfo->abort) {
+    if(ABORT) {
             return 0;
     }
 
@@ -212,7 +222,7 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
     U16* curMove = moves[height];
     Undo undo;
     while(*curMove) {
-        if(searchInfo->abort) {
+        if(ABORT) {
             return 0;
         }
 
@@ -236,7 +246,7 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
         ++curMove;
     }
 
-    if(searchInfo->abort) {
+    if(ABORT) {
             return 0;
     }
 
@@ -361,6 +371,9 @@ void resetSearchInfo(SearchInfo* info, TimeManager tm) {
     memset(info, 0, sizeof(SearchInfo));
     info->tm = tm;
     memset(info->history, 0, 64 * 64);
+    pthread_mutex_lock(&mutex);
+    ABORT = 0;
+    pthread_mutex_unlock(&mutex);
 }
 
 void replaceTransposition(Transposition* tr, Transposition new_tr, int height) {

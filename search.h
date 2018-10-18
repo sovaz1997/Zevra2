@@ -3,6 +3,7 @@
 
 #include <math.h>
 #include <time.h>
+#include <pthread.h>
 #include "types.h"
 #include "board.h"
 #include "movegen.h"
@@ -14,12 +15,18 @@
 #define min(a, b) (a < b ? a : b)
 #define max(a, b) (a > b ? a : b)
 
+int ABORT;
+
+struct SearchArgs {
+    Board* board;
+    TimeManager tm;
+};
+
 struct SearchInfo {
     U64 nodesCount;
     U16 bestMove;
     Timer timer;
     TimeManager tm;
-    int abort;
     U16 killer[2][MAX_PLY + 1];
     int history[64][64];
     int nullMoveSearch;
@@ -39,6 +46,7 @@ int movePrice[256];
 int mvvLvaScores[7][7];
 int lmr[MAX_PLY][64];
 
+void* go(void* thread_data);
 void iterativeDeeping(Board* board, TimeManager tm);
 int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth, int height);
 int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int height);
