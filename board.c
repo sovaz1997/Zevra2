@@ -438,7 +438,7 @@ int repeatCount(Board* board) {
     GameInfo* gameInfo = board->gameInfo;
     int rpt = 0;
     U64 currentKey = board->key;
-    for(int i = gameInfo->moveCount - 1, j = 0; i >= 0; --i, ++j) {
+    for(int i = gameInfo->moveCount - 1; i >= 0; --i) {
         if(gameInfo->moveHistory[i] == currentKey) {
             ++rpt;
         }

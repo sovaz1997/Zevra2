@@ -13,10 +13,14 @@ enum figureWeights {
     QUEEN_EV = 1000
 };
 
+//Бонусы мобильности
 extern int QueenMobility[28];
 extern int RookMobility[15];
 extern int BishopMobility[14];
 extern int KnightMobility[14];
+
+//Бонус проходных пешек
+extern int PassedPawnBonus[8];
 
 
 int fullEval(Board* board);
@@ -24,5 +28,7 @@ int materialEval(Board* board);
 int psqtEval(Board* board);
 int psqtPieceEval(Board* board, U64 mask, const int* pstTable);
 int mobilityEval(Board* board, int color);
+int pawnsEval(Board* board, int color);
+int getPassedPawnBonus(int sq, int color);
 
 #endif

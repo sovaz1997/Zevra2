@@ -7,6 +7,7 @@ int QueenMobility[28] = {
 int RookMobility[15] = {-30, -20, -10, 0, 10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80};
 int BishopMobility[14] = {-30, -10, 5, 15, 20, 25, 35, 40, 45, 50, 55, 60, 65, 70};
 int KnightMobility[14] = {-50, -25, -10, -2, 5, 10, 15, 25};
+int PassedPawnBonus[8] = {0, 0, 10, 20, 40, 80, 120, 0};
 
 int fullEval(Board* board) {
     int eval = 0;
@@ -18,6 +19,9 @@ int fullEval(Board* board) {
     //Оценка мобильности
     eval += mobilityEval(board, WHITE);
     eval -= mobilityEval(board, BLACK);
+
+    //Оценка пешечной структуры (проходные)
+    eval += (pawnsEval(board, WHITE) - pawnsEval(board, BLACK));
 
     return (board->color == WHITE ? eval : -eval);
 }
@@ -143,4 +147,35 @@ int mobilityEval(Board* board, int color) {
     }
 
     return eval;
+}
+
+int pawnsEval(Board* board, int color) {
+    int eval = 0;
+    
+    U64 ourPawns = board->colours[color] & board->pieces[PAWN];
+    U64 enemyPawns = board->colours[!color] & board->pieces[PAWN];
+
+    while(ourPawns) {
+        int sq = firstOne(ourPawns);
+        if(color == WHITE) {
+            if(!(plus8[sq] & enemyPawns)) {
+                eval += getPassedPawnBonus(sq, color);
+            }
+        } else {
+            if(!(minus8[sq] & enemyPawns)) {
+                eval += getPassedPawnBonus(sq, color);
+            }
+        }
+        clearBit(&ourPawns, sq);
+    }
+
+    return eval;
+}
+
+int getPassedPawnBonus(int sq, int color) {
+    if(color == WHITE) {
+        return -pawnPST[square(7 - rankOf(sq), fileOf(sq))] + PassedPawnBonus[rankOf(sq)];
+    }
+    
+    return -pawnPST[square(rankOf(sq), fileOf(sq))] + PassedPawnBonus[7 - rankOf(sq)];
 }
