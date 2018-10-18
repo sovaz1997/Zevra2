@@ -34,5 +34,6 @@ int mobilityEval(Board* board, int color);
 int pawnsEval(Board* board, int color);
 int bishopsEval(Board* board);
 int getPassedPawnBonus(int sq, int color);
+int mateScore(int eval);
 
 #endif

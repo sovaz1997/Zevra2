@@ -188,3 +188,7 @@ int getPassedPawnBonus(int sq, int color) {
     
     return -pawnPST[square(rankOf(sq), fileOf(sq))] + PassedPawnBonus[7 - rankOf(sq)];
 }
+
+int mateScore(int eval) {
+    return (eval >= MATE_SCORE - 100 || eval <= -MATE_SCORE + 100);
+}

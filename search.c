@@ -16,8 +16,9 @@ void iterativeDeeping(Board* board, TimeManager tm) {
 
     resetSearchInfo(&searchInfo, tm);
     startTimer(&searchInfo.timer);
+    int eval;
     for(int i = 1; i <= tm.depth; ++i) {
-        int eval = search(board, &searchInfo, -MATE_SCORE, MATE_SCORE, i, 0);
+        eval = search(board, &searchInfo, -MATE_SCORE, MATE_SCORE, i, 0);
         
         if(ABORT && i > 1) {
             break;
@@ -39,6 +40,10 @@ void iterativeDeeping(Board* board, TimeManager tm) {
     printf("info nodes %llu time %d\n", searchInfo.nodesCount, getTime(&searchInfo.timer));
     printf("bestmove %s\n", bestMove);
     fflush(stdout);
+
+    if(mateScore(eval)) {
+        clearTT();
+    }
 }
 
 int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth, int height) {
@@ -132,6 +137,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
         if(depth < 2 && quiteMove && !root) {
             if(-fullEval(board) + PAWN_EV / 2 <= alpha) {
+
                 unmakeMove(board, *curMove, &undo);
                 ++curMove;
                 continue;
@@ -387,6 +393,7 @@ void resetSearchInfo(SearchInfo* info, TimeManager tm) {
 
 void replaceTransposition(Transposition* tr, Transposition new_tr, int height) {
     int score = new_tr.eval;
+
     if(score > MATE_SCORE - 100) {
         score += height;
     } else if(score < -MATE_SCORE + 100) {
