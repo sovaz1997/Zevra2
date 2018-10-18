@@ -3,9 +3,10 @@
 void* go(void* thread_data) {
     SearchArgs* args = thread_data;
     iterativeDeeping(args->board, args->tm);
+    SEARCH_COMPLETE = 1;
 }
 
-void iterativeDeeping(Board* board, TimeManager tm) {    
+void iterativeDeeping(Board* board, TimeManager tm) {
     ++ttAge;
     SearchInfo searchInfo;
     char bestMove[6];

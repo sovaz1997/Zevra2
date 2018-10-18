@@ -16,6 +16,7 @@
 #define max(a, b) (a > b ? a : b)
 
 int ABORT;
+int SEARCH_COMPLETE;
 
 struct SearchArgs {
     Board* board;

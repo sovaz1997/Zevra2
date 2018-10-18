@@ -12,6 +12,7 @@ void uciInterface(Board* board) {
     GameInfo gameInfo;
     gameInfo.moveCount = 0;
     board->gameInfo = &gameInfo;
+    SEARCH_COMPLETE = 1;
 
     while(1) {
         input(buff);
@@ -31,7 +32,7 @@ void uciInterface(Board* board) {
 
         char* cmd = strtok_r(str, " ", &context);
 
-        if(!strcmp(cmd, "go")) {
+        if(!strcmp(cmd, "go") && SEARCH_COMPLETE) {
             char* go_param = strtok_r(NULL, " ", &context);
             TimeManager tm;
             if(!strcmp(go_param, "perft")) {
@@ -83,9 +84,12 @@ void uciInterface(Board* board) {
                 args.board = board;
                 args.tm = tm;
                 
-                runSearch(&args);
+                pthread_t searchThread;
+                SEARCH_COMPLETE = 0;
+                pthread_create(&searchThread, NULL, &go, &args);
+                //runSearch(&args);
             }
-        } else if(!strcmp(cmd, "position")) {
+        } else if(!strcmp(cmd, "position") && SEARCH_COMPLETE) {
             gameInfo.moveCount = 0;
             cmd = strtok_r(NULL, " ", &context);
             int cmd_success_input = 0;
@@ -101,40 +105,27 @@ void uciInterface(Board* board) {
                 setMovesRange(board, moves);
             }
 
-        } else if(!strcmp(cmd, "d")) {
+        } else if(!strcmp(cmd, "d") && SEARCH_COMPLETE) {
             printBoard(board);
         } else if(!strcmp(cmd, "quit")) {
             free(str);
             free(tt);
             break;
-        } else if(!strcmp(cmd, "uci")) {
+        } else if(!strcmp(cmd, "uci") && SEARCH_COMPLETE) {
             printEngineInfo();
             printf("uciok\n");
-        } else if(!strcmp(cmd, "eval")) {
+        } else if(!strcmp(cmd, "eval") && SEARCH_COMPLETE) {
             printf("Eval: %d\n", fullEval(board));
         } else if(!strcmp(cmd, "isready")) {
             readyok();
+        } else if(!strcmp(cmd, "stop") && !SEARCH_COMPLETE) {
+            SEARCH_COMPLETE = 1;
+            setAbort(1);
         }
 
         fflush(stdout);
 
         free(str);
-    }
-}
-
-void runSearch(SearchArgs* args) {
-    pthread_t searchThread;
-    pthread_create(&searchThread, NULL, &go, args);
-    char buff[16];
-    while(1) {
-        input(buff);
-
-        if(!strcmp(buff, "stop")) {
-            setAbort(1);
-            return;
-        } else if(!strcmp(buff, "isready")) {
-            readyok();
-        }
     }
 }
 
