@@ -42,6 +42,8 @@ enum {
     exact = 3
 };
 
+extern int RazorMargin[7];
+
 U16 moves[MAX_PLY][256];
 int movePrice[256];
 int mvvLvaScores[7][7];

@@ -1,5 +1,8 @@
 #include "search.h"
 
+
+ int RazorMargin[7] = {0, 0, 500, 700, 900, 1200, 1500};
+
 void* go(void* thread_data) {
     SearchArgs* args = thread_data;
     iterativeDeeping(args->board, args->tm);
@@ -126,6 +129,14 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
         int reductions = lmr[min(depth, MAX_PLY - 1)][min(63, movesCount)];
         int quiteMove = (searchInfo->killer[board->color][height] != *curMove && !inCheck(board, board->color) && !undo.capturedPiece);
+
+        if(depth < 2 && quiteMove && !root) {
+            if(-fullEval(board) + PAWN_EV / 2 <= alpha) {
+                unmakeMove(board, *curMove, &undo);
+                ++curMove;
+                continue;
+            }
+        }
 
         int eval;
         if(movesCount == 1) {
