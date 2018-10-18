@@ -15,5 +15,6 @@ void printScore(int score);
 void input(char* str);
 int findMove(char* move, Board* board);
 void runSearch(SearchArgs* args);
+void readyok();
 
 #endif

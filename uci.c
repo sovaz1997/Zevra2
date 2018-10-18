@@ -113,7 +113,7 @@ void uciInterface(Board* board) {
         } else if(!strcmp(cmd, "eval")) {
             printf("Eval: %d\n", fullEval(board));
         } else if(!strcmp(cmd, "isready")) {
-            printf("readyok\n");
+            readyok();
         }
 
         fflush(stdout);
@@ -125,19 +125,27 @@ void uciInterface(Board* board) {
 void runSearch(SearchArgs* args) {
     pthread_t searchThread;
     pthread_create(&searchThread, NULL, &go, args);
-    char buff[9];
+    char buff[16];
     while(1) {
         input(buff);
 
         if(!strcmp(buff, "stop")) {
             setAbort(1);
             return;
+        } else if(!strcmp(buff, "isready")) {
+            readyok();
         }
     }
 }
 
 void printEngineInfo() {
     printf("id name Zevra v2.0 dev\nid author Oleg Smirnov\n");
+}
+
+void readyok() {
+    pthread_mutex_lock(&mutex);
+    printf("readyok\n");
+    pthread_mutex_unlock(&mutex);
 }
 
 void printScore(int score) {
