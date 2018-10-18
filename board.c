@@ -161,6 +161,10 @@ void printPiece(U8 piece) {
 
 void makeMove(Board* board, U16 move, Undo* undo) {
     setUndo(board, undo, board->squares[MoveTo(move)]);
+
+    if(MoveType(move) == NORMAL_MOVE && !board->squares[MoveTo(move)] && pieceType(board->squares[MoveFrom(move)]) != PAWN) {
+        ++board->ruleNumber;
+    }
     
     movePiece(board, MoveFrom(move), MoveTo(move));
     int epClear = 1;
@@ -200,7 +204,10 @@ void makeMove(Board* board, U16 move, Undo* undo) {
 
 
     board->color = !board->color;
-    ++board->moveNumber;
+    
+    if(board->color == WHITE) {
+        ++board->moveNumber;
+    }
     board->castling &= (board->pieces[KING] | board->pieces[ROOK]);
     board->key = ~board->key;
 
@@ -209,6 +216,7 @@ void makeMove(Board* board, U16 move, Undo* undo) {
 
 void unmakeMove(Board* board, U16 move, Undo* undo) {
     getUndo(board, undo);
+
     if(MoveType(move) == CASTLE_MOVE) {
         int castlingRank = (!board->color == WHITE ? 0 : 7);
         U8 king = makePiece(KING, !board->color);        
@@ -237,7 +245,10 @@ void unmakeMove(Board* board, U16 move, Undo* undo) {
     }
     
     board->color = !board->color;
-    --board->moveNumber;
+    if(board->color == BLACK) {
+        --board->moveNumber;
+    }
+    
     board->key = ~board->key;
 
     revertMoveFromHist(board);
@@ -416,6 +427,10 @@ int isDraw(Board* board) {
         return 1;
     }
 
+    if(board->ruleNumber >= 100) {
+        return 1;
+    }
+
     return 0;
 }
 
@@ -423,7 +438,7 @@ int repeatCount(Board* board) {
     GameInfo* gameInfo = board->gameInfo;
     int rpt = 0;
     U64 currentKey = board->key;
-    for(int i = gameInfo->moveCount - 1, j = 0; i >= 0 && j < 10; --i, ++j) {
+    for(int i = gameInfo->moveCount - 1, j = 0; i >= 0; --i, ++j) {
         if(gameInfo->moveHistory[i] == currentKey) {
             ++rpt;
         }
