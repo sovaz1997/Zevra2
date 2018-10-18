@@ -2,9 +2,6 @@
 
 void* go(void* thread_data) {
     SearchArgs* args = thread_data;
-    //Board* board = (SearchArgs*)thread_data->board;
-    //TimeManager tm = (SearchArgs*)thread_data->tm;
-
     iterativeDeeping(args->board, args->tm);
 }
 
@@ -23,9 +20,11 @@ void iterativeDeeping(Board* board, TimeManager tm) {
         }
         
         moveToString(searchInfo.bestMove, bestMove);
+        
         U64 searchTime = getTime(&searchInfo.timer);
         int speed = (searchTime < 1 ? 0 : (searchInfo.nodesCount / (searchTime / 1000.)));
-        printf("info depth %d nodes %llu time %llu nps %d ", i, searchInfo.nodesCount, searchTime, speed);
+        int hashfull = (double)ttFilledSize  / (double)ttSize * 100;
+        printf("info depth %d nodes %llu time %llu nps %d hashfull %d ", i, searchInfo.nodesCount, searchTime, speed, hashfull);
         printScore(eval);
         printf(" pv ", bestMove);
         printPV(board, i);
@@ -387,7 +386,7 @@ void replaceTransposition(Transposition* tr, Transposition new_tr, int height) {
     }
 
     if(tr->age + 5 < ttAge) {
-        *tr = new_tr;
+        replaceTranspositionEntry(tr, &new_tr);
         return;
     }
 
@@ -396,6 +395,6 @@ void replaceTransposition(Transposition* tr, Transposition new_tr, int height) {
         if(new_tr.evalType == upperbound && tr->evalType != upperbound) {
             return;
         }
-        *tr = new_tr;
+        replaceTranspositionEntry(tr, &new_tr);
     }
 }

@@ -16,13 +16,21 @@ void initTT(int size) {
     clearTT();
 }
 
-void reallocTT() {
+void reallocTT(int size) {
     
 }
 
 void clearTT() {
     memset(tt, 0, sizeof(Transposition) * ttSize);
     ttAge = 0;
+    ttFilledSize = 0;
+}
+
+void replaceTranspositionEntry(Transposition* addr, Transposition* newEntry) {
+    if(!addr->evalType) {
+        ++ttFilledSize;
+    }
+    *addr = *newEntry;
 }
 
 U64 sizeToTTCount(U64 size) {

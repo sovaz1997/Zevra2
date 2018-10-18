@@ -9,6 +9,7 @@
 
 Transposition* tt;
 U64 ttSize;
+U64 ttFilledSize;
 U64 ttIndex;
 int ttAge;
 
@@ -23,8 +24,9 @@ struct Transposition {
 
 void setTransposition(Transposition* entry, U64 key, int eval, int evalType, int depth, U16 move, int age);
 void initTT(int size);
-void reallocTT();
+void reallocTT(int size);
 void clearTT();
+void replaceTranspositionEntry(Transposition* addr, Transposition* newEntry);
 U64 sizeToTTCount(U64 size);
 
 #endif
