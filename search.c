@@ -23,8 +23,9 @@ void iterativeDeeping(Board* board, TimeManager tm) {
         }
         
         moveToString(searchInfo.bestMove, bestMove);
-        int speed = (time < 1 ? 0 : (searchInfo.nodesCount / (getTime(&searchInfo.timer) / 1000.)));
-        printf("info depth %d nodes %llu time %llu nps %d ", i, searchInfo.nodesCount, getTime(&searchInfo.timer), speed);
+        U64 searchTime = getTime(&searchInfo.timer);
+        int speed = (searchTime < 1 ? 0 : (searchInfo.nodesCount / (searchTime / 1000.)));
+        printf("info depth %d nodes %llu time %llu nps %d ", i, searchInfo.nodesCount, searchTime, speed);
         printScore(eval);
         printf(" pv ", bestMove);
         printPV(board, i);
