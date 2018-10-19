@@ -12,9 +12,6 @@
 #include "timemanager.h"
 #include "transposition.h"
 
-#define min(a, b) (a < b ? a : b)
-#define max(a, b) (a > b ? a : b)
-
 int ABORT;
 int SEARCH_COMPLETE;
 
@@ -29,7 +26,7 @@ struct SearchInfo {
     Timer timer;
     TimeManager tm;
     U16 killer[2][MAX_PLY + 1];
-    int history[64][64];
+    int history[2][64][64];
     int nullMoveSearch;
     int searchTime;
 };

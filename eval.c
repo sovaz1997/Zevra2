@@ -29,6 +29,9 @@ int fullEval(Board* board) {
     eval += (pawnsEval(board, WHITE) - pawnsEval(board, BLACK));
     eval += bishopsEval(board);
 
+    //Безопасность короля
+    //eval += (kingSafety(board, WHITE) - kingSafety(board, BLACK));
+
     return (board->color == WHITE ? eval : -eval);
 }
 
@@ -189,6 +192,89 @@ int getPassedPawnBonus(int sq, int color) {
     }
     
     return -pawnPST[square(rankOf(sq), fileOf(sq))] + PassedPawnBonus[7 - rankOf(sq)];
+}
+
+int kingSafety(Board* board, int color) {
+    int attacks = 0;
+    int kingPos = firstOne(board->pieces[KING] & board->colours[color]);
+    U64 enemy = board->colours[!color];
+    U64 mask = kingAttacks[kingPos] & ~enemy & ~board->pieces[PAWN];
+
+    while(mask) {
+        int sq = firstOne(mask);
+        attacks += attackCount(board, sq, color);
+        clearBit(&mask, sq);
+    }
+
+    return -SafetyTable[min(99, attacks)];
+}
+
+int attackCount(Board* board, int sq, int color) {
+    int attacks = 0;
+
+    U64 our = board->colours[color];
+    U64 enemy = board->colours[!color];
+    U64 occu = our | enemy;
+
+    U64 mask = plus8[sq] & occu;
+    if(mask & enemy) {
+        int piece = board->squares[firstOne(mask)];
+        attacks += 5 * (piece == makePiece(QUEEN, !color));
+        attacks += 3 * (piece == makePiece(ROOK, !color));
+    }
+
+    mask = minus8[sq] & occu;
+    if(mask & enemy) {
+        int piece = board->squares[lastOne(mask)];
+        attacks += 5 * (piece == makePiece(QUEEN, !color));
+        attacks += 3 * (piece == makePiece(ROOK, !color));
+    }
+
+    mask = plus1[sq] & occu;
+    if(mask & enemy) {
+        int piece = board->squares[firstOne(mask)];
+        attacks += 5 * (piece == makePiece(QUEEN, !color));
+        attacks += 3 * (piece == makePiece(ROOK, !color));
+    }
+
+    mask = minus1[sq] & occu;
+    if(mask & enemy) {
+        int piece = board->squares[lastOne(mask)];
+        attacks += 5 * (piece == makePiece(QUEEN, !color));
+        attacks += 3 * (piece == makePiece(ROOK, !color));
+    }
+
+    mask = plus9[sq] & occu;
+    if(mask & enemy) {
+        int piece = board->squares[firstOne(mask)];
+        attacks += 5 * (piece == makePiece(QUEEN, !color));
+        attacks += 2 * (piece == makePiece(BISHOP, !color));
+    }
+
+    mask = minus9[sq] & occu;
+    if(mask & enemy) {
+        int piece = board->squares[lastOne(mask)];
+        attacks += 5 * (piece == makePiece(QUEEN, !color));
+        attacks += 2 * (piece == makePiece(BISHOP, !color));
+    }
+
+    mask = plus7[sq] & occu;
+    if(mask & enemy) {
+        int piece = board->squares[firstOne(mask)];
+        attacks += 5 * (piece == makePiece(QUEEN, !color));
+        attacks += 2 * (piece == makePiece(BISHOP, !color));
+    }
+
+    mask = minus7[sq] & occu;
+    if(mask & enemy) {
+        int piece = board->squares[lastOne(mask)];
+        attacks += 5 * (piece == makePiece(QUEEN, !color));
+        attacks += 2 * (piece == makePiece(BISHOP, !color));
+    }
+
+    attacks += 2 * popcount(knightAttacks[sq] & board->pieces[KNIGHT] & enemy);
+
+    return attacks;
 }
 
 int mateScore(int eval) {

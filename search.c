@@ -135,6 +135,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         int goodMove = searchInfo->killer[board->color][height] == *curMove || check;
         int quiteMove = !goodMove && !undo.capturedPiece;
 
+        //Fulility pruning
         if(depth < 7 && !goodMove && !root) {
             if(staticEval + FutilityMargin[depth] + pVal[pieceType(undo.capturedPiece)] <= alpha) {
                 unmakeMove(board, *curMove, &undo);
@@ -166,7 +167,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
         unmakeMove(board, *curMove, &undo);
         
-        if(root) {
+        if(root && depth > 12) {
             char moveStr[6];
             moveToString(*curMove, moveStr);
             printf("info currmove %s currmovenumber %d\n", moveStr, movesCount);
@@ -184,7 +185,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         if(alpha >= beta) {
             if(!undo.capturedPiece) {
                 searchInfo->killer[board->color][height] = *curMove;
-                searchInfo->history[MoveFrom(*curMove)][MoveTo(*curMove)] += (depth * depth);
+                searchInfo->history[board->color][MoveFrom(*curMove)][MoveTo(*curMove)] += (depth * depth);
             }
 
             break;
@@ -193,7 +194,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     }
 
     if(ABORT) {
-            return 0;
+        return 0;
     }
 
     if(oldAlpha == alpha) {
@@ -347,7 +348,7 @@ void moveOrdering(Board* board, U16* moves, SearchInfo* searchInfo, int height) 
         } else if(searchInfo->killer[board->color][height] == *ptr) {
             movePrice[i] = 100000;
         } else {
-            movePrice[i] = searchInfo->history[MoveFrom(*ptr)][MoveTo(*ptr)];
+            movePrice[i] = searchInfo->history[board->color][MoveFrom(*ptr)][MoveTo(*ptr)];
         }
 
         if(searchInfo->bestMove == *ptr && !height) {
@@ -396,7 +397,7 @@ void initSearch() {
 void resetSearchInfo(SearchInfo* info, TimeManager tm) {
     memset(info, 0, sizeof(SearchInfo));
     info->tm = tm;
-    memset(info->history, 0, 64 * 64);
+    memset(info->history, 0, 64 * 64 * 2);
     setAbort(0);
 }
 

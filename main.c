@@ -12,7 +12,6 @@ int main() {
     Board* board = (Board*) malloc(sizeof(Board));
     uciInterface(board);    
     free(board);
-
     return 0;
 }
 
