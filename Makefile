@@ -2,14 +2,15 @@ CC = gcc
 CFLAGS = -std=c11 -m64
 SRC = *.c
 OPTIMIZATIONS = -O3 -march=native -flto
-WARNINGS = 
+WARNINGS = -Wall -pedantic
 DEBUG = -g -Wall -pedantic -O0 -fno-omit-frame-pointer -gdwarf-2
+LIBS = -lpthread -lm
 OUTPUT = zevra
 
 all:
-	$(CC) $(CFLAGS) $(OPTIMIZATIONS) $(WARNINGS) $(SRC) -o $(OUTPUT)
+	$(CC) $(CFLAGS) $(OPTIMIZATIONS) $(SRC) -o $(OUTPUT) $(LIBS)
 debug:
-	$(CC) $(CFLAGS) $(DEBUG) $(WARNINGS) $(SRC) -o $(OUTPUT)
+	$(CC) $(CFLAGS) $(DEBUG) $(WARNINGS) $(SRC) -o $(OUTPUT) $(LIBS)
 
 clean:
 	rm -rf *.o $(OUTPUT)

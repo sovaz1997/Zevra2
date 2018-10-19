@@ -4,7 +4,7 @@
 int FutilityMargin[7] = {0, 50, 200, 250, 350, 500, 700};
 
 void* go(void* thread_data) {
-    SearchArgs* args = thread_data;
+    SearchArgs* args = (SearchArgs*)thread_data;
     iterativeDeeping(args->board, args->tm);
     SEARCH_COMPLETE = 1;
 }
@@ -229,6 +229,16 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
     if(val >= beta) {
         return beta;
     }
+
+    int delta = QUEEN_EV;
+    if(havePromotionPawn(board)) {
+        delta += (QUEEN_EV - 200);
+    }
+
+    if(val < alpha - delta) {
+        return val;
+    }
+
     if(alpha < val) {
         alpha = val;
     }

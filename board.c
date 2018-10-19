@@ -97,7 +97,10 @@ void printBoard(Board* board) {
         printBoardSplitter();
     }
 
-    printf("Key: %llx\n", board->key);
+    printf("Key: %llx\n\n", board->key);
+    printf("White check: %d \n", inCheck(board, WHITE));
+    printf("Black check: %d \n\n", inCheck(board, BLACK));
+    printf("Have promotion: %d\n", havePromotionPawn(board));
 }
 
 void printBoardSplitter() {
@@ -447,4 +450,17 @@ int repeatCount(Board* board) {
     }
 
     return rpt;
+}
+
+int havePromotionPawn(Board* board) {
+    U64 ourPawns = board->pieces[PAWN] & board->colours[board->color];
+    U64 occu = board->colours[board->color] | board->colours[!board->color];
+
+    if(board->color == WHITE) {
+        ourPawns &= ranks[6];
+        return !!((ourPawns << 8) & ~occu);
+    }
+
+    ourPawns &= ranks[1];
+    return !!((ourPawns >> 8) & ~occu);
 }

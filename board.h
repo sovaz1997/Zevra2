@@ -72,4 +72,7 @@ U8 lastAttacker(Board* board, U64 bitboard);
 #define pieceType(piece) ((piece) >> 1)
 #define pieceColor(piece) ((piece) & 1)
 
+//Признаки позиции
+int havePromotionPawn(Board* board);
+
 #endif
