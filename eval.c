@@ -12,6 +12,8 @@ int PassedPawnBonus[8] = {0, 0, 10, 20, 40, 80, 120, 0};
 
 int DoubleBishopsBonus = 30;
 
+int pVal[7] = {0, PAWN_EV, KNIGHT_EV, BISHOP_EV, ROOK_EV, QUEEN_EV, 0};
+
 int fullEval(Board* board) {
     int eval = 0;
 

@@ -42,7 +42,7 @@ enum {
     exact = 3
 };
 
-extern int RazorMargin[7];
+extern int FutilityMargin[7];
 
 U16 moves[MAX_PLY][256];
 int movePrice[256];

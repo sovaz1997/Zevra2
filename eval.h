@@ -13,6 +13,8 @@ enum figureWeights {
     QUEEN_EV = 1000
 };
 
+extern int pVal[7];
+
 //Бонусы мобильности
 extern int QueenMobility[28];
 extern int RookMobility[15];

@@ -1,7 +1,7 @@
 #include "search.h"
 
 
- int RazorMargin[7] = {0, 0, 500, 700, 900, 1200, 1500};
+int FutilityMargin[7] = {0, 50, 200, 250, 350, 500, 700};
 
 void* go(void* thread_data) {
     SearchArgs* args = thread_data;
@@ -40,10 +40,6 @@ void iterativeDeeping(Board* board, TimeManager tm) {
     printf("info nodes %llu time %d\n", searchInfo.nodesCount, getTime(&searchInfo.timer));
     printf("bestmove %s\n", bestMove);
     fflush(stdout);
-
-    if(mateScore(eval)) {
-        clearTT();
-    }
 }
 
 int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth, int height) {
@@ -80,12 +76,14 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
             score += height;
         }
 
-        if(ttEntry->evalType == lowerbound && score >= beta) {
-            return score;
-        } else if(ttEntry->evalType == upperbound && score <= alpha) {
-            return score;
-        } else if(ttEntry->evalType == exact) {
-            return score;
+        if(!mateScore(score)) {
+            if(ttEntry->evalType == lowerbound && score >= beta) {
+                return score;
+            } else if(ttEntry->evalType == upperbound && score <= alpha) {
+                return score;
+            } else if(ttEntry->evalType == exact) {
+                return score;
+            }
         }
     }
 
@@ -133,11 +131,12 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         ++movesCount;
 
         int reductions = lmr[min(depth, MAX_PLY - 1)][min(63, movesCount)];
-        int quiteMove = (searchInfo->killer[board->color][height] != *curMove && !inCheck(board, board->color) && !undo.capturedPiece);
+        int check = inCheck(board, board->color);
+        int goodMove = searchInfo->killer[board->color][height] == *curMove || check;
+        int quiteMove = !goodMove && !undo.capturedPiece;
 
-        if(depth < 2 && quiteMove && !root) {
-            if(-fullEval(board) + PAWN_EV / 2 <= alpha) {
-
+        if(depth < 7 && !goodMove && !root) {
+            if(staticEval + FutilityMargin[depth] + pVal[pieceType(undo.capturedPiece)] <= alpha) {
                 unmakeMove(board, *curMove, &undo);
                 ++curMove;
                 continue;
