@@ -12,6 +12,8 @@ int PassedPawnBonus[8] = {0, 0, 10, 20, 40, 80, 120, 0};
 
 int DoubleBishopsBonus = 30;
 
+int DoublePawnsPenalty = -15;
+
 int pVal[7] = {0, PAWN_EV, KNIGHT_EV, BISHOP_EV, ROOK_EV, QUEEN_EV, 0};
 
 int fullEval(Board* board) {
@@ -176,6 +178,10 @@ int pawnsEval(Board* board, int color) {
             }
         }
         clearBit(&ourPawns, sq);
+    }
+
+    for(int f = 0; f < 8; ++f) {
+        eval -= DoublePawnsPenalty * (popcount(ourPawns & files[f]) > 1);
     }
 
     return eval;

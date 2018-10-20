@@ -278,7 +278,7 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
     }
 
     if(ABORT) {
-            return 0;
+        return 0;
     }
 
     return alpha;

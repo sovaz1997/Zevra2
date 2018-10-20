@@ -27,6 +27,8 @@ extern int PassedPawnBonus[8];
 //Бонус 2-х слонов
 extern int DoubleBishopsBonus;
 
+extern int DoublePawnsPenalty;
+
 static const int SafetyTable[100] = {
     0, 1, 2, 3, 5, 7, 9, 12, 15,
     18, 22, 26, 30, 35, 39, 44, 50, 56, 62,
