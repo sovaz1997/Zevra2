@@ -74,5 +74,6 @@ U8 lastAttacker(Board* board, U64 bitboard);
 
 //Признаки позиции
 int havePromotionPawn(Board* board);
+int haveNoPawnMaterial(Board* board);
 
 #endif

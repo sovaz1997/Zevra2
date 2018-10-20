@@ -95,7 +95,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     
     int R = 2 + depth / 6;
     int staticEval = fullEval(board);
-    if(!extensions && !searchInfo->nullMoveSearch && depth > R && (staticEval >= beta || depth < 4)) {
+    if(haveNoPawnMaterial(board) && !extensions && !searchInfo->nullMoveSearch && depth > R && (staticEval >= beta || depth <= 4)) {
         makeNullMove(board);
         searchInfo->nullMoveSearch = 1;
 
@@ -132,8 +132,8 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
         int reductions = lmr[min(depth, MAX_PLY - 1)][min(63, movesCount)];
         int check = inCheck(board, board->color);
-        int goodMove = searchInfo->killer[board->color][height] == *curMove || check;
-        int quiteMove = !goodMove && !undo.capturedPiece;
+        int goodMove = (searchInfo->killer[board->color][height] == *curMove || searchInfo->secondKiller[board->color][height] == *curMove || check);
+        int quiteMove = (!goodMove && !undo.capturedPiece);
 
         //Fulility pruning
         if(depth < 7 && !goodMove && !root) {
@@ -184,6 +184,10 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         }
         if(alpha >= beta) {
             if(!undo.capturedPiece) {
+                if(searchInfo->killer[board->color][height]) {
+                    searchInfo->secondKiller[board->color][height] = searchInfo->killer[board->color][height];
+                }
+                
                 searchInfo->killer[board->color][height] = *curMove;
                 searchInfo->history[board->color][MoveFrom(*curMove)][MoveTo(*curMove)] += (depth * depth);
             }
@@ -347,6 +351,8 @@ void moveOrdering(Board* board, U16* moves, SearchInfo* searchInfo, int height) 
             movePrice[i] = mvvLvaScores[fromPiece][toPiece] * 1000000;
         } else if(searchInfo->killer[board->color][height] == *ptr) {
             movePrice[i] = 100000;
+        } else if(searchInfo->secondKiller[board->color][height] == *ptr) {
+            movePrice[i] = 99999;
         } else {
             movePrice[i] = searchInfo->history[board->color][MoveFrom(*ptr)][MoveTo(*ptr)];
         }

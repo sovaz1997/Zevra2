@@ -26,6 +26,7 @@ struct SearchInfo {
     Timer timer;
     TimeManager tm;
     U16 killer[2][MAX_PLY + 1];
+    U16 secondKiller[2][MAX_PLY + 1]; 
     int history[2][64][64];
     int nullMoveSearch;
     int searchTime;

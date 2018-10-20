@@ -464,3 +464,8 @@ int havePromotionPawn(Board* board) {
     ourPawns &= ranks[1];
     return !!((ourPawns >> 8) & ~occu);
 }
+
+int haveNoPawnMaterial(Board* board) {
+    U64 occu = board->colours[WHITE] | board->colours[BLACK];
+    return !!(~(board->pieces[PAWN] | board->pieces[KING]) & occu);
+}
