@@ -403,7 +403,6 @@ void initSearch() {
 void resetSearchInfo(SearchInfo* info, TimeManager tm) {
     memset(info, 0, sizeof(SearchInfo));
     info->tm = tm;
-    memset(info->history, 0, 64 * 64 * 2);
     setAbort(0);
 }
 
