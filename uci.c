@@ -34,7 +34,6 @@ void uciInterface(Board* board) {
 
         if(!strcmp(cmd, "go") && SEARCH_COMPLETE) {
             char* go_param = strtok_r(NULL, " ", &context);
-            TimeManager tm;
             if(!strcmp(go_param, "perft")) {
                 char* depth_str = strtok_r(NULL, " ", &context);
                 perft(board, atoi(depth_str));

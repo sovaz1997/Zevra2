@@ -50,6 +50,7 @@ int lmr[MAX_PLY][64];
 void* go(void* thread_data);
 void iterativeDeeping(Board* board, TimeManager tm);
 int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth, int height);
+int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score);
 int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int height);
 U64 perftTest(Board* board, int depth, int height);
 void perft(Board* board, int depth);

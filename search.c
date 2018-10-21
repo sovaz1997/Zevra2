@@ -16,30 +16,93 @@ void iterativeDeeping(Board* board, TimeManager tm) {
 
     resetSearchInfo(&searchInfo, tm);
     startTimer(&searchInfo.timer);
-    int eval;
+    int eval = 0;
     for(int i = 1; i <= tm.depth; ++i) {
-        eval = search(board, &searchInfo, -MATE_SCORE, MATE_SCORE, i, 0);
+        eval = search(board, &searchInfo, -MATE_SCORE, MATE_SCORE, i, 0);//aspirationWindow(board, &searchInfo, i, eval);
         
         if(ABORT && i > 1) {
             break;
         }
-        
         moveToString(searchInfo.bestMove, bestMove);
-        
+
         U64 searchTime = getTime(&searchInfo.timer);
         int speed = (searchTime < 1 ? 0 : (searchInfo.nodesCount / (searchTime / 1000.)));
         int hashfull = (double)ttFilledSize  / (double)ttSize * 100;
+
         printf("info depth %d nodes %llu time %llu nps %d hashfull %d ", i, searchInfo.nodesCount, searchTime, speed, hashfull);
         printScore(eval);
-        printf(" pv ", bestMove);
+        printf(" pv ");
         printPV(board, i);
         printf("\n");
         fflush(stdout);
     }
 
-    printf("info nodes %llu time %d\n", searchInfo.nodesCount, getTime(&searchInfo.timer));
+
+    printf("info nodes %llu time %llu\n", searchInfo.nodesCount, getTime(&searchInfo.timer));
     printf("bestmove %s\n", bestMove);
     fflush(stdout);
+}
+
+int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score) {
+    int delta = 10;
+    int alpha = max(-MATE_SCORE, score - delta);
+    int beta = min(MATE_SCORE, score + delta);
+
+    if(depth <= 3) {
+        return search(board, searchInfo, -MATE_SCORE, MATE_SCORE, depth, 0);
+    }
+
+    char bestMove[6];
+
+    while(1) {
+        int f = search(board, searchInfo, alpha, beta, depth, 0);
+
+        U64 searchTime = getTime(&searchInfo->timer);
+        int speed = (searchTime < 1 ? 0 : (searchInfo->nodesCount / (searchTime / 1000.)));
+        int hashfull = (double)ttFilledSize  / (double)ttSize * 100;
+
+        moveToString(searchInfo->bestMove, bestMove);
+
+        if(f > alpha && f < beta) {
+            printf("info depth %d nodes %llu time %llu nps %d hashfull %d ", depth, searchInfo->nodesCount, searchTime, speed, hashfull);
+            printScore(f);
+            printf(" pv ");
+            printPV(board, depth);
+            printf("\n");
+            fflush(stdout);
+
+            return f;
+        }
+
+        if(f <= alpha) {
+            beta = (alpha + beta) / 2;
+            alpha = max(-MATE_SCORE, alpha - delta);
+
+            printf("info depth %d nodes %llu time %llu nps %d hashfull %d ", depth, searchInfo->nodesCount, searchTime, speed, hashfull);
+            printScore(f);
+            printf(" upperbound pv ");
+            printPV(board, depth);
+            printf("\n");
+            fflush(stdout);
+        }
+
+        if(f >= beta) {
+            beta = min(MATE_SCORE, beta + delta);
+
+            printf("info depth %d nodes %llu time %llu nps %d hashfull %d ", depth, searchInfo->nodesCount, searchTime, speed, hashfull);
+            printScore(f);
+            printf(" lowerbound pv ");
+            printPV(board, depth);
+            printf("\n");
+            fflush(stdout);
+        }
+
+        if(ABORT) {
+            break;
+        }
+
+        delta += delta / 2;
+    }
 }
 
 int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth, int height) {
@@ -68,7 +131,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
     ++searchInfo->nodesCount;
 
-    if(ttEntry->evalType && ttEntry->depth >= depth && !root && ttEntry->key == keyPosition && depth > 1) {
+    if(ttEntry->evalType && ttEntry->depth >= depth && (!pvNode || !depth) && !root && ttEntry->key == keyPosition) {
         int score = ttEntry->eval;
         if(score > MATE_SCORE - 100) {
             score -= height;
@@ -87,7 +150,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         }
     }
 
-    if(depth <= 0 && !extensions) {
+    if((depth <= 0 && !extensions) || height >= MAX_PLY - 1) {
         return quiesceSearch(board, searchInfo, alpha, beta, height);
     }
 
@@ -132,11 +195,15 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
         int reductions = lmr[min(depth, MAX_PLY - 1)][min(63, movesCount)];
         int check = inCheck(board, board->color);
-        int goodMove = (searchInfo->killer[board->color][height] == *curMove || searchInfo->secondKiller[board->color][height] == *curMove || check);
+        int goodMove = (searchInfo->killer[board->color][height] == *curMove
+        || searchInfo->secondKiller[board->color][height] == *curMove
+        || check
+        );
         int quiteMove = (!goodMove && !undo.capturedPiece);
 
         //Fulility pruning
         if(depth < 7 && !goodMove && !root) {
+            ++searchInfo->nodesCount;
             if(staticEval + FutilityMargin[depth] + pVal[pieceType(undo.capturedPiece)] <= alpha) {
                 unmakeMove(board, *curMove, &undo);
                 ++curMove;
@@ -219,6 +286,10 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 }
 
 int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int height) {
+    if(height >= MAX_PLY - 1) {
+        return fullEval(board);
+    }
+    
     if(testAbort(getTime(&searchInfo->timer), &searchInfo->tm)) {
         setAbort(1);
         return 0;
@@ -388,7 +459,6 @@ void sort(U16* moves, int count) {
 void initSearch() {
     for(int attacker = 1; attacker < 7; ++attacker) {
         for(int victim = 1; victim < 7; ++victim) {
-            int victimScore = 0;
             mvvLvaScores[attacker][victim] = 64 * victim - attacker;
         }
     }
