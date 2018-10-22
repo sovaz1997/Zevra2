@@ -5,6 +5,7 @@ int FutilityMargin[7] = {0, 50, 200, 250, 350, 500, 700};
 
 void* go(void* thread_data) {
     SearchArgs* args = (SearchArgs*)thread_data;
+    //getDump("wrong_dump.bin");
     iterativeDeeping(args->board, args->tm);
     SEARCH_COMPLETE = 1;
 }
@@ -27,7 +28,7 @@ void iterativeDeeping(Board* board, TimeManager tm) {
 
         U64 searchTime = getTime(&searchInfo.timer);
         int speed = (searchTime < 1 ? 0 : (searchInfo.nodesCount / (searchTime / 1000.)));
-        int hashfull = (double)ttFilledSize  / (double)ttSize * 100;
+        int hashfull = (double)ttFilledSize  / (double)ttSize * 1000;
 
         printf("info depth %d nodes %llu time %llu nps %d hashfull %d ", i, searchInfo.nodesCount, searchTime, speed, hashfull);
         printScore(eval);
@@ -39,6 +40,10 @@ void iterativeDeeping(Board* board, TimeManager tm) {
 
 
     printf("info nodes %llu time %llu\n", searchInfo.nodesCount, getTime(&searchInfo.timer));
+    if(eval == MATE_SCORE || eval == -MATE_SCORE) {
+        system("mv dump.bin dump_error.bin");
+        exit(0);
+    }
     printf("bestmove %s\n", bestMove);
     fflush(stdout);
 }
@@ -59,7 +64,7 @@ int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score)
 
         U64 searchTime = getTime(&searchInfo->timer);
         int speed = (searchTime < 1 ? 0 : (searchInfo->nodesCount / (searchTime / 1000.)));
-        int hashfull = (double)ttFilledSize  / (double)ttSize * 100;
+        int hashfull = (double)ttFilledSize  / (double)ttSize * 1000;
 
         moveToString(searchInfo->bestMove, bestMove);
 
@@ -131,7 +136,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
     ++searchInfo->nodesCount;
 
-    if(ttEntry->evalType && ttEntry->depth >= depth && (!pvNode || !depth) && !root && ttEntry->key == keyPosition) {
+    if(ttEntry->evalType && ttEntry->depth >= depth && !root && depth > 1 && ttEntry->key == keyPosition) {
         int score = ttEntry->eval;
         if(score > MATE_SCORE - 100) {
             score -= height;
@@ -139,14 +144,23 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
             score += height;
         }
 
-        if(!mateScore(score)) {
-            if(ttEntry->evalType == lowerbound && score >= beta) {
-                return score;
-            } else if(ttEntry->evalType == upperbound && score <= alpha) {
-                return score;
-            } else if(ttEntry->evalType == exact) {
-                return score;
-            }
+        if(ttEntry->evalType == lowerbound && score >= beta ||
+            ttEntry->evalType == upperbound && score < alpha ||
+            ttEntry->evalType == exact
+            ) {
+            return score;
+        }
+
+        if(ttEntry->evalType == lowerbound && score >= beta) {
+            alpha = max(alpha, score);
+        } else if(ttEntry->evalType == upperbound && score < alpha) {
+            beta = min(beta, score);
+        } else if(ttEntry->evalType == exact) {
+            return score;
+        }
+
+        if(alpha >= beta) {
+            return beta;
         }
     }
 
@@ -158,7 +172,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     
     int R = 2 + depth / 6;
     int staticEval = fullEval(board);
-    if(haveNoPawnMaterial(board) && !extensions && !searchInfo->nullMoveSearch && depth > R && (staticEval >= beta || depth <= 4)) {
+    if(haveNoPawnMaterial(board) && !extensions && !root && !searchInfo->nullMoveSearch && depth > R && (staticEval >= beta || depth <= 4)) {
         makeNullMove(board);
         searchInfo->nullMoveSearch = 1;
 
@@ -215,7 +229,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         if(movesCount == 1) {
             eval = -search(board, searchInfo, -beta, -alpha, depth - 1 + extensions, height + 1);
         } else {
-            if(movesCount >= 3 && quiteMove && !pvNode) {
+            if(++movesCount >= 3 && quiteMove && !pvNode) {
                 eval = -search(board, searchInfo, -alpha - 1, -alpha, depth - 1 + extensions - reductions, height + 1);
                 if(eval > alpha) {
                     eval = -search(board, searchInfo, -alpha - 1, -alpha, depth - 1 + extensions, height + 1);

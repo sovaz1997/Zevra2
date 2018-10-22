@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "types.h"
 #include "bitboards.h"
 
@@ -28,5 +29,7 @@ void reallocTT(int size);
 void clearTT();
 void replaceTranspositionEntry(Transposition* addr, Transposition* newEntry);
 U64 sizeToTTCount(U64 size);
+void createDump(char* filename);
+void getDump(char* filename);
 
 #endif
