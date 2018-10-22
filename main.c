@@ -20,5 +20,5 @@ void initEngine() {
     zobristInit();
     magicArraysInit();
     initSearch();
-    initTT(64);
+    initTT(256);
 }

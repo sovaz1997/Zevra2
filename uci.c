@@ -162,13 +162,17 @@ void input(char* str) {
     }
 }
 
-void printPV(Board* board, int depth) {
-    Transposition* cur = &tt[board->key & ttIndex];
-
+void printPV(Board* board, int depth, U16 bestMove) {
     int moveCount = board->gameInfo->moveCount;
     Board b = *board;
     Undo undo;
 
+    char mv[6];
+    moveToString(bestMove, mv);
+    makeMove(board, bestMove, &undo);
+    printf("%s ", mv);
+
+    Transposition* cur = &tt[board->key & ttIndex];
     
     for(int i = 0; (cur->evalType == lowerbound || cur->evalType == exact) && !isDraw(board) && i < depth + 20; ++i) {
         char mv[6];

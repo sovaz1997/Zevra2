@@ -10,7 +10,7 @@ pthread_mutex_t mutex;
 
 void uciInterface(Board* board);
 void makeCommand();
-void printPV(Board* board, int depth);
+void printPV(Board* board, int depth, U16 bestMove);
 void printEngineInfo();
 void printScore(int score);
 void input(char* str);

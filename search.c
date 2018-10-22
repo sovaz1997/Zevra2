@@ -5,7 +5,6 @@ int FutilityMargin[7] = {0, 50, 200, 250, 350, 500, 700};
 
 void* go(void* thread_data) {
     SearchArgs* args = (SearchArgs*)thread_data;
-    //getDump("wrong_dump.bin");
     iterativeDeeping(args->board, args->tm);
     SEARCH_COMPLETE = 1;
 }
@@ -33,7 +32,7 @@ void iterativeDeeping(Board* board, TimeManager tm) {
         printf("info depth %d nodes %llu time %llu nps %d hashfull %d ", i, searchInfo.nodesCount, searchTime, speed, hashfull);
         printScore(eval);
         printf(" pv ");
-        printPV(board, i);
+        printPV(board, i, searchInfo.bestMove);
         printf("\n");
         fflush(stdout);
     }
@@ -68,7 +67,7 @@ int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score)
             printf("info depth %d nodes %llu time %llu nps %d hashfull %d ", depth, searchInfo->nodesCount, searchTime, speed, hashfull);
             printScore(f);
             printf(" pv ");
-            printPV(board, depth);
+            //printPV(board, depth);
             printf("\n");
             fflush(stdout);
 
@@ -82,7 +81,7 @@ int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score)
             printf("info depth %d nodes %llu time %llu nps %d hashfull %d ", depth, searchInfo->nodesCount, searchTime, speed, hashfull);
             printScore(f);
             printf(" upperbound pv ");
-            printPV(board, depth);
+            //printPV(board, depth);
             printf("\n");
             fflush(stdout);
         }
@@ -93,7 +92,7 @@ int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score)
             printf("info depth %d nodes %llu time %llu nps %d hashfull %d ", depth, searchInfo->nodesCount, searchTime, speed, hashfull);
             printScore(f);
             printf(" lowerbound pv ");
-            printPV(board, depth);
+            //printPV(board, depth);
             printf("\n");
             fflush(stdout);
         }
@@ -111,6 +110,13 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         return 0;
     }
 
+    if(height >= MAX_PLY - 1) {
+        return fullEval(board);
+    }
+    if(depth < 0) {
+        depth = 0;
+    }
+
     U64 keyPosition = board->key;
     Transposition* ttEntry = &tt[keyPosition & ttIndex];
 
@@ -121,7 +127,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         return 0;
     }
 
-    int extensions = !!inCheck(board, board->color);
+    int extensions = !!(inCheck(board, board->color));
 
     if(depth >= 3 && testAbort(getTime(&searchInfo->timer), &searchInfo->tm)) {
         setAbort(1);
