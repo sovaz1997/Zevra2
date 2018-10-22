@@ -40,10 +40,6 @@ void iterativeDeeping(Board* board, TimeManager tm) {
 
 
     printf("info nodes %llu time %llu\n", searchInfo.nodesCount, getTime(&searchInfo.timer));
-    if(eval == MATE_SCORE || eval == -MATE_SCORE) {
-        system("mv dump.bin dump_error.bin");
-        exit(0);
-    }
     printf("bestmove %s\n", bestMove);
     fflush(stdout);
 }
@@ -144,13 +140,6 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
             score += height;
         }
 
-        if(ttEntry->evalType == lowerbound && score >= beta ||
-            ttEntry->evalType == upperbound && score < alpha ||
-            ttEntry->evalType == exact
-            ) {
-            return score;
-        }
-
         if(ttEntry->evalType == lowerbound && score >= beta) {
             alpha = max(alpha, score);
         } else if(ttEntry->evalType == upperbound && score < alpha) {
@@ -229,7 +218,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         if(movesCount == 1) {
             eval = -search(board, searchInfo, -beta, -alpha, depth - 1 + extensions, height + 1);
         } else {
-            if(++movesCount >= 3 && quiteMove && !pvNode) {
+            if(movesCount >= 3 && quiteMove && !pvNode) {
                 eval = -search(board, searchInfo, -alpha - 1, -alpha, depth - 1 + extensions - reductions, height + 1);
                 if(eval > alpha) {
                     eval = -search(board, searchInfo, -alpha - 1, -alpha, depth - 1 + extensions, height + 1);
