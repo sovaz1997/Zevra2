@@ -120,6 +120,8 @@ void uciInterface(Board* board) {
         } else if(!strcmp(cmd, "stop") && !SEARCH_COMPLETE) {
             SEARCH_COMPLETE = 1;
             setAbort(1);
+        } else if(!strcmp(cmd, "ucinewgame") && SEARCH_COMPLETE) {
+            clearTT();
         }
 
         fflush(stdout);
