@@ -110,9 +110,6 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         return 0;
     }
 
-    if(height >= MAX_PLY - 1) {
-        return fullEval(board);
-    }
     if(depth < 0) {
         depth = 0;
     }
@@ -211,7 +208,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         int quiteMove = (!goodMove && !undo.capturedPiece);
 
         //Fulility pruning
-        if(depth < 7 && !goodMove && !root) {
+        if(depth < 7 && !goodMove && !root && MoveType(*curMove) != PROMOTION_MOVE) {
             ++searchInfo->nodesCount;
             if(staticEval + FutilityMargin[depth] + pVal[pieceType(undo.capturedPiece)] <= alpha) {
                 unmakeMove(board, *curMove, &undo);

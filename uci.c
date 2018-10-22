@@ -86,7 +86,6 @@ void uciInterface(Board* board) {
                 pthread_t searchThread;
                 SEARCH_COMPLETE = 0;
                 pthread_create(&searchThread, NULL, &go, &args);
-                //runSearch(&args);
             }
         } else if(!strcmp(cmd, "position") && SEARCH_COMPLETE) {
             gameInfo.moveCount = 0;
