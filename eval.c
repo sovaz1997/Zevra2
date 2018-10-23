@@ -63,6 +63,7 @@ int materialEval(Board* board) {
 
 int psqtEval(Board* board) {
     int eval = 0;
+    int sg = stageGame(board);
 
     U64 mask = board->pieces[PAWN];
     eval += psqtPieceEval(board, mask, pawnPST);
@@ -80,7 +81,7 @@ int psqtEval(Board* board) {
     eval += psqtPieceEval(board, mask, queenPST);
 
     mask = board->pieces[KING];
-    eval += psqtPieceEval(board, mask, kingPST);
+    eval += (psqtPieceEval(board, mask, kingPST) * sg / 98. + psqtPieceEval(board, mask, egKingPST) * (98. - sg) / 98.);
     
     return eval;
 }
@@ -295,4 +296,8 @@ int mateScore(int eval) {
 
 int closeToMateScore(int eval) {
     return (eval >= MATE_SCORE / 2 || eval <= -MATE_SCORE / 2);
+}
+
+int stageGame(Board* board) {
+    return popcount(board->pieces[QUEEN] * 12) + popcount(board->pieces[ROOK] * 8) + popcount(board->pieces[BISHOP] * 5) + popcount(board->pieces[KNIGHT] * 5);
 }

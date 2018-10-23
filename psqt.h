@@ -7,5 +7,6 @@ const extern int knightPST[64];
 const extern int rookPST[64];
 const extern int queenPST[64];
 const extern int kingPST[64];
+const extern int egKingPST[64];
 
 #endif

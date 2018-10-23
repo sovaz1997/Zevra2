@@ -55,5 +55,6 @@ int attackCount(Board* board, int sq, int color);
 int getPassedPawnBonus(int sq, int color);
 int mateScore(int eval);
 int closeToMateScore(int eval);
+int stageGame(Board* board);
 
 #endif
