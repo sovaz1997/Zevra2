@@ -327,6 +327,9 @@ int isEqual(Board* b1, Board* b2) {
 }
 
 int attackedSquare(Board* board, int sq, int color) {
+    assert(sq >= 0);
+    assert(sq <= 63);
+
     U64 occu = board->colours[color] | board->colours[!color];
 
     if(knightAttacks[sq] & (board->colours[!color] & board->pieces[KNIGHT])) {
@@ -344,10 +347,6 @@ int attackedSquare(Board* board, int sq, int color) {
         if(attackedSquares & squareBitboard[sq]) {
             return 1;
         }
-    }
-
-    if(kingAttacks[firstOne(board->colours[!color] & board->pieces[KING])] & squareBitboard[sq]) {
-        return 1;
     }
 
     if((bishopAttacks[sq] | rookAttacks[sq]) & (board->pieces[ROOK] | board->pieces[BISHOP] | board->pieces[QUEEN]) & board->colours[!color]) {
@@ -391,6 +390,13 @@ int attackedSquare(Board* board, int sq, int color) {
 
         attackPiece = lastAttacker(board, minus9[sq] & occu);
         if(attackPiece == enemyQueen || attackPiece == enemyBishop) {
+            return 1;
+        }
+    }
+
+    int pos = firstOne(board->colours[!color] & board->pieces[KING]);
+    if(pos >= 0 && pos < 64 && sq >= 0 && sq < 64) {
+        if(kingAttacks[firstOne(board->colours[!color] & board->pieces[KING])] & squareBitboard[sq]) {
             return 1;
         }
     }

@@ -52,5 +52,6 @@ typedef struct Timer Timer;
 typedef struct TimeManager TimeManager;
 typedef struct Transposition Transposition;
 typedef struct SearchArgs SearchArgs;
+typedef struct Option Option;
 
 #endif

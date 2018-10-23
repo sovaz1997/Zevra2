@@ -1,8 +1,14 @@
 #include "uci.h"
 
 char startpos[] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+Option option;
 
-void uciInterface(Board* board) {
+int main() {
+    initOption();
+    initEngine();
+
+    Board* board = (Board*) malloc(sizeof(Board)); 
+
     printEngineInfo();
     setFen(board, startpos);
 
@@ -19,13 +25,12 @@ void uciInterface(Board* board) {
 
         char* str = strdup(buff);
         
-        char* fen = strstr(str, "fen");
-        if(fen) {
-            fen += strlen("fen ");
-        }
+        char* fen = strstr(str, "fen") + 4;
         char* startposStr = strstr(str, "startpos");
-
         char* moves = strstr(str, "moves");
+        char* name = strstr(str, "name") + 5;
+        char* value = strstr(str, "value") + 6;
+        
         if(moves) {
             moves += strlen("moves ");
         }
@@ -121,16 +126,29 @@ void uciInterface(Board* board) {
             setAbort(1);
         } else if(!strcmp(cmd, "ucinewgame") && SEARCH_COMPLETE) {
             clearTT();
+        } else if(!strcmp(cmd, "setoption") && SEARCH_COMPLETE) {
+            if(name && value) {
+                if(!strncmp(name, "Hash", 4)) {
+                    int hashSize = atoi(value);
+                    if(hashSize >= option.minHashSize && hashSize <= option.maxHashSize) {
+                        reallocTT(hashSize);
+                    }
+                    printf("info string hash size changed to %d mb\n", hashSize);
+                }
+            }
         }
 
         fflush(stdout);
 
         free(str);
     }
+
+    free(board);
 }
 
 void printEngineInfo() {
     printf("id name Zevra v2.0 dev\nid author Oleg Smirnov\n");
+    printf("option name Hash type spin default %d min %d max %d\n", option.defaultHashSize, option.minHashSize, option.maxHashSize);
 }
 
 void readyok() {
@@ -209,4 +227,18 @@ int findMove(char* move, Board* board) {
     }
 
     return 0;
+}
+
+void initEngine() {
+    initBitboards();
+    zobristInit();
+    magicArraysInit();
+    initSearch();
+    initTT(option.defaultHashSize);
+}
+
+void initOption() {
+    option.defaultHashSize = 256;
+    option.minHashSize = 1;
+    option.maxHashSize = 65536;
 }
