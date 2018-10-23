@@ -33,7 +33,7 @@ int fullEval(Board* board) {
     eval += bishopsEval(board);
 
     //Безопасность короля
-    //eval += (kingSafety(board, WHITE) - kingSafety(board, BLACK));
+    eval += (kingSafety(board, WHITE) - kingSafety(board, BLACK));
 
     return (board->color == WHITE ? eval : -eval);
 }
@@ -211,7 +211,7 @@ int kingSafety(Board* board, int color) {
     int attacks = 0;
     int kingPos = firstOne(board->pieces[KING] & board->colours[color]);
     U64 enemy = board->colours[!color];
-    U64 mask = kingAttacks[kingPos] & ~enemy & ~board->pieces[PAWN];
+    U64 mask = (kingAttacks[kingPos] & ~enemy | squareBitboard[kingPos]);
 
     while(mask) {
         int sq = firstOne(mask);
