@@ -28,6 +28,10 @@ U64 minus9[64];
 U64 squareBitboard[64];
 U64 unSquareBitboard[64];
 
+//Поля одного цвета
+U64 whiteCells, blackCells;
+
+
 #define bitboardCell(cell_nb) (1ull << (cell_nb))
 
 //битбоарды для определения возможности рокировки

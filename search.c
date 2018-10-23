@@ -44,7 +44,7 @@ void iterativeDeeping(Board* board, TimeManager tm) {
 }
 
 int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score) {
-    int delta = 10;
+    int delta = 15;
     int alpha = max(-MATE_SCORE, score - delta);
     int beta = min(MATE_SCORE, score + delta);
 
@@ -67,7 +67,7 @@ int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score)
             printf("info depth %d nodes %llu time %llu nps %d hashfull %d ", depth, searchInfo->nodesCount, searchTime, speed, hashfull);
             printScore(f);
             printf(" pv ");
-            //printPV(board, depth);
+            printPV(board, depth, searchInfo->bestMove);
             printf("\n");
             fflush(stdout);
 
@@ -81,7 +81,7 @@ int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score)
             printf("info depth %d nodes %llu time %llu nps %d hashfull %d ", depth, searchInfo->nodesCount, searchTime, speed, hashfull);
             printScore(f);
             printf(" upperbound pv ");
-            //printPV(board, depth);
+            printPV(board, depth, searchInfo->bestMove);
             printf("\n");
             fflush(stdout);
         }
@@ -92,7 +92,7 @@ int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score)
             printf("info depth %d nodes %llu time %llu nps %d hashfull %d ", depth, searchInfo->nodesCount, searchTime, speed, hashfull);
             printScore(f);
             printf(" lowerbound pv ");
-            //printPV(board, depth);
+            printPV(board, depth, searchInfo->bestMove);
             printf("\n");
             fflush(stdout);
         }
@@ -200,15 +200,16 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         ++movesCount;
 
         int reductions = lmr[min(depth, MAX_PLY - 1)][min(63, movesCount)];
+
         int check = inCheck(board, board->color);
         int goodMove = (searchInfo->killer[board->color][height] == *curMove
         || searchInfo->secondKiller[board->color][height] == *curMove
-        || check
+        || check || MoveType(*curMove) == PROMOTION_MOVE
         );
         int quiteMove = (!goodMove && !undo.capturedPiece);
 
         //Fulility pruning
-        if(depth < 7 && !goodMove && !root && MoveType(*curMove) != PROMOTION_MOVE) {
+        if(depth < 7 && !goodMove && !root) {
             ++searchInfo->nodesCount;
             if(staticEval + FutilityMargin[depth] + pVal[pieceType(undo.capturedPiece)] <= alpha) {
                 unmakeMove(board, *curMove, &undo);
@@ -221,7 +222,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         if(movesCount == 1) {
             eval = -search(board, searchInfo, -beta, -alpha, depth - 1 + extensions, height + 1);
         } else {
-            if(movesCount >= 3 && quiteMove && !pvNode) {
+            if(movesCount >= 3 && quiteMove && !closeToMateScore(alpha) && !closeToMateScore(beta) && !pvNode) {
                 eval = -search(board, searchInfo, -alpha - 1, -alpha, depth - 1 + extensions - reductions, height + 1);
                 if(eval > alpha) {
                     eval = -search(board, searchInfo, -alpha - 1, -alpha, depth - 1 + extensions, height + 1);

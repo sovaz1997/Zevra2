@@ -54,5 +54,6 @@ int kingSafety(Board* board, int color);
 int attackCount(Board* board, int sq, int color);
 int getPassedPawnBonus(int sq, int color);
 int mateScore(int eval);
+int closeToMateScore(int eval);
 
 #endif

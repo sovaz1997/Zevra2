@@ -11,6 +11,7 @@ int KnightMobility[14] = {-50, -25, -10, -2, 5, 10, 15, 25};
 int PassedPawnBonus[8] = {0, 0, 10, 20, 40, 80, 120, 0};
 
 int DoubleBishopsBonus = 30;
+int BishopPawnPositionBonus = 5;
 
 int DoublePawnsPenalty = -15;
 
@@ -188,8 +189,13 @@ int pawnsEval(Board* board, int color) {
 }
 
 int bishopsEval(Board* board) {
-    return DoubleBishopsBonus * (popcount(board->pieces[BISHOP] & board->colours[WHITE]) > 1) -
-        DoubleBishopsBonus * (popcount(board->pieces[BISHOP] & board->colours[BLACK]) > 1);
+    int eval = 0;
+
+    //Бонус за наличие 2-х слонов
+    eval += (DoubleBishopsBonus * (popcount(board->pieces[BISHOP] & board->colours[WHITE]) > 1) -
+        DoubleBishopsBonus * (popcount(board->pieces[BISHOP] & board->colours[BLACK]) > 1));
+
+    return eval;
 }
 
 int getPassedPawnBonus(int sq, int color) {
@@ -285,4 +291,8 @@ int attackCount(Board* board, int sq, int color) {
 
 int mateScore(int eval) {
     return (eval >= MATE_SCORE - 100 || eval <= -MATE_SCORE + 100);
+}
+
+int closeToMateScore(int eval) {
+    return (eval >= MATE_SCORE / 2 || eval <= -MATE_SCORE / 2);
 }

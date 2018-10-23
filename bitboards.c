@@ -56,6 +56,14 @@ void initBitboards() {
         }
     }
 
+    whiteCells = 0;
+    for(int sq = 0; sq < 64; ++sq) {
+        if(sq % 2) {
+            setBit(&whiteCells, sq);
+        }
+    }
+    blackCells = ~whiteCells;
+
     attacksGen();
 }
 
