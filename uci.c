@@ -179,7 +179,9 @@ void printPV(Board* board, int depth, U16 bestMove) {
         char mv[6];
         moveToString(cur->move, mv);
 
-        
+        if(inCheck(board, !board->color)) {
+            break;
+        }
         if(findMove(mv, board)) {
             printf("%s ", mv);
         } else {
