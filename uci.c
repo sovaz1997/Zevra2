@@ -116,6 +116,8 @@ int main() {
             break;
         } else if(!strcmp(cmd, "uci") && SEARCH_COMPLETE) {
             printEngineInfo();
+            printf("option name Hash type spin default %d min %d max %d\n", option.defaultHashSize, option.minHashSize, option.maxHashSize);
+            printf("option name Clear Hash type button\n");
             printf("uciok\n");
         } else if(!strcmp(cmd, "eval") && SEARCH_COMPLETE) {
             printf("Eval: %d\n", fullEval(board));
@@ -134,6 +136,9 @@ int main() {
                         reallocTT(hashSize);
                     }
                     printf("info string hash size changed to %d mb\n", hashSize);
+                } else if(!strncmp(name, "Clear Hash", 10)) {
+                    clearTT();
+                    printf("info string hash cleared\n");
                 }
             }
         }
@@ -147,8 +152,7 @@ int main() {
 }
 
 void printEngineInfo() {
-    printf("id name Zevra v2.0 dev\nid author Oleg Smirnov\n");
-    printf("option name Hash type spin default %d min %d max %d\n", option.defaultHashSize, option.minHashSize, option.maxHashSize);
+    printf("id name Zevra v2.0 dev\nid author Oleg Smirnov\n");    
 }
 
 void readyok() {
