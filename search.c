@@ -498,12 +498,12 @@ void replaceTransposition(Transposition* tr, Transposition new_tr, int height) {
         score -= height;
     }
 
-    if(tr->age + 5 < ttAge) {
+    if(tr->age + 5 < ttAge || !tr->evalType) {
         replaceTranspositionEntry(tr, &new_tr);
         return;
     }
 
-    if(new_tr.depth > tr->depth) {
+    if(new_tr.depth >= tr->depth) {
         new_tr.eval = score;
         if(new_tr.evalType == upperbound && tr->evalType != upperbound) {
             return;
