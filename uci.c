@@ -201,15 +201,15 @@ void printPV(Board* board, int depth, U16 bestMove) {
         char mv[6];
         moveToString(cur->move, mv);
 
-        if(inCheck(board, !board->color)) {
-            break;
-        }
         if(findMove(mv, board)) {
+            makeMove(board, cur->move, &undo);
+            if(inCheck(board, !board->color)) {
+                break;
+            }
             printf("%s ", mv);
         } else {
             break;
         }
-        makeMove(board, cur->move, &undo);
         cur = &tt[board->key & ttIndex];
     }
     *board = b;

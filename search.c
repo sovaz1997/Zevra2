@@ -48,14 +48,15 @@ int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score)
     int alpha = max(-MATE_SCORE, score - delta);
     int beta = min(MATE_SCORE, score + delta);
 
-    if(depth <= 3) {
+    if(depth <= 5) {
         return search(board, searchInfo, -MATE_SCORE, MATE_SCORE, depth, 0);
     }
 
     char bestMove[6];
 
-    while(1) {
-        int f = search(board, searchInfo, alpha, beta, depth, 0);
+    int f = score;
+    while(abs(f) < MATE_SCORE - 1) {
+         f = search(board, searchInfo, alpha, beta, depth, 0);
 
         U64 searchTime = getTime(&searchInfo->timer);
         int speed = (searchTime < 1 ? 0 : (searchInfo->nodesCount / (searchTime / 1000.)));
@@ -144,9 +145,11 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         }
 
         if(ttEntry->evalType == lowerbound && score >= beta) {
-            alpha = max(alpha, score);
+            //alpha = max(alpha, score);
+            return score;
         } else if(ttEntry->evalType == upperbound && score < alpha) {
-            beta = min(beta, score);
+            //beta = min(beta, score);
+            return score;
         } else if(ttEntry->evalType == exact) {
             return score;
         }
