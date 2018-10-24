@@ -263,7 +263,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
                 }
                 
                 searchInfo->killer[board->color][height] = *curMove;
-                searchInfo->history[board->color][MoveFrom(*curMove)][MoveTo(*curMove)] += (depth * depth);
+                history[board->color][MoveFrom(*curMove)][MoveTo(*curMove)] += (depth * depth);
             }
 
             break;
@@ -432,7 +432,7 @@ void moveOrdering(Board* board, U16* moves, SearchInfo* searchInfo, int height) 
         } else if(searchInfo->secondKiller[board->color][height] == *ptr) {
             movePrice[i] = 99999;
         } else {
-            movePrice[i] = searchInfo->history[board->color][MoveFrom(*ptr)][MoveTo(*ptr)];
+            movePrice[i] = history[board->color][MoveFrom(*ptr)][MoveTo(*ptr)];
         }
 
         if(searchInfo->bestMove == *ptr && !height) {
@@ -475,12 +475,15 @@ void initSearch() {
             lmr[i][j]  = 0.75 + log(i) * log(j) / 2.25;
         }
     }
+
+    clearHistory();
 }
 
 void resetSearchInfo(SearchInfo* info, TimeManager tm) {
     memset(info, 0, sizeof(SearchInfo));
     info->tm = tm;
     setAbort(0);
+    compressHistory();
 }
 
 void replaceTransposition(Transposition* tr, Transposition new_tr, int height) {
@@ -510,4 +513,16 @@ void setAbort(int val) {
     pthread_mutex_lock(&mutex);
     ABORT = val;
     pthread_mutex_unlock(&mutex);
+}
+
+void clearHistory() {
+    memset(history, 0, 2*64*64);
+}
+void compressHistory() {
+    for(int i = 0; i < 64; ++i) {
+        for(int j = 0; j < 64; ++j) {
+            history[WHITE][i][j] /= 100;
+            history[BLACK][i][j] /= 100;
+        }   
+    }
 }

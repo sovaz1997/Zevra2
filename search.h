@@ -20,14 +20,15 @@ struct SearchArgs {
     TimeManager tm;
 };
 
+int history[2][64][64];
+
 struct SearchInfo {
     U64 nodesCount;
     U16 bestMove;
     Timer timer;
     TimeManager tm;
     U16 killer[2][MAX_PLY + 1];
-    U16 secondKiller[2][MAX_PLY + 1]; 
-    int history[2][64][64];
+    U16 secondKiller[2][MAX_PLY + 1];
     int nullMoveSearch;
     int searchTime;
 };
@@ -60,5 +61,7 @@ void initSearch();
 void resetSearchInfo(SearchInfo* info, TimeManager tm);
 void replaceTransposition(Transposition* tr, Transposition new_tr, int height);
 void setAbort(int val);
+void clearHistory();
+void compressHistory();
 
 #endif
