@@ -16,9 +16,9 @@ int ttAge;
 
 struct Transposition {
     U64 key;
-    int eval;
-    int depth;
-    int age;
+    S16 eval;
+    U8 depth;
+    S8 age;
     U8 evalType;
     U16 move;
 };
