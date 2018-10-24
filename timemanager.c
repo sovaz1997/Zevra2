@@ -41,7 +41,7 @@ void setTournamentTime(TimeManager* tm, Board* board) {
         tm->time = tm->tournamentTime[board->color] / tm->movesToGo + tm->tournamentInc[board->color];
     } else {
         int pieceCount = popcount(board->colours[WHITE] | board->colours[BLACK]);
-        tm->time = tm->tournamentTime[board->color] / (50 - (32 - pieceCount));
+        tm->time = tm->tournamentTime[board->color] / (50 - (32 - pieceCount)) + tm->tournamentInc[board->color];
     }
 }
 
