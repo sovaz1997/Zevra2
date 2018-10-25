@@ -24,10 +24,10 @@ extern int KnightMobility[14];
 //Бонус проходных пешек
 extern int PassedPawnBonus[8];
 
-//Бонус 2-х слонов
 extern int DoubleBishopsBonus;
-
 extern int DoublePawnsPenalty;
+
+int distanceBonus[64][64];
 
 static const int SafetyTable[100] = {
     0, 1, 2, 3, 5, 7, 9, 12, 15,
@@ -50,11 +50,14 @@ int psqtPieceEval(Board* board, U64 mask, const int* pstTable);
 int mobilityEval(Board* board, int color);
 int pawnsEval(Board* board, int color);
 int bishopsEval(Board* board);
+int rooksEval(Board* board, int color);
 int kingSafety(Board* board, int color);
+int kingEval(Board* board, int color);
 int attackCount(Board* board, int sq, int color);
 int getPassedPawnBonus(int sq, int color);
 int mateScore(int eval);
 int closeToMateScore(int eval);
 int stageGame(Board* board);
+void initEval();
 
 #endif

@@ -91,6 +91,8 @@ int main() {
                 pthread_t searchThread;
                 SEARCH_COMPLETE = 0;
                 pthread_create(&searchThread, NULL, &go, &args);
+                //iterativeDeeping(args.board, args.tm);
+                
             }
         } else if(!strcmp(cmd, "position") && SEARCH_COMPLETE) {
             gameInfo.moveCount = 0;
@@ -239,6 +241,7 @@ void initEngine() {
     magicArraysInit();
     initSearch();
     initTT(option.defaultHashSize);
+    initEval();
 }
 
 void initOption() {

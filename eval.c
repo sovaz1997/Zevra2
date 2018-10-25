@@ -11,8 +11,6 @@ int KnightMobility[14] = {-50, -25, -10, -2, 5, 10, 15, 25};
 int PassedPawnBonus[8] = {0, 0, 10, 20, 40, 80, 120, 0};
 
 int DoubleBishopsBonus = 30;
-int BishopPawnPositionBonus = 5;
-
 int DoublePawnsPenalty = -15;
 
 int pVal[7] = {0, PAWN_EV, KNIGHT_EV, BISHOP_EV, ROOK_EV, QUEEN_EV, 0};
@@ -33,7 +31,8 @@ int fullEval(Board* board) {
     eval += bishopsEval(board);
 
     //Безопасность короля
-    eval += (kingSafety(board, WHITE) - kingSafety(board, BLACK));
+    //eval += (kingSafety(board, WHITE) - kingSafety(board, BLACK));
+    eval += (kingEval(board, WHITE) - kingEval(board, BLACK));
 
     return (board->color == WHITE ? eval : -eval);
 }
@@ -290,6 +289,22 @@ int attackCount(Board* board, int sq, int color) {
     return attacks;
 }
 
+int kingEval(Board* board, int color) {
+    int eval = 0;
+    U64 enemy = board->colours[!color];
+    int kingPos = firstOne(board->pieces[KING] & board->colours[color]);
+
+    while(enemy) {
+        int sq = firstOne(enemy);
+        eval -= 4 * distanceBonus[sq][kingPos] * (pieceType(board->squares[sq]) == QUEEN);
+        eval -= 3 * distanceBonus[sq][kingPos] * (pieceType(board->squares[sq]) == ROOK);
+        eval -= 2 * distanceBonus[sq][kingPos] * (pieceType(board->squares[sq]) == KNIGHT);
+        eval -= 2 * distanceBonus[sq][kingPos] * (pieceType(board->squares[sq]) == BISHOP);
+        clearBit(&enemy, sq);
+    }
+    return eval;
+}
+
 int mateScore(int eval) {
     return (eval >= MATE_SCORE - 100 || eval <= -MATE_SCORE + 100);
 }
@@ -300,4 +315,12 @@ int closeToMateScore(int eval) {
 
 int stageGame(Board* board) {
     return popcount(board->pieces[QUEEN] * 12) + popcount(board->pieces[ROOK] * 8) + popcount(board->pieces[BISHOP] * 5) + popcount(board->pieces[KNIGHT] * 5);
+}
+
+void initEval() {
+    for(int i = 0; i < 64; ++i) {
+        for(int j = 0; j < 64; ++j) {
+            distanceBonus[i][j] = 14 - (abs(rankOf(i) - rankOf(j)) + abs(fileOf(i) - fileOf(j)));
+        }   
+    }
 }

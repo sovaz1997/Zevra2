@@ -3,7 +3,7 @@ CFLAGS = -std=c11 -m64
 SRC = *.c
 OPTIMIZATIONS = -O3 -march=native -flto
 WARNINGS = -Wall -pedantic
-DEBUG = -g -Wall -pedantic -Og -march=native -fno-omit-frame-pointer -gdwarf-2
+DEBUG = -g -Wall -pedantic -fno-omit-frame-pointer -gdwarf-2
 LIBS = -lpthread -lm
 OUTPUT = zevra
 
