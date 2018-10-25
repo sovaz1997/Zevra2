@@ -23,8 +23,8 @@ int fullEval(Board* board) {
     eval += psqtEval(board);
 
     //Оценка мобильности
-    eval += mobilityEval(board, WHITE);
-    eval -= mobilityEval(board, BLACK);
+    eval += 0.5 * mobilityEval(board, WHITE);
+    eval -= 0.5 * mobilityEval(board, BLACK);
 
     //Разделенная оценка фигур
     eval += (pawnsEval(board, WHITE) - pawnsEval(board, BLACK));
