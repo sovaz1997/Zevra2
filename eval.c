@@ -228,7 +228,18 @@ int attackCount(Board* board, int sq, int color) {
     U64 enemy = board->colours[!color];
     U64 occu = our | enemy;
 
-    U64 mask = plus8[sq] & occu;
+    U64 possibleAttackers = (board->pieces[ROOK] | board->pieces[QUEEN])
+        & rookPossibleMoves[sq][getMagicIndex(occu & rookMagicMask[sq] & unSquareBitboard[sq], rookMagic[sq], rookPossibleMovesSize[sq])]
+        | (board->pieces[BISHOP] | board->pieces[QUEEN])
+        & bishopPossibleMoves[sq][getMagicIndex(occu & bishopMagicMask[sq] & unSquareBitboard[sq], bishopMagic[sq], bishopPossibleMovesSize[sq])]
+        | knightAttacks[sq] & board->pieces[KNIGHT];
+
+    attacks += 5 * popcount(possibleAttackers & enemy & board->pieces[QUEEN]);
+    attacks += 3 * popcount(possibleAttackers & enemy & board->pieces[ROOK]);
+    attacks += 2 * popcount(possibleAttackers & enemy & board->pieces[KNIGHT]);
+    attacks += 2 * popcount(possibleAttackers & enemy & board->pieces[BISHOP]);
+    return attacks;
+    /*U64 mask = plus8[sq] & occu;
     if(mask & enemy) {
         int piece = board->squares[firstOne(mask)];
         attacks += 5 * (piece == makePiece(QUEEN, !color));
@@ -284,7 +295,9 @@ int attackCount(Board* board, int sq, int color) {
         attacks += 2 * (piece == makePiece(BISHOP, !color));
     }
 
-    attacks += 2 * popcount(knightAttacks[sq] & board->pieces[KNIGHT] & enemy);
+    attacks += 2 * popcount(knightAttacks[sq] & board->pieces[KNIGHT] & enemy);*/
+
+
 
     return attacks;
 }

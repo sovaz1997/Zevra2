@@ -189,6 +189,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     Transposition new_tt;
 
     int oldAlpha = alpha;
+    int checksCounter = 0;
     while(*curMove) {
         makeMove(board, *curMove, &undo);
 
@@ -203,11 +204,19 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         int reductions = lmr[min(depth, MAX_PLY - 1)][min(63, movesCount)];
 
         int check = inCheck(board, board->color);
+        checksCounter += check;
         int goodMove = (searchInfo->killer[board->color][height] == *curMove
         || searchInfo->secondKiller[board->color][height] == *curMove
         || check || MoveType(*curMove) == PROMOTION_MOVE
         );
         int quiteMove = (!goodMove && !undo.capturedPiece);
+
+        if(root && depth > 12) {
+            char moveStr[6];
+            moveToString(*curMove, moveStr);
+            printf("info currmove %s currmovenumber %d\n", moveStr, movesCount);
+            fflush(stdout);
+        }
 
         //Fulility pruning
         if(depth < 7 && !goodMove && !root) {
@@ -240,13 +249,6 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         }
 
         unmakeMove(board, *curMove, &undo);
-        
-        if(root && depth > 12) {
-            char moveStr[6];
-            moveToString(*curMove, moveStr);
-            printf("info currmove %s currmovenumber %d\n", moveStr, movesCount);
-            fflush(stdout);
-        }
         
         if(eval > alpha) {
             alpha = eval;
