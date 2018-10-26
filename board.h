@@ -54,6 +54,7 @@ void unmakeMove(Board* board, U16 move, Undo* undo);
 void setUndo(Board* board, Undo* undo, U8 capturedPiece);
 void getUndo(Board* board, Undo* undo);
 int attackedSquare(Board* board, int sq, int color);
+U64 attacksTo(Board* board, int sq);
 int inCheck(Board* board, int color);
 
 void addMoveToHist(Board* board);

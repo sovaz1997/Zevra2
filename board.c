@@ -386,3 +386,20 @@ int haveNoPawnMaterial(Board* board) {
     U64 occu = board->colours[WHITE] | board->colours[BLACK];
     return !!(~(board->pieces[PAWN] | board->pieces[KING]) & occu);
 }
+
+U64 attacksTo(Board* board, int sq) {
+    U64 occu = board->colours[WHITE] | board->colours[BLACK];
+    U64 knights, kings, rookQueens, bishopQueens;
+    
+    knights = board->pieces[KNIGHT];
+    kings = board->pieces[KING];
+    rookQueens = board->pieces[ROOK] | board->pieces[QUEEN];
+    bishopQueens = board->pieces[BISHOP] | board->pieces[QUEEN];
+
+    return pawnAttacks[WHITE][sq] & board->pieces[PAWN] & board->colours[BLACK]
+        | pawnAttacks[BLACK][sq] & board->pieces[PAWN] & board->colours[WHITE]
+        | knightAttacks[sq] & knights
+        | kingAttacks[sq] & kings
+        | rookPossibleMoves[sq][getMagicIndex(occu & rookMagicMask[sq] & unSquareBitboard[sq], rookMagic[sq], rookPossibleMovesSize[sq])]
+        | bishopPossibleMoves[sq][getMagicIndex(occu & bishopMagicMask[sq] & unSquareBitboard[sq], bishopMagic[sq], bishopPossibleMovesSize[sq])];
+}
