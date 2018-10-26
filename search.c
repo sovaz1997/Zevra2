@@ -518,7 +518,7 @@ void setAbort(int val) {
 }
 
 void clearHistory() {
-    memset(history, 0, 2*64*64);
+    memset(history, 0, 2*64*64 * sizeof(int));
 }
 void compressHistory() {
     for(int i = 0; i < 64; ++i) {
@@ -528,3 +528,17 @@ void compressHistory() {
         }   
     }
 }
+
+/*int see(Board* board, int toSq, U16 target, int fromSq, U16 aPiece) {
+    int gain[32], d = 0;
+    memset(gain, 0, sizeof(int) * 32);
+    U64 mayXray = board->pieces[PAWN] | board->pieces[BISHOP] | board->pieces[ROOK] | board->pieces[QUEEN];
+    U64 occu = board->colours[WHITE] | board->colours[BLACK];
+    U64 attackdef = attacksTo(board, toSq);
+    gain[d] = pVal[target];
+
+    do {
+        ++d;
+        gain[d] = pVal[aPiece] - gain[d-1];
+    }
+}*/

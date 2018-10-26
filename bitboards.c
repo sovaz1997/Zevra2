@@ -172,8 +172,8 @@ void attacksGen() {
         pawnAttacks[WHITE][sq] |= ((1ull << (sq + 9)) & ~files[0]);
         pawnAttacks[WHITE][sq] |= ((1ull << (sq + 7)) & ~files[7]);
 
-        pawnAttacks[BLACK][sq] |= ((1ull >> (sq + 9)) & ~files[7]);
-        pawnAttacks[BLACK][sq] |= ((1ull >> (sq + 7)) & ~files[0]);
+        pawnAttacks[BLACK][sq] |= ((1ull << (sq - 9)) & ~files[7]);
+        pawnAttacks[BLACK][sq] |= ((1ull << (sq - 7)) & ~files[0]);
     }
 }
 
