@@ -400,6 +400,71 @@ U64 attacksTo(Board* board, int sq) {
         | pawnAttacks[BLACK][sq] & board->pieces[PAWN] & board->colours[WHITE]
         | knightAttacks[sq] & knights
         | kingAttacks[sq] & kings
-        | rookPossibleMoves[sq][getMagicIndex(occu & rookMagicMask[sq] & unSquareBitboard[sq], rookMagic[sq], rookPossibleMovesSize[sq])]
-        | bishopPossibleMoves[sq][getMagicIndex(occu & bishopMagicMask[sq] & unSquareBitboard[sq], bishopMagic[sq], bishopPossibleMovesSize[sq])];
+        | rookQueens & rookPossibleMoves[sq][getMagicIndex(occu & rookMagicMask[sq] & unSquareBitboard[sq], rookMagic[sq], rookPossibleMovesSize[sq])]
+        | bishopQueens & bishopPossibleMoves[sq][getMagicIndex(occu & bishopMagicMask[sq] & unSquareBitboard[sq], bishopMagic[sq], bishopPossibleMovesSize[sq])];
+}
+
+int see(Board* board, int toSq, U16 taget, int fromSq, U16 aPiece) {
+    int gain[32], d = 0, color = board->color;
+    U64 mayXray = board->pieces[PAWN] | board->pieces[BISHOP] | board->pieces[ROOK] | board->pieces[QUEEN];
+    U64 fromSet = (1ull << fromSq);
+    U64 occu = board->colours[WHITE] | board->colours[BLACK];
+    U64 attadef = attacksTo(board, toSq);
+    gain[d] = pVal[pieceType(taget)];
+
+    do {
+        d++;
+        gain[d] = pVal[pieceType(aPiece)] - gain[d - 1];
+        if(max(gain[d - 1], gain[d]) < 0) {
+            break;
+        }
+        attadef ^= fromSet;
+        occu ^= fromSet;
+        if(fromSet & mayXray) {
+            attadef |= considerXrays(board, occu, attadef, toSq);
+        }
+        color = !color;
+        fromSet = getLeastValuablePiece(board, attadef, color, &aPiece);
+    } while(fromSet);
+
+    while (--d)  {
+        gain[d-1]= -max(-gain[d-1], gain[d]);
+    }
+    
+    return gain[0];
+}
+
+U64 getLeastValuablePiece(Board* board, U64 attadef, int side, U16* piece) {
+   U64 our = board->colours[side];
+   for (*piece = makePiece(PAWN, side); *piece <= makePiece(KING, side); *piece += 2) {
+      U64 subset = attadef & board->pieces[pieceType(*piece)] & our;
+      if (subset) {
+         return  subset & -subset;
+      }
+   }
+   return 0;
+}
+
+U64 considerXrays(Board* board, U64 occu, U64 attackdef, int sq) {
+    U64 rookQueens = board->pieces[ROOK] | board->pieces[QUEEN];
+    U64 bishopQueens = board->pieces[BISHOP] | board->pieces[QUEEN];
+    if(!(attackdef & minus1[sq]) && (occu & minus1[sq])) {
+        return squareBitboard[lastOne(occu & minus1[sq])] & rookQueens;
+    } else if(!(attackdef & minus7[sq]) && (occu & minus7[sq])) {
+        return squareBitboard[lastOne(occu & minus7[sq])] & bishopQueens;
+    } else if(!(attackdef & minus9[sq]) && (occu & minus9[sq])) {
+        return squareBitboard[lastOne(occu & minus9[sq])] & bishopQueens;
+    } else if(!(attackdef & minus8[sq]) && (occu & minus8[sq])) {
+        return squareBitboard[lastOne(occu & minus8[sq])] & rookQueens;
+    } else if(!(attackdef & plus1[sq]) && (occu & plus1[sq])) {
+        return squareBitboard[firstOne(occu & plus1[sq])] & rookQueens;
+    } else if(!(attackdef & plus7[sq]) && (occu & plus7[sq])) {
+        return squareBitboard[firstOne(occu & plus7[sq])] & bishopQueens;
+    } else if(!(attackdef & plus9[sq]) && (occu & plus9[sq])) {
+        return squareBitboard[firstOne(occu & plus9[sq])] & bishopQueens;
+    } else if(!(attackdef & plus8[sq]) && (occu & plus8[sq])) {
+        return squareBitboard[firstOne(occu & plus8[sq])] & rookQueens;
+    }
+
+    return 0;
 }

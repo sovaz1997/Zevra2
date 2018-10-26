@@ -18,6 +18,8 @@ int pVal[7] = {0, PAWN_EV, KNIGHT_EV, BISHOP_EV, ROOK_EV, QUEEN_EV, 0};
 int fullEval(Board* board) {
     int eval = 0;
 
+   // printf("SEE: %d\n", see(board, square(2, 3), makePiece(QUEEN, WHITE), square(4, 3), makePiece(ROOK, BLACK)));
+
     //Базовая оценка
     eval += materialEval(board);
     eval += psqtEval(board);

@@ -10,6 +10,7 @@
 #include "bitboards.h"
 #include "move.h"
 #include "zobrist.h"
+#include "eval.h"
 
 struct GameInfo {
     U64 moveHistory[8192];
@@ -75,5 +76,9 @@ U8 lastAttacker(Board* board, U64 bitboard);
 //Признаки позиции
 int havePromotionPawn(Board* board);
 int haveNoPawnMaterial(Board* board);
+
+int see(Board* board, int toSq, U16 taget, int fromSq, U16 aPiece);
+U64 getLeastValuablePiece(Board* board, U64 attadef, int side, U16* piece);
+U64 considerXrays(Board* board, U64 occu, U64 attackdef, int sq);
 
 #endif
