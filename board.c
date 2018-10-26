@@ -281,50 +281,6 @@ void getUndo(Board* board, Undo* undo) {
     board->enpassantSquare = undo->enpassantSquare;
 }
 
-int isEqual(Board* b1, Board* b2) {
-    if(b1->moveNumber != b2->moveNumber) {
-        printf("moveNumber\n");
-        return 0;
-    }
-    if(b1->ruleNumber != b2->ruleNumber) {
-        printf("ruleNumber\n");
-        return 0;
-    }
-    if(b1->color != b2->color) {
-        printf("ruleNumber\n");
-        return 0;
-    }
-    if(b1->enpassantSquare != b2->enpassantSquare) {
-        printf("ruleNumber\n");
-        return 0;
-    }
-    if(b1->castling != b2->castling) {
-        printf("castling\n");
-        return 0;
-    }
-    for(int i = 1; i < 7; ++i) {
-        if(b1->pieces[i] != b2->pieces[i]) {
-            printf("pieces\n");
-            printBitboard(b1->pieces[i]);
-            printf("\n");
-            printBitboard(b2->pieces[i]);
-            return 0;
-        }
-    }
-    for(int i = 0; i < 2; ++i) {
-        if(b1->colours[i] != b2->colours[i]) {
-            return 0;
-        }
-    }
-    for(int i = 0; i < 64; ++i) {
-        if(b1->squares[i] != b2->squares[i]) {
-            return 0;
-        }
-    }
-    return 1;
-
-}
-
 int attackedSquare(Board* board, int sq, int color) {
     assert(sq >= 0);
     assert(sq <= 63);

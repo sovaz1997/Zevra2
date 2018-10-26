@@ -36,8 +36,6 @@ struct Undo {
     U8 capturedPiece;
 };
 
-int isEqual(Board* b1, Board* b2);
-
 void setFen(Board* board, char* fen);
 void getFen(Board* board, char* fen);
 void setMovesRange(Board* board, char* moves);
