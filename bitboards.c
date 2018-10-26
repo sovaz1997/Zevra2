@@ -70,6 +70,7 @@ void initBitboards() {
 void attacksGen() {
     memset(knightAttacks, 0, sizeof(U64) * 64);
     memset(pawnMoves, 0, sizeof(U64) * 64 * 2);
+    memset(pawnAttacks, 0, sizeof(U64) * 64 * 2);
 
     //Генерация атак ладьи
     for(int sq = 0; sq < 64; ++sq) {
@@ -163,6 +164,16 @@ void attacksGen() {
         } else {
             setBit(&pawnMoves[BLACK][i], i - 8);
         }
+    }
+
+    //Генерация атак пешки
+
+    for(int sq = 0; sq < 64; ++sq) {
+        pawnAttacks[WHITE][sq] |= ((1ull << (sq + 9)) & ~files[0]);
+        pawnAttacks[WHITE][sq] |= ((1ull << (sq + 7)) & ~files[7]);
+
+        pawnAttacks[BLACK][sq] |= ((1ull >> (sq + 9)) & ~files[7]);
+        pawnAttacks[BLACK][sq] |= ((1ull >> (sq + 7)) & ~files[0]);
     }
 }
 

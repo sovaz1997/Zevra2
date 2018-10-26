@@ -13,6 +13,7 @@ U64 bishopAttacks[64];
 U64 knightAttacks[64];
 U64 kingAttacks[64];
 U64 pawnMoves[2][64];
+U64 pawnAttacks[2][64];
 
 //Массивы лучей
 U64 plus1[64];

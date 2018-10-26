@@ -7,7 +7,6 @@ void setFen(Board* board, char* fen) {
     char* savePtr = NULL;
 
     char* pieces_str = strtok_r(str, " ", &savePtr);
-    
 
     char* color_str = strtok_r(NULL, " ", &savePtr);
     char* castlings_str = strtok_r(NULL, " ", &savePtr);
@@ -329,43 +328,30 @@ int isEqual(Board* b1, Board* b2) {
 int attackedSquare(Board* board, int sq, int color) {
     assert(sq >= 0);
     assert(sq <= 63);
-
     
     U64 our = board->colours[color];
     U64 enemy = board->colours[!color];
     U64 occu = our | enemy;
 
-    if((bishopAttacks[sq] | rookAttacks[sq]) & (board->pieces[ROOK] | board->pieces[BISHOP] | board->pieces[QUEEN]) & board->colours[!color]) {
-        U64 possibleChecks = (enemy
-        & (board->pieces[ROOK] | board->pieces[QUEEN])
-        & rookPossibleMoves[sq][getMagicIndex(occu & rookMagicMask[sq] & unSquareBitboard[sq], rookMagic[sq], rookPossibleMovesSize[sq])])
-        | (enemy
-        & (board->pieces[BISHOP] | board->pieces[QUEEN])
-        & bishopPossibleMoves[sq][getMagicIndex(occu & bishopMagicMask[sq] & unSquareBitboard[sq], bishopMagic[sq], bishopPossibleMovesSize[sq])]);
-
-        if(possibleChecks) {
-            return 1;
-        }
-    }
-
-    if(knightAttacks[sq] & (board->colours[!color] & board->pieces[KNIGHT])) {
+    if(pawnAttacks[color][sq] & board->pieces[PAWN] & enemy) {
         return 1;
     }
 
-    U64 enemyPawns = board->colours[!color] & board->pieces[PAWN];
-    if(!color == WHITE) {
-        U64 attackedSquares = ((enemyPawns << 9) & ~files[0]) | ((enemyPawns << 7) & ~files[7]);
-        if(attackedSquares & squareBitboard[sq]) {
-            return 1;
-        }
-    } else {
-        U64 attackedSquares = ((enemyPawns >> 9) & ~files[7]) | ((enemyPawns >> 7) & ~files[0]);
-        if(attackedSquares & squareBitboard[sq]) {
-            return 1;
-        }
+    if(knightAttacks[sq] & enemy & board->pieces[KNIGHT]) {
+        return 1;
     }
 
-    if(kingAttacks[firstOne(board->colours[!color] & board->pieces[KING])] & squareBitboard[sq]) {
+    if(kingAttacks[sq] & board->pieces[KING] & enemy) {
+        return 1;
+    }
+
+    U64 rookQueens = board->pieces[ROOK] | board->pieces[QUEEN];
+    if(enemy & rookQueens & rookPossibleMoves[sq][getMagicIndex(occu & rookMagicMask[sq] & unSquareBitboard[sq], rookMagic[sq], rookPossibleMovesSize[sq])]) {
+        return 1;
+    }
+
+    U64 bishopQueens = board->pieces[BISHOP] | board->pieces[QUEEN];
+    if(enemy & bishopQueens & bishopPossibleMoves[sq][getMagicIndex(occu & bishopMagicMask[sq] & unSquareBitboard[sq], bishopMagic[sq], bishopPossibleMovesSize[sq])]) {
         return 1;
     }
 
