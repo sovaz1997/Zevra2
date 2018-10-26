@@ -337,6 +337,11 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
             return 0;
         }
 
+        if(see(board, MoveTo(*curMove), board->squares[MoveTo(*curMove)], MoveFrom(*curMove), board->squares[MoveFrom(*curMove)]) < 0) {
+            ++curMove;
+            continue;
+        }
+
         makeMove(board, *curMove, &undo);
     
         if(inCheck(board, !board->color)) {
@@ -429,7 +434,7 @@ void moveOrdering(Board* board, U16* moves, SearchInfo* searchInfo, int height) 
             movePrice[i] = 1000000000;
         } else if(toPiece) {
             movePrice[i] = mvvLvaScores[fromPiece][toPiece] * 1000000;
-            //movePrice[i] = see(board, MoveTo(*ptr), board->squares[MoveTo(*ptr)], MoveFrom(*ptr), board->squares[MoveFrom(*ptr)]);
+            //movePrice[i] = see(board, MoveTo(*ptr), board->squares[MoveTo(*ptr)], MoveFrom(*ptr), board->squares[MoveFrom(*ptr)]) * 1000000;
         } else if(searchInfo->killer[board->color][height] == *ptr) {
             movePrice[i] = 100000;
         } else if(searchInfo->secondKiller[board->color][height] == *ptr) {
