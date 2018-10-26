@@ -144,16 +144,12 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
             score += height;
         }
 
-        if(ttEntry->evalType == lowerbound && score >= beta) {
+        if(ttEntry->evalType == lowerbound && score >= beta && !mateScore(score)) {
             return score;
-        } else if(ttEntry->evalType == upperbound && score < alpha) {
+        } else if(ttEntry->evalType == upperbound && score < alpha && !mateScore(score)) {
             return score;
         } else if(ttEntry->evalType == exact) {
             return score;
-        }
-
-        if(alpha >= beta) {
-            return beta;
         }
     }
 
