@@ -404,7 +404,7 @@ U64 attacksTo(Board* board, int sq) {
         | bishopQueens & bishopPossibleMoves[sq][getMagicIndex(occu & bishopMagicMask[sq] & unSquareBitboard[sq], bishopMagic[sq], bishopPossibleMovesSize[sq])];
 }
 
-int see(Board* board, int toSq, U16 taget, int fromSq, U16 aPiece) {
+int see(Board* board, int toSq, U8 taget, int fromSq, U8 aPiece) {
     int gain[32], d = 0, color = board->color;
     U64 mayXray = board->pieces[PAWN] | board->pieces[BISHOP] | board->pieces[ROOK] | board->pieces[QUEEN];
     U64 fromSet = (1ull << fromSq);
@@ -434,7 +434,7 @@ int see(Board* board, int toSq, U16 taget, int fromSq, U16 aPiece) {
     return gain[0];
 }
 
-U64 getLeastValuablePiece(Board* board, U64 attadef, int side, U16* piece) {
+U64 getLeastValuablePiece(Board* board, U64 attadef, int side, U8* piece) {
    U64 our = board->colours[side];
    for (*piece = makePiece(PAWN, side); *piece <= makePiece(KING, side); *piece += 2) {
       U64 subset = attadef & board->pieces[pieceType(*piece)] & our;

@@ -77,8 +77,8 @@ U8 lastAttacker(Board* board, U64 bitboard);
 int havePromotionPawn(Board* board);
 int haveNoPawnMaterial(Board* board);
 
-int see(Board* board, int toSq, U16 taget, int fromSq, U16 aPiece);
-U64 getLeastValuablePiece(Board* board, U64 attadef, int side, U16* piece);
+int see(Board* board, int toSq, U8 taget, int fromSq, U8 aPiece);
+U64 getLeastValuablePiece(Board* board, U64 attadef, int side, U8* piece);
 U64 considerXrays(Board* board, U64 occu, U64 attackdef, int sq);
 
 #endif

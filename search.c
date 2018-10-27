@@ -187,6 +187,11 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     int oldAlpha = alpha;
     int checksCounter = 0;
     while(*curMove) {
+        /*int seeScore = 0;
+        if(board->squares[MoveTo(*curMove)]) {
+            seeScore = see(board, MoveTo(*curMove), board->squares[MoveTo(*curMove)], MoveFrom(*curMove), board->squares[MoveFrom(*curMove)]);
+        }*/
+
         makeMove(board, *curMove, &undo);
 
         if(inCheck(board, !board->color)) {
@@ -196,6 +201,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         }
         
         ++movesCount;
+
 
         int reductions = lmr[min(depth, MAX_PLY - 1)][min(63, movesCount)];
 
@@ -430,10 +436,11 @@ void moveOrdering(Board* board, U16* moves, SearchInfo* searchInfo, int height) 
             movePrice[i] = 1000000000;
         } else if(toPiece) {
             movePrice[i] = mvvLvaScores[fromPiece][toPiece] * 1000000;
+            //movePrice[i] = 10000 * see(board, MoveTo(*ptr), board->squares[MoveTo(*ptr)], MoveFrom(*ptr), board->squares[MoveFrom(*ptr)]);
         } else if(searchInfo->killer[board->color][height] == *ptr) {
-            movePrice[i] = 100000;
+            movePrice[i] = 10000;
         } else if(searchInfo->secondKiller[board->color][height] == *ptr) {
-            movePrice[i] = 99999;
+            movePrice[i] = 9999;
         } else {
             movePrice[i] = history[board->color][MoveFrom(*ptr)][MoveTo(*ptr)];
         }
@@ -529,17 +536,3 @@ void compressHistory() {
         }   
     }
 }
-
-/*int see(Board* board, int toSq, U16 target, int fromSq, U16 aPiece) {
-    int gain[32], d = 0;
-    memset(gain, 0, sizeof(int) * 32);
-    U64 mayXray = board->pieces[PAWN] | board->pieces[BISHOP] | board->pieces[ROOK] | board->pieces[QUEEN];
-    U64 occu = board->colours[WHITE] | board->colours[BLACK];
-    U64 attackdef = attacksTo(board, toSq);
-    gain[d] = pVal[target];
-
-    do {
-        ++d;
-        gain[d] = pVal[aPiece] - gain[d-1];
-    }
-}*/

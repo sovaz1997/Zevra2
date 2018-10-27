@@ -63,6 +63,5 @@ void replaceTransposition(Transposition* tr, Transposition new_tr, int height);
 void setAbort(int val);
 void clearHistory();
 void compressHistory();
-//int see(Board* board, int toSq, U16 target, int fromSq, U16 aPiece);
 
 #endif
