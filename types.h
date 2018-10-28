@@ -35,7 +35,7 @@ enum {
 };
 
 //Обозначения фигур
-extern const char* PieceName[2];
+static const char* PieceName[2] = {" PNBRQK", " pnbrqk"};
 
 //Переименование типов
 typedef uint64_t U64;
