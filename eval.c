@@ -18,8 +18,6 @@ int pVal[7] = {0, PAWN_EV, KNIGHT_EV, BISHOP_EV, ROOK_EV, QUEEN_EV, 0};
 int fullEval(Board* board) {
     int eval = 0;
 
-   // printf("SEE: %d\n", see(board, square(2, 3), makePiece(QUEEN, WHITE), square(4, 3), makePiece(ROOK, BLACK)));
-
     //Базовая оценка
     eval += materialEval(board);
     eval += psqtEval(board);
@@ -33,7 +31,6 @@ int fullEval(Board* board) {
     eval += bishopsEval(board);
 
     //Безопасность короля
-    //eval += (kingSafety(board, WHITE) - kingSafety(board, BLACK));
     eval += (kingEval(board, WHITE) - kingEval(board, BLACK));
 
     return (board->color == WHITE ? eval : -eval);
@@ -211,8 +208,8 @@ int getPassedPawnBonus(int sq, int color) {
 int kingSafety(Board* board, int color) {
     int attacks = 0;
     int kingPos = firstOne(board->pieces[KING] & board->colours[color]);
-    U64 enemy = board->colours[!color];
-    U64 mask = (kingAttacks[kingPos] & ~enemy | squareBitboard[kingPos]);
+    U64 our = board->colours[color];
+    U64 mask = (kingAttacks[kingPos] & ~our | squareBitboard[kingPos]);
 
     while(mask) {
         int sq = firstOne(mask);
@@ -230,77 +227,12 @@ int attackCount(Board* board, int sq, int color) {
     U64 enemy = board->colours[!color];
     U64 occu = our | enemy;
 
-    U64 possibleAttackers = (board->pieces[ROOK] | board->pieces[QUEEN])
-        & rookPossibleMoves[sq][getMagicIndex(occu & rookMagicMask[sq] & unSquareBitboard[sq], rookMagic[sq], rookPossibleMovesSize[sq])]
-        | (board->pieces[BISHOP] | board->pieces[QUEEN])
-        & bishopPossibleMoves[sq][getMagicIndex(occu & bishopMagicMask[sq] & unSquareBitboard[sq], bishopMagic[sq], bishopPossibleMovesSize[sq])]
-        | knightAttacks[sq] & board->pieces[KNIGHT];
+    U64 possibleAttackers = attacksTo(board, sq);
 
     attacks += 5 * popcount(possibleAttackers & enemy & board->pieces[QUEEN]);
     attacks += 3 * popcount(possibleAttackers & enemy & board->pieces[ROOK]);
     attacks += 2 * popcount(possibleAttackers & enemy & board->pieces[KNIGHT]);
     attacks += 2 * popcount(possibleAttackers & enemy & board->pieces[BISHOP]);
-    return attacks;
-    /*U64 mask = plus8[sq] & occu;
-    if(mask & enemy) {
-        int piece = board->squares[firstOne(mask)];
-        attacks += 5 * (piece == makePiece(QUEEN, !color));
-        attacks += 3 * (piece == makePiece(ROOK, !color));
-    }
-
-    mask = minus8[sq] & occu;
-    if(mask & enemy) {
-        int piece = board->squares[lastOne(mask)];
-        attacks += 5 * (piece == makePiece(QUEEN, !color));
-        attacks += 3 * (piece == makePiece(ROOK, !color));
-    }
-
-    mask = plus1[sq] & occu;
-    if(mask & enemy) {
-        int piece = board->squares[firstOne(mask)];
-        attacks += 5 * (piece == makePiece(QUEEN, !color));
-        attacks += 3 * (piece == makePiece(ROOK, !color));
-    }
-
-    mask = minus1[sq] & occu;
-    if(mask & enemy) {
-        int piece = board->squares[lastOne(mask)];
-        attacks += 5 * (piece == makePiece(QUEEN, !color));
-        attacks += 3 * (piece == makePiece(ROOK, !color));
-    }
-
-    mask = plus9[sq] & occu;
-    if(mask & enemy) {
-        int piece = board->squares[firstOne(mask)];
-        attacks += 5 * (piece == makePiece(QUEEN, !color));
-        attacks += 2 * (piece == makePiece(BISHOP, !color));
-    }
-
-    mask = minus9[sq] & occu;
-    if(mask & enemy) {
-        int piece = board->squares[lastOne(mask)];
-        attacks += 5 * (piece == makePiece(QUEEN, !color));
-        attacks += 2 * (piece == makePiece(BISHOP, !color));
-    }
-
-    mask = plus7[sq] & occu;
-    if(mask & enemy) {
-        int piece = board->squares[firstOne(mask)];
-        attacks += 5 * (piece == makePiece(QUEEN, !color));
-        attacks += 2 * (piece == makePiece(BISHOP, !color));
-    }
-
-    mask = minus7[sq] & occu;
-    if(mask & enemy) {
-        int piece = board->squares[lastOne(mask)];
-        attacks += 5 * (piece == makePiece(QUEEN, !color));
-        attacks += 2 * (piece == makePiece(BISHOP, !color));
-    }
-
-    attacks += 2 * popcount(knightAttacks[sq] & board->pieces[KNIGHT] & enemy);*/
-
-
-
     return attacks;
 }
 

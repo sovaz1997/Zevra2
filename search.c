@@ -64,6 +64,10 @@ int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score)
 
         moveToString(searchInfo->bestMove, bestMove);
 
+        if(ABORT) {
+            break;
+        }
+
         if(f > alpha && f < beta) {
             printf("info depth %d nodes %llu time %llu nps %d hashfull %d ", depth, searchInfo->nodesCount, searchTime, speed, hashfull);
             printScore(f);
@@ -78,6 +82,7 @@ int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score)
         if(f <= alpha) {
             beta = (alpha + beta) / 2;
             alpha = max(-MATE_SCORE, alpha - delta);
+            //alpha = -MATE_SCORE;
 
             printf("info depth %d nodes %llu time %llu nps %d hashfull %d ", depth, searchInfo->nodesCount, searchTime, speed, hashfull);
             printScore(f);
@@ -89,6 +94,7 @@ int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score)
 
         if(f >= beta) {
             beta = min(MATE_SCORE, beta + delta);
+            //beta = MATE_SCORE;
 
             printf("info depth %d nodes %llu time %llu nps %d hashfull %d ", depth, searchInfo->nodesCount, searchTime, speed, hashfull);
             printScore(f);
@@ -96,10 +102,6 @@ int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score)
             printPV(board, depth, searchInfo->bestMove);
             printf("\n");
             fflush(stdout);
-        }
-
-        if(ABORT) {
-            break;
         }
 
         delta += delta / 2;
