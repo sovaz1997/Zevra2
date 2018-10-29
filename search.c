@@ -82,7 +82,6 @@ int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score)
         if(f <= alpha) {
             beta = (alpha + beta) / 2;
             alpha = max(-MATE_SCORE, alpha - delta);
-            //alpha = -MATE_SCORE;
 
             printf("info depth %d nodes %llu time %llu nps %d hashfull %d ", depth, searchInfo->nodesCount, searchTime, speed, hashfull);
             printScore(f);
@@ -94,7 +93,6 @@ int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score)
 
         if(f >= beta) {
             beta = min(MATE_SCORE, beta + delta);
-            //beta = MATE_SCORE;
 
             printf("info depth %d nodes %llu time %llu nps %d hashfull %d ", depth, searchInfo->nodesCount, searchTime, speed, hashfull);
             printScore(f);
@@ -189,10 +187,10 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     int oldAlpha = alpha;
     int checksCounter = 0;
     while(*curMove) {
-        /*int seeScore = 0;
+        int seeScore = 0;
         if(board->squares[MoveTo(*curMove)]) {
             seeScore = see(board, MoveTo(*curMove), board->squares[MoveTo(*curMove)], MoveFrom(*curMove), board->squares[MoveFrom(*curMove)]);
-        }*/
+        }
 
         makeMove(board, *curMove, &undo);
 
@@ -205,8 +203,6 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         ++movesCount;
 
 
-        int reductions = lmr[min(depth, MAX_PLY - 1)][min(63, movesCount)];
-
         int check = inCheck(board, board->color);
         checksCounter += check;
         int goodMove = (searchInfo->killer[board->color][height] == *curMove
@@ -214,6 +210,8 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         || check || MoveType(*curMove) == PROMOTION_MOVE
         );
         int quiteMove = (!goodMove && !undo.capturedPiece);
+
+        int reductions = lmr[min(depth, MAX_PLY - 1)][min(63, movesCount)] * quiteMove + (seeScore < 0);
 
         if(root && depth > 12) {
             char moveStr[6];
@@ -244,7 +242,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
                     }
                 }
             } else {
-                eval = -search(board, searchInfo, -alpha - 1, -alpha, depth - 1 + extensions, height + 1);
+                eval = -search(board, searchInfo, -alpha - 1, -alpha, depth - 1 + extensions - reductions, height + 1);
 
                 if(eval > alpha && eval < beta) {
                     eval = -search(board, searchInfo, -beta, -alpha, depth - 1 + extensions, height + 1);

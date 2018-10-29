@@ -45,7 +45,6 @@ static const int SafetyTable[100] = {
     500, 500, 500, 500, 500, 500, 500, 500, 500, 500
 };
 
-
 int fullEval(Board* board);
 int materialEval(Board* board);
 int psqtEval(Board* board);
