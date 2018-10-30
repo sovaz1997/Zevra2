@@ -30,10 +30,12 @@ void clearTT() {
 }
 
 void replaceTranspositionEntry(Transposition* addr, Transposition* newEntry) {
+    pthread_mutex_lock(&mutex);
     if(!addr->evalType) {
         ++ttFilledSize;
     }
     *addr = *newEntry;
+    pthread_mutex_unlock(&mutex);
 }
 
 U64 sizeToTTCount(U64 size) {

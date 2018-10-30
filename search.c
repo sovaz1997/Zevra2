@@ -3,24 +3,39 @@
 
 int FutilityMargin[7] = {0, 50, 200, 250, 350, 500, 700};
 
-void* go(void* thread_data) {
+void* goSMP(void* thread_data) {
     SearchArgs* args = (SearchArgs*)thread_data;
-    iterativeDeeping(args->board, args->tm);
-    SEARCH_COMPLETE = 1;
+
+    for(int i = 0; i < args->threads; ++i) {
+        boards[i] = *args->board;
+        newArgs[i].board = &boards[i];
+        newArgs[i].tm = args->tm;
+        newArgs[i].threadNumber = i;
+        pthread_create(&searchThreads[i], NULL, &goOtherThread, &newArgs[i]);
+    }
+
+    //iterativeDeeping(args->board, args->tm, 0);
 }
 
-void iterativeDeeping(Board* board, TimeManager tm) {
+void* goOtherThread(void* thread_data) {
+    SearchArgs* args = (SearchArgs*)thread_data;
+    iterativeDeeping(args->board, args->tm, args->threadNumber);
+}
+
+void iterativeDeeping(Board* board, TimeManager tm, int threadNumber) {
+    int mainThread = !threadNumber;
+
     ++ttAge;
     SearchInfo searchInfo;
     char bestMove[6];
 
-    resetSearchInfo(&searchInfo, tm);
+    resetSearchInfo(&searchInfo, tm, &ABORT[threadNumber], threadNumber);
     startTimer(&searchInfo.timer);
     int eval = 0;
     for(int i = 1; i <= tm.depth; ++i) {
         eval = search(board, &searchInfo, -MATE_SCORE, MATE_SCORE, i, 0);//aspirationWindow(board, &searchInfo, i, eval);
         
-        if(ABORT && i > 1) {
+        if(ABORT[threadNumber] && i > 1) {
             break;
         }
         moveToString(searchInfo.bestMove, bestMove);
@@ -29,18 +44,22 @@ void iterativeDeeping(Board* board, TimeManager tm) {
         int speed = (searchTime < 1 ? 0 : (searchInfo.nodesCount / (searchTime / 1000.)));
         int hashfull = (double)ttFilledSize  / (double)ttSize * 1000;
 
-        printf("info depth %d nodes %llu time %llu nps %d hashfull %d ", i, searchInfo.nodesCount, searchTime, speed, hashfull);
-        printScore(eval);
-        printf(" pv ");
-        printPV(board, i, searchInfo.bestMove);
-        printf("\n");
-        fflush(stdout);
+        if(mainThread) {
+            printf("info depth %d nodes %llu time %llu nps %d hashfull %d ", i, searchInfo.nodesCount, searchTime, speed, hashfull);
+            printScore(eval);
+            printf(" pv ");
+            printPV(board, i, searchInfo.bestMove);
+            printf("\n");
+            fflush(stdout);
+        }
     }
 
-
-    printf("info nodes %llu time %llu\n", searchInfo.nodesCount, getTime(&searchInfo.timer));
-    printf("bestmove %s\n", bestMove);
-    fflush(stdout);
+    if(mainThread) {
+        printf("info nodes %llu time %llu\n", searchInfo.nodesCount, getTime(&searchInfo.timer));
+        printf("bestmove %s\n", bestMove);
+        fflush(stdout);
+    }
+    SEARCH_COMPLETE = 1;
 }
 
 int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score) {
@@ -107,7 +126,7 @@ int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score)
 }
 
 int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth, int height) {
-    if(ABORT) {
+    if(*searchInfo->abortSignal) {
         return 0;
     }
 
@@ -121,14 +140,14 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     int root = (height ? 0 : 1);
     int pvNode = (beta - alpha > 1);
 
-    if(isDraw(board) && !root || ABORT) {
+    if(isDraw(board) && !root || *searchInfo->abortSignal) {
         return 0;
     }
 
     int extensions = !!(inCheck(board, board->color));
 
     if(depth >= 3 && testAbort(getTime(&searchInfo->timer), &searchInfo->tm)) {
-        setAbort(1);
+        setAbort(searchInfo->abortSignal, 1);
         return 0;
     }
 
@@ -175,10 +194,10 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         }
     }
 
-    movegen(board, moves[height]);
-    moveOrdering(board, moves[height], searchInfo, height);
+    movegen(board, moves[searchInfo->threadNumber][height]);
+    moveOrdering(board, moves[searchInfo->threadNumber][height], searchInfo, height);
 
-    U16* curMove = moves[height];
+    U16* curMove = moves[searchInfo->threadNumber][height];
 
     int movesCount = 0;
 
@@ -213,7 +232,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
         int reductions = lmr[min(depth, MAX_PLY - 1)][min(63, movesCount)] * quiteMove + (seeScore < 0);
 
-        if(root && depth > 12) {
+        if(root && depth > 12 && !searchInfo->threadNumber) {
             char moveStr[6];
             moveToString(*curMove, moveStr);
             printf("info currmove %s currmovenumber %d\n", moveStr, movesCount);
@@ -267,7 +286,9 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
                 }
                 
                 searchInfo->killer[board->color][height] = *curMove;
+                pthread_mutex_lock(&mutex);
                 history[board->color][MoveFrom(*curMove)][MoveTo(*curMove)] += (depth * depth);
+                pthread_mutex_unlock(&mutex);
             }
 
             break;
@@ -275,7 +296,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         ++curMove;
     }
 
-    if(ABORT) {
+    if(*searchInfo->abortSignal) {
         return 0;
     }
 
@@ -302,12 +323,12 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
     }
     
     if(testAbort(getTime(&searchInfo->timer), &searchInfo->tm)) {
-        setAbort(1);
+        setAbort(searchInfo->abortSignal, 1);
         return 0;
     }
 
-    if(ABORT) {
-            return 0;
+    if(*searchInfo->abortSignal) {
+        return 0;
     }
 
     ++searchInfo->nodesCount;
@@ -330,12 +351,12 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
         alpha = val;
     }
 
-    attackgen(board, moves[height]);
-    moveOrdering(board, moves[height], searchInfo, height);
-    U16* curMove = moves[height];
+    attackgen(board, moves[searchInfo->threadNumber][height]);
+    moveOrdering(board, moves[searchInfo->threadNumber][height], searchInfo, height);
+    U16* curMove = moves[searchInfo->threadNumber][height];
     Undo undo;
     while(*curMove) {
-        if(ABORT) {
+        if(*searchInfo->abortSignal) {
             return 0;
         }
 
@@ -364,7 +385,7 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
         ++curMove;
     }
 
-    if(ABORT) {
+    if(*searchInfo->abortSignal) {
         return 0;
     }
 
@@ -377,10 +398,10 @@ U64 perftTest(Board* board, int depth, int height) {
     }
 
 
-    movegen(board, moves[height]);
+    movegen(board, moves[0][height]);
 
     U64 result = 0;
-    U16* curMove = moves[height];
+    U16* curMove = moves[0][height];
     Undo undo;
     while(*curMove) {
         makeMove(board, *curMove, &undo);
@@ -489,10 +510,13 @@ void initSearch() {
     clearHistory();
 }
 
-void resetSearchInfo(SearchInfo* info, TimeManager tm) {
+void resetSearchInfo(SearchInfo* info, TimeManager tm, int* abortSignal, int threadNumber) {
     memset(info, 0, sizeof(SearchInfo));
     info->tm = tm;
-    setAbort(0);
+    fflush(stdout);
+    info->abortSignal = abortSignal;
+    setAbort(info->abortSignal, 0);
+    info->threadNumber = threadNumber;
     compressHistory();
 }
 
@@ -519,20 +543,30 @@ void replaceTransposition(Transposition* tr, Transposition new_tr, int height) {
     }
 }
 
-void setAbort(int val) {
+void setAbort(int* signal, int val) {
     pthread_mutex_lock(&mutex);
-    ABORT = val;
+    *signal = val;
     pthread_mutex_unlock(&mutex);
 }
 
 void clearHistory() {
+    pthread_mutex_lock(&mutex);
     memset(history, 0, 2*64*64 * sizeof(int));
+    pthread_mutex_unlock(&mutex);
 }
 void compressHistory() {
+    pthread_mutex_lock(&mutex);
     for(int i = 0; i < 64; ++i) {
         for(int j = 0; j < 64; ++j) {
             history[WHITE][i][j] /= 100;
             history[BLACK][i][j] /= 100;
         }   
+    }
+    pthread_mutex_unlock(&mutex);
+}
+
+void stopAllThreads() {
+    for(int i = 0; i < MAX_THREADS_NUM; ++i) {
+        setAbort(&ABORT[i], 1);
     }
 }
