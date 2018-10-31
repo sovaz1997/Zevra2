@@ -48,6 +48,12 @@ int movePrice[MAX_PLY][256];
 int mvvLvaScores[7][7];
 int lmr[MAX_PLY][64];
 
+//Эвристики
+static int FutilityPruningAllow = 1;
+static int NullMovePruningAllow = 1;
+static int LmrPruningAllow = 1;
+static int HistoryPruningAllow = 1;
+
 void* go(void* thread_data);
 void iterativeDeeping(Board* board, TimeManager tm);
 int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth, int height);
