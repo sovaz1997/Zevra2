@@ -5,10 +5,8 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <pthread.h>
 #include "types.h"
 #include "bitboards.h"
-#include "uci.h"
 
 Transposition* tt;
 U64 ttSize;

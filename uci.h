@@ -11,10 +11,6 @@ struct Option {
     int defaultHashSize;
     int minHashSize;
     int maxHashSize;
-    
-    int defaultThreadsNum;
-    int minThreadsNum;
-    int maxThreadsNum;
 };
 
 extern char startpos[];

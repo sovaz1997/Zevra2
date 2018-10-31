@@ -20,8 +20,6 @@ int main() {
     board->gameInfo = &gameInfo;
     SEARCH_COMPLETE = 1;
 
-    int threads = 1;
-
     while(1) {
         input(buff);
 
@@ -89,13 +87,12 @@ int main() {
                 SearchArgs args;
                 args.board = board;
                 args.tm = tm;
-                args.threads = threads;
                 
-                SEARCH_COMPLETE = 0;
                 pthread_t searchThread;
+                SEARCH_COMPLETE = 0;
+                pthread_create(&searchThread, NULL, &go, &args);
+                //iterativeDeeping(args.board, args.tm);
                 
-                pthread_create(&searchThread, NULL, &goSMP, &args);
-                //goSMP(&args);
             }
         } else if(!strcmp(cmd, "position") && SEARCH_COMPLETE) {
             gameInfo.moveCount = 0;
@@ -123,7 +120,6 @@ int main() {
             printEngineInfo();
             printf("option name Hash type spin default %d min %d max %d\n", option.defaultHashSize, option.minHashSize, option.maxHashSize);
             printf("option name Clear Hash type button\n");
-            printf("option name Threads type spin default %d min %d max %d\n", option.defaultThreadsNum, option.minThreadsNum, option.maxThreadsNum);
             printf("uciok\n");
         } else if(!strcmp(cmd, "eval") && SEARCH_COMPLETE) {
             printf("Eval: %d\n", fullEval(board));
@@ -131,7 +127,7 @@ int main() {
             readyok();
         } else if(!strcmp(cmd, "stop") && !SEARCH_COMPLETE) {
             SEARCH_COMPLETE = 1;
-            stopAllThreads();
+            setAbort(1);
         } else if(!strcmp(cmd, "ucinewgame") && SEARCH_COMPLETE) {
             clearTT();
         } else if(!strcmp(cmd, "setoption") && SEARCH_COMPLETE) {
@@ -252,8 +248,4 @@ void initOption() {
     option.defaultHashSize = 256;
     option.minHashSize = 1;
     option.maxHashSize = 65536;
-
-    option.defaultThreadsNum = 1;
-    option.minThreadsNum = 1;
-    option.maxThreadsNum = MAX_THREADS_NUM;
 }

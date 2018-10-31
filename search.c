@@ -3,39 +3,24 @@
 
 int FutilityMargin[7] = {0, 50, 200, 250, 350, 500, 700};
 
-void* goSMP(void* thread_data) {
+void* go(void* thread_data) {
     SearchArgs* args = (SearchArgs*)thread_data;
-
-    for(int i = 0; i < args->threads; ++i) {
-        boards[i] = *args->board;
-        newArgs[i].board = &boards[i];
-        newArgs[i].tm = args->tm;
-        newArgs[i].threadNumber = i;
-        pthread_create(&searchThreads[i], NULL, &goOtherThread, &newArgs[i]);
-    }
-
-    //iterativeDeeping(args->board, args->tm, 0);
+    iterativeDeeping(args->board, args->tm);
+    SEARCH_COMPLETE = 1;
 }
 
-void* goOtherThread(void* thread_data) {
-    SearchArgs* args = (SearchArgs*)thread_data;
-    iterativeDeeping(args->board, args->tm, args->threadNumber);
-}
-
-void iterativeDeeping(Board* board, TimeManager tm, int threadNumber) {
-    int mainThread = !threadNumber;
-
+void iterativeDeeping(Board* board, TimeManager tm) {
     ++ttAge;
     SearchInfo searchInfo;
     char bestMove[6];
 
-    resetSearchInfo(&searchInfo, tm, &ABORT[threadNumber], threadNumber);
+    resetSearchInfo(&searchInfo, tm);
     startTimer(&searchInfo.timer);
     int eval = 0;
     for(int i = 1; i <= tm.depth; ++i) {
         eval = search(board, &searchInfo, -MATE_SCORE, MATE_SCORE, i, 0);//aspirationWindow(board, &searchInfo, i, eval);
         
-        if(ABORT[threadNumber] && i > 1) {
+        if(ABORT && i > 1) {
             break;
         }
         moveToString(searchInfo.bestMove, bestMove);
@@ -44,22 +29,18 @@ void iterativeDeeping(Board* board, TimeManager tm, int threadNumber) {
         int speed = (searchTime < 1 ? 0 : (searchInfo.nodesCount / (searchTime / 1000.)));
         int hashfull = (double)ttFilledSize  / (double)ttSize * 1000;
 
-        if(mainThread) {
-            printf("info depth %d nodes %llu time %llu nps %d hashfull %d ", i, searchInfo.nodesCount, searchTime, speed, hashfull);
-            printScore(eval);
-            printf(" pv ");
-            printPV(board, i, searchInfo.bestMove);
-            printf("\n");
-            fflush(stdout);
-        }
-    }
-
-    if(mainThread) {
-        printf("info nodes %llu time %llu\n", searchInfo.nodesCount, getTime(&searchInfo.timer));
-        printf("bestmove %s\n", bestMove);
+        printf("info depth %d nodes %llu time %llu nps %d hashfull %d ", i, searchInfo.nodesCount, searchTime, speed, hashfull);
+        printScore(eval);
+        printf(" pv ");
+        printPV(board, i, searchInfo.bestMove);
+        printf("\n");
         fflush(stdout);
     }
-    SEARCH_COMPLETE = 1;
+
+
+    printf("info nodes %llu time %llu\n", searchInfo.nodesCount, getTime(&searchInfo.timer));
+    printf("bestmove %s\n", bestMove);
+    fflush(stdout);
 }
 
 int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score) {
@@ -126,7 +107,7 @@ int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score)
 }
 
 int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth, int height) {
-    if(*searchInfo->abortSignal) {
+    if(ABORT) {
         return 0;
     }
 
@@ -140,14 +121,14 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     int root = (height ? 0 : 1);
     int pvNode = (beta - alpha > 1);
 
-    if(isDraw(board) && !root || *searchInfo->abortSignal) {
+    if(isDraw(board) && !root || ABORT) {
         return 0;
     }
 
     int extensions = !!(inCheck(board, board->color));
 
     if(depth >= 3 && testAbort(getTime(&searchInfo->timer), &searchInfo->tm)) {
-        setAbort(searchInfo->abortSignal, 1);
+        setAbort(1);
         return 0;
     }
 
@@ -180,7 +161,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     
     int R = 2 + depth / 6;
     int staticEval = fullEval(board);
-    if(haveNoPawnMaterial(board) && !extensions && !root && !searchInfo->nullMoveSearch && depth > R && (staticEval >= beta || depth <= 4)) {
+    if(!closeToMateScore(beta) && haveNoPawnMaterial(board) && !extensions && !root && !searchInfo->nullMoveSearch && depth > R && (staticEval >= beta || depth <= 4)) {
         makeNullMove(board);
         searchInfo->nullMoveSearch = 1;
 
@@ -194,10 +175,10 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         }
     }
 
-    movegen(board, moves[searchInfo->threadNumber][height]);
-    moveOrdering(board, moves[searchInfo->threadNumber][height], searchInfo, height);
+    movegen(board, moves[height]);
+    moveOrdering(board, moves[height], searchInfo, height);
 
-    U16* curMove = moves[searchInfo->threadNumber][height];
+    U16* curMove = moves[height];
 
     int movesCount = 0;
 
@@ -207,6 +188,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     int checksCounter = 0;
     while(*curMove) {
         int seeScore = 0;
+        int nextDepth = depth - 1;
         if(board->squares[MoveTo(*curMove)]) {
             seeScore = see(board, MoveTo(*curMove), board->squares[MoveTo(*curMove)], MoveFrom(*curMove), board->squares[MoveFrom(*curMove)]);
         }
@@ -230,9 +212,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         );
         int quiteMove = (!goodMove && !undo.capturedPiece);
 
-        int reductions = lmr[min(depth, MAX_PLY - 1)][min(63, movesCount)] * quiteMove + (seeScore < 0);
-
-        if(root && depth > 12 && !searchInfo->threadNumber) {
+        if(root && depth > 12) {
             char moveStr[6];
             moveToString(*curMove, moveStr);
             printf("info currmove %s currmovenumber %d\n", moveStr, movesCount);
@@ -248,25 +228,39 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
             }
         }
 
+        int reductions = lmr[min(depth, MAX_PLY - 1)][min(63, movesCount)] * quiteMove + (seeScore < 0);
+        int historyReduced = 0;
+
+        //History pruning
+        if(!pvNode && !extensions && depth >= 7 && movePrice[height][movesCount - 1] >= 0 && movePrice[height][movesCount - 1] <= 20000) {
+            --nextDepth;
+            historyReduced = 1;
+        }
+
         int eval;
         if(movesCount == 1) {
-            eval = -search(board, searchInfo, -beta, -alpha, depth - 1 + extensions, height + 1);
+            eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
         } else {
             if(movesCount >= 3 && quiteMove && !closeToMateScore(alpha) && !closeToMateScore(beta) && !pvNode) {
-                eval = -search(board, searchInfo, -alpha - 1, -alpha, depth - 1 + extensions - reductions, height + 1);
+                eval = -search(board, searchInfo, -alpha - 1, -alpha, nextDepth + extensions - reductions, height + 1);
                 if(eval > alpha) {
-                    eval = -search(board, searchInfo, -alpha - 1, -alpha, depth - 1 + extensions, height + 1);
+                    eval = -search(board, searchInfo, -alpha - 1, -alpha, nextDepth + extensions, height + 1);
                     if(eval > alpha && eval < beta) {
-                        eval = -search(board, searchInfo, -beta, -alpha, depth - 1 + extensions, height + 1);
+                        eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
                     }
                 }
             } else {
-                eval = -search(board, searchInfo, -alpha - 1, -alpha, depth - 1 + extensions - reductions, height + 1);
-
+                eval = -search(board, searchInfo, -alpha - 1, -alpha, nextDepth + extensions, height + 1);
+    
                 if(eval > alpha && eval < beta) {
-                    eval = -search(board, searchInfo, -beta, -alpha, depth - 1 + extensions, height + 1);
+                    eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
                 }
             }
+        }
+
+        if(historyReduced && eval >= beta && depth >= 3) {
+            ++nextDepth;
+            eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
         }
 
         unmakeMove(board, *curMove, &undo);
@@ -286,9 +280,8 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
                 }
                 
                 searchInfo->killer[board->color][height] = *curMove;
-                pthread_mutex_lock(&mutex);
                 history[board->color][MoveFrom(*curMove)][MoveTo(*curMove)] += (depth * depth);
-                pthread_mutex_unlock(&mutex);
+                history[board->color][MoveFrom(*curMove)][MoveTo(*curMove)] = max(20000, history[board->color][MoveFrom(*curMove)][MoveTo(*curMove)]);
             }
 
             break;
@@ -296,7 +289,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         ++curMove;
     }
 
-    if(*searchInfo->abortSignal) {
+    if(ABORT) {
         return 0;
     }
 
@@ -323,12 +316,12 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
     }
     
     if(testAbort(getTime(&searchInfo->timer), &searchInfo->tm)) {
-        setAbort(searchInfo->abortSignal, 1);
+        setAbort(1);
         return 0;
     }
 
-    if(*searchInfo->abortSignal) {
-        return 0;
+    if(ABORT) {
+            return 0;
     }
 
     ++searchInfo->nodesCount;
@@ -351,12 +344,12 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
         alpha = val;
     }
 
-    attackgen(board, moves[searchInfo->threadNumber][height]);
-    moveOrdering(board, moves[searchInfo->threadNumber][height], searchInfo, height);
-    U16* curMove = moves[searchInfo->threadNumber][height];
+    attackgen(board, moves[height]);
+    moveOrdering(board, moves[height], searchInfo, height);
+    U16* curMove = moves[height];
     Undo undo;
     while(*curMove) {
-        if(*searchInfo->abortSignal) {
+        if(ABORT) {
             return 0;
         }
 
@@ -385,7 +378,7 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
         ++curMove;
     }
 
-    if(*searchInfo->abortSignal) {
+    if(ABORT) {
         return 0;
     }
 
@@ -398,10 +391,10 @@ U64 perftTest(Board* board, int depth, int height) {
     }
 
 
-    movegen(board, moves[0][height]);
+    movegen(board, moves[height]);
 
     U64 result = 0;
-    U16* curMove = moves[0][height];
+    U16* curMove = moves[height];
     Undo undo;
     while(*curMove) {
         makeMove(board, *curMove, &undo);
@@ -449,47 +442,47 @@ void moveOrdering(Board* board, U16* moves, SearchInfo* searchInfo, int height) 
     int i;
 
     for(i = 0; *ptr; ++i) {
-        movePrice[i] = 0;
+        movePrice[height][i] = 0;
         U16 toPiece = pieceType(board->squares[MoveTo(*ptr)]);
         U16 fromPiece = pieceType(board->squares[MoveFrom(*ptr)]);
 
         if(hashMove == *ptr) {
-            movePrice[i] = 1000000000;
+            movePrice[height][i] = 1000000000;
         } else if(toPiece) {
-            movePrice[i] = mvvLvaScores[fromPiece][toPiece] * 1000000;
+            movePrice[height][i] = mvvLvaScores[fromPiece][toPiece] * 1000000;
             //movePrice[i] = 10000 * see(board, MoveTo(*ptr), board->squares[MoveTo(*ptr)], MoveFrom(*ptr), board->squares[MoveFrom(*ptr)]);
         } else if(searchInfo->killer[board->color][height] == *ptr) {
-            movePrice[i] = 10000;
+            movePrice[height][i] = 100000;
         } else if(searchInfo->secondKiller[board->color][height] == *ptr) {
-            movePrice[i] = 9999;
+            movePrice[height][i] = 99999;
         } else {
-            movePrice[i] = history[board->color][MoveFrom(*ptr)][MoveTo(*ptr)];
+            movePrice[height][i] = history[board->color][MoveFrom(*ptr)][MoveTo(*ptr)];
         }
 
         if(searchInfo->bestMove == *ptr && !height) {
-            movePrice[i] = 1000000000;
+            movePrice[height][i] = 1000000000;
         } 
 
         ++ptr;
     }
 
-    sort(moves, i);
+    sort(moves, i, height);
 }
 
-void sort(U16* moves, int count) {
+void sort(U16* moves, int count, int height) {
     int i, j, key;
     U16 keyMove;
     for (i = 1; i < count; i++)  { 
-        key = movePrice[i];
+        key = movePrice[height][i];
         keyMove = moves[i];
         j = i - 1; 
     
-        while (j >= 0 && movePrice[j] < key) { 
-            movePrice[j + 1] = movePrice[j];
+        while (j >= 0 && movePrice[height][j] < key) { 
+            movePrice[height][j + 1] = movePrice[height][j];
             moves[j + 1] = moves[j];
             --j;
         } 
-        movePrice[j + 1] = key;
+        movePrice[height][j + 1] = key;
         moves[j + 1] = keyMove;
     }
 }
@@ -510,13 +503,10 @@ void initSearch() {
     clearHistory();
 }
 
-void resetSearchInfo(SearchInfo* info, TimeManager tm, int* abortSignal, int threadNumber) {
+void resetSearchInfo(SearchInfo* info, TimeManager tm) {
     memset(info, 0, sizeof(SearchInfo));
     info->tm = tm;
-    fflush(stdout);
-    info->abortSignal = abortSignal;
-    setAbort(info->abortSignal, 0);
-    info->threadNumber = threadNumber;
+    setAbort(0);
     compressHistory();
 }
 
@@ -543,30 +533,20 @@ void replaceTransposition(Transposition* tr, Transposition new_tr, int height) {
     }
 }
 
-void setAbort(int* signal, int val) {
+void setAbort(int val) {
     pthread_mutex_lock(&mutex);
-    *signal = val;
+    ABORT = val;
     pthread_mutex_unlock(&mutex);
 }
 
 void clearHistory() {
-    pthread_mutex_lock(&mutex);
     memset(history, 0, 2*64*64 * sizeof(int));
-    pthread_mutex_unlock(&mutex);
 }
 void compressHistory() {
-    pthread_mutex_lock(&mutex);
     for(int i = 0; i < 64; ++i) {
         for(int j = 0; j < 64; ++j) {
             history[WHITE][i][j] /= 100;
             history[BLACK][i][j] /= 100;
         }   
-    }
-    pthread_mutex_unlock(&mutex);
-}
-
-void stopAllThreads() {
-    for(int i = 0; i < MAX_THREADS_NUM; ++i) {
-        setAbort(&ABORT[i], 1);
     }
 }
