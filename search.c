@@ -55,6 +55,7 @@ int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score)
     char bestMove[6];
 
     int f = score;
+    printf("%d %d\n", alpha, beta);
     while(abs(f) < MATE_SCORE - 1) {
          f = search(board, searchInfo, alpha, beta, depth, 0);
 
@@ -126,7 +127,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         return 0;
     }
 
-    int extensions = !!(inCheck(board, board->color));
+    int weInCheck = !!(inCheck(board, board->color));
 
     if(depth >= 3 && testAbort(getTime(&searchInfo->timer), &searchInfo->tm)) {
         setAbort(1);
@@ -135,7 +136,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
     Undo undo;
 
-    if(ttEntry->evalType && ttEntry->depth >= depth && !root && depth > 1 && ttEntry->key == keyPosition) {
+    if(ttEntry->evalType && ttEntry->depth >= depth && !root /*&& depth > 1*/ && ttEntry->key == keyPosition) {
         int score = ttEntry->eval;
         if(score > MATE_SCORE - 100) {
             score -= height;
@@ -152,7 +153,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         }
     }
 
-    if((depth <= 0 && !extensions) || height >= MAX_PLY - 1) {
+    if((depth <= 0 && !weInCheck) || height >= MAX_PLY - 1) {
         return quiesceSearch(board, searchInfo, alpha, beta, height);
     }
 
@@ -160,7 +161,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     
     int R = 2 + depth / 6;
     int staticEval = fullEval(board);
-    if(NullMovePruningAllow && !closeToMateScore(beta) && haveNoPawnMaterial(board) && !extensions && !root && !searchInfo->nullMoveSearch && depth > R && (staticEval >= beta || depth <= 4)) {
+    if(NullMovePruningAllow && !closeToMateScore(beta) && haveNoPawnMaterial(board) && !weInCheck && !root && !searchInfo->nullMoveSearch && depth > R && (staticEval >= beta || depth <= 4)) {
         makeNullMove(board);
         searchInfo->nullMoveSearch = 1;
 
@@ -203,11 +204,11 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         ++movesCount;
 
 
-        int check = inCheck(board, board->color);
-        checksCounter += check;
+        int extensions = inCheck(board, board->color);
+        checksCounter += extensions;
         int goodMove = (searchInfo->killer[board->color][depth] == *curMove
         || searchInfo->secondKiller[board->color][depth] == *curMove
-        || check || MoveType(*curMove) == PROMOTION_MOVE
+        || extensions || MoveType(*curMove) == PROMOTION_MOVE
         );
         int quiteMove = (!goodMove && !undo.capturedPiece);
 
