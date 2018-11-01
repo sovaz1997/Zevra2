@@ -280,7 +280,6 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
                 
                 searchInfo->killer[board->color][depth] = *curMove;
                 history[board->color][MoveFrom(*curMove)][MoveTo(*curMove)] += (depth * depth);
-                history[board->color][MoveFrom(*curMove)][MoveTo(*curMove)] = max(20000, history[board->color][MoveFrom(*curMove)][MoveTo(*curMove)]);
             }
 
             break;
