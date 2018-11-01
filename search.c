@@ -441,11 +441,11 @@ void moveOrdering(Board* board, U16* moves, SearchInfo* searchInfo, int height, 
     for(i = 0; *ptr; ++i) {
         movePrice[height][i] = 0;
         U16 toPiece = pieceType(board->squares[MoveTo(*ptr)]);
-        U16 fromPiece = pieceType(board->squares[MoveFrom(*ptr)]);
         //int seeScore = see(board, MoveTo(*ptr), board->squares[MoveTo(*ptr)], MoveFrom(*ptr), board->squares[MoveFrom(*ptr)]);
         if(hashMove == *ptr) {
             movePrice[height][i] = 1000000000;
         } else if(toPiece) {
+            U16 fromPiece = pieceType(board->squares[MoveFrom(*ptr)]);
             movePrice[height][i] = mvvLvaScores[fromPiece][toPiece] * 1000000;
             //movePrice[height][i] = 10000 * seeScore;
         } else if(searchInfo->killer[board->color][depth] == *ptr) {
