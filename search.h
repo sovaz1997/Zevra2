@@ -61,7 +61,7 @@ int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score)
 int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int height);
 U64 perftTest(Board* board, int depth, int height);
 void perft(Board* board, int depth);
-void moveOrdering(Board* board, U16* moves, SearchInfo* searchInfo, int height);
+void moveOrdering(Board* board, U16* moves, SearchInfo* searchInfo, int height, int depth);
 void sort(U16* moves, int count, int height);
 void initSearch();
 void resetSearchInfo(SearchInfo* info, TimeManager tm);

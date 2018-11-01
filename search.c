@@ -175,7 +175,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     }
 
     movegen(board, moves[height]);
-    moveOrdering(board, moves[height], searchInfo, height);
+    moveOrdering(board, moves[height], searchInfo, height, depth);
 
     U16* curMove = moves[height];
 
@@ -205,8 +205,8 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
         int check = inCheck(board, board->color);
         checksCounter += check;
-        int goodMove = (searchInfo->killer[board->color][height] == *curMove
-        || searchInfo->secondKiller[board->color][height] == *curMove
+        int goodMove = (searchInfo->killer[board->color][depth] == *curMove
+        || searchInfo->secondKiller[board->color][depth] == *curMove
         || check || MoveType(*curMove) == PROMOTION_MOVE
         );
         int quiteMove = (!goodMove && !undo.capturedPiece);
@@ -231,7 +231,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         int historyReduced = 0;
 
         //History pruning
-        if(HistoryPruningAllow && !pvNode && !extensions && depth >= 7 && movePrice[height][movesCount - 1] >= 0 && movePrice[height][movesCount - 1] <= 20000) {
+        if(HistoryPruningAllow && !pvNode && !extensions && !goodMove && depth >= 7 && movePrice[height][movesCount - 1] >= 0 && movePrice[height][movesCount - 1] <= 20000) {
             --nextDepth;
             historyReduced = 1;
         }
@@ -274,11 +274,11 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         }
         if(alpha >= beta) {
             if(!undo.capturedPiece) {
-                if(searchInfo->killer[board->color][height]) {
-                    searchInfo->secondKiller[board->color][height] = searchInfo->killer[board->color][height];
+                if(searchInfo->killer[board->color][depth]) {
+                    searchInfo->secondKiller[board->color][height] = searchInfo->killer[board->color][depth];
                 }
                 
-                searchInfo->killer[board->color][height] = *curMove;
+                searchInfo->killer[board->color][depth] = *curMove;
                 history[board->color][MoveFrom(*curMove)][MoveTo(*curMove)] += (depth * depth);
                 history[board->color][MoveFrom(*curMove)][MoveTo(*curMove)] = max(20000, history[board->color][MoveFrom(*curMove)][MoveTo(*curMove)]);
             }
@@ -342,7 +342,7 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
     }
 
     attackgen(board, moves[height]);
-    moveOrdering(board, moves[height], searchInfo, height);
+    moveOrdering(board, moves[height], searchInfo, height, 0);
     U16* curMove = moves[height];
     Undo undo;
     while(*curMove) {
@@ -356,7 +356,6 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
         }
 
         makeMove(board, *curMove, &undo);
-        ++searchInfo->nodesCount;
     
         if(inCheck(board, !board->color)) {
             unmakeMove(board, *curMove, &undo);
@@ -364,6 +363,7 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
             continue;
         }
 
+        ++searchInfo->nodesCount;
         int score = -quiesceSearch(board, searchInfo, -beta, -alpha, height + 1);
 
         unmakeMove(board, *curMove, &undo);
@@ -434,7 +434,7 @@ void perft(Board* board, int depth) {
     }
 }
 
-void moveOrdering(Board* board, U16* moves, SearchInfo* searchInfo, int height) {
+void moveOrdering(Board* board, U16* moves, SearchInfo* searchInfo, int height, int depth) {
     U16* ptr = moves;
     U16 hashMove = tt[board->key & ttIndex].move;
     int i;
@@ -443,17 +443,21 @@ void moveOrdering(Board* board, U16* moves, SearchInfo* searchInfo, int height) 
         movePrice[height][i] = 0;
         U16 toPiece = pieceType(board->squares[MoveTo(*ptr)]);
         U16 fromPiece = pieceType(board->squares[MoveFrom(*ptr)]);
-
+        //int seeScore = see(board, MoveTo(*ptr), board->squares[MoveTo(*ptr)], MoveFrom(*ptr), board->squares[MoveFrom(*ptr)]);
         if(hashMove == *ptr) {
             movePrice[height][i] = 1000000000;
         } else if(toPiece) {
-            //movePrice[height][i] = mvvLvaScores[fromPiece][toPiece] * 1000000;
-            movePrice[height][i] = 10000 * see(board, MoveTo(*ptr), board->squares[MoveTo(*ptr)], MoveFrom(*ptr), board->squares[MoveFrom(*ptr)]);
-        } else if(searchInfo->killer[board->color][height] == *ptr) {
+            movePrice[height][i] = mvvLvaScores[fromPiece][toPiece] * 1000000;
+            //movePrice[height][i] = 10000 * seeScore;
+        } else if(searchInfo->killer[board->color][depth] == *ptr) {
             movePrice[height][i] = 100000;
-        } else if(searchInfo->secondKiller[board->color][height] == *ptr) {
+        } else if(depth >= 2 && searchInfo->killer[board->color][depth-2] == *ptr) {
             movePrice[height][i] = 99999;
-        } else {
+        } else if(searchInfo->secondKiller[board->color][depth] == *ptr) {
+            movePrice[height][i] = 99998;
+        } else if(depth >= 2 && searchInfo->secondKiller[board->color][depth-2] == *ptr) {
+            movePrice[height][i] = 99997;
+        } else if(!toPiece) {
             movePrice[height][i] = history[board->color][MoveFrom(*ptr)][MoveTo(*ptr)];
         }
 
