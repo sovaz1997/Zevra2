@@ -29,7 +29,7 @@ void iterativeDeeping(Board* board, TimeManager tm) {
         int speed = (searchTime < 1 ? 0 : (searchInfo.nodesCount / (searchTime / 1000.)));
         int hashfull = (double)ttFilledSize  / (double)ttSize * 1000;
 
-        printf("info depth %d nodes %llu time %llu nps %d hashfull %d ", i, searchInfo.nodesCount, searchTime, speed, hashfull);
+        printf("info depth %d seldepth %d nodes %llu time %llu nps %d hashfull %d ", i, searchInfo.selDepth, searchInfo.nodesCount, searchTime, speed, hashfull);
         printScore(eval);
         printf(" pv ");
         printPV(board, i, searchInfo.bestMove);
@@ -310,6 +310,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 }
 
 int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int height) {
+    searchInfo->selDepth = max(searchInfo->selDepth, height);
     if(height >= MAX_PLY - 1) {
         return fullEval(board);
     }

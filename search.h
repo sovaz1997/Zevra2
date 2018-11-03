@@ -31,6 +31,7 @@ struct SearchInfo {
     U16 secondKiller[2][MAX_PLY + 1];
     int nullMoveSearch;
     int searchTime;
+    int selDepth;
 };
 
 //Тип оценки
