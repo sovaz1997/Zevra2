@@ -161,7 +161,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     
     int R = 2 + depth / 6;
     int staticEval = fullEval(board);
-    if(NullMovePruningAllow && !pvNode && !closeToMateScore(beta) && haveNoPawnMaterial(board) && !weInCheck && !root && !searchInfo->nullMoveSearch && depth > R && (staticEval >= beta || depth <= 4)) {
+    if(NullMovePruningAllow && !pvNode && haveNoPawnMaterial(board) && !weInCheck && !root && !searchInfo->nullMoveSearch && depth > R && (staticEval >= beta || depth <= 4)) {
         makeNullMove(board);
         searchInfo->nullMoveSearch = 1;
 
@@ -241,7 +241,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         if(movesCount == 1) {
             eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
         } else {
-            if(LmrPruningAllow && movesCount >= 3 && quiteMove && !closeToMateScore(alpha) && !closeToMateScore(beta) && !pvNode) {
+            if(LmrPruningAllow && movesCount >= 3 && quiteMove && !pvNode) {
                 eval = -search(board, searchInfo, -alpha - 1, -alpha, nextDepth + extensions - reductions, height + 1);
                 if(eval > alpha) {
                     eval = -search(board, searchInfo, -alpha - 1, -alpha, nextDepth + extensions, height + 1);
