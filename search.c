@@ -185,7 +185,6 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     Transposition new_tt;
 
     int oldAlpha = alpha;
-    int checksCounter = 0;
     while(*curMove) {
         int seeScore = 0;
         int nextDepth = depth - 1;
@@ -205,7 +204,6 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
 
         int extensions = inCheck(board, board->color);
-        checksCounter += extensions;
         int goodMove = (searchInfo->killer[board->color][depth] == *curMove
         || searchInfo->secondKiller[board->color][depth] == *curMove
         || extensions || MoveType(*curMove) == PROMOTION_MOVE
