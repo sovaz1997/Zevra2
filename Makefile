@@ -9,7 +9,6 @@ OUTPUT = zevra.exe
 
 all:
 	$(CC) $(CFLAGS) $(OPTIMIZATIONS) $(SRC) -o $(OUTPUT) $(LIBS)
-	split $(OUTPUT)
 debug:
 	$(CC) $(CFLAGS) $(DEBUG) $(WARNINGS) $(SRC) -o $(OUTPUT) $(LIBS)
 

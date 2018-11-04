@@ -18,7 +18,7 @@ void iterativeDeeping(Board* board, TimeManager tm) {
     startTimer(&searchInfo.timer);
     int eval = 0;
     for(int i = 1; i <= tm.depth; ++i) {
-        eval = /*search(board, &searchInfo, -MATE_SCORE, MATE_SCORE, i, 0);*/aspirationWindow(board, &searchInfo, i, eval);
+        eval = aspirationWindow(board, &searchInfo, i, eval);
         moveToString(searchInfo.bestMove, bestMove);
         if(ABORT && i > 1) {
             break;
@@ -57,7 +57,7 @@ int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score)
         }
 
         if(f > alpha && f < beta) {
-            printf("info depth %d seldepth %d nodes %llu time %llu nps %d hashfull %d ", depth, searchInfo->selDepth, searchInfo->selDepth, searchInfo->nodesCount, searchTime, speed, hashfull);
+            printf("info depth %d seldepth %d nodes %llu time %llu nps %d hashfull %d ", depth, searchInfo->selDepth, searchInfo->nodesCount, searchTime, speed, hashfull);
             printScore(f);
             printf(" pv ");
             printPV(board, depth, searchInfo->bestMove);
