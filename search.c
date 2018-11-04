@@ -117,6 +117,23 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         depth = 0;
     }
 
+    //Mate Distance Pruning
+    int mate_val = MATE_SCORE - height;
+    if(mate_val < beta) {
+        beta = mate_val;
+        if(alpha >= mate_val) {
+            return mate_val;
+        }
+    }
+
+    mate_val = -MATE_SCORE + height;
+    if(mate_val > alpha) {
+        alpha = mate_val;
+        if(beta <= mate_val) {
+            return mate_val;
+        }
+    }
+
     U64 keyPosition = board->key;
     Transposition* ttEntry = &tt[keyPosition & ttIndex];
 
@@ -161,6 +178,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     
     int R = 2 + depth / 6;
     int staticEval = fullEval(board);
+    
     if(NullMovePruningAllow && !pvNode && haveNoPawnMaterial(board) && !weInCheck && !root && !searchInfo->nullMoveSearch && depth > R && (staticEval >= beta || depth <= 4)) {
         makeNullMove(board);
         searchInfo->nullMoveSearch = 1;
