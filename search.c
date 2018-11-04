@@ -18,22 +18,11 @@ void iterativeDeeping(Board* board, TimeManager tm) {
     startTimer(&searchInfo.timer);
     int eval = 0;
     for(int i = 1; i <= tm.depth; ++i) {
-        eval = search(board, &searchInfo, -MATE_SCORE, MATE_SCORE, i, 0);//aspirationWindow(board, &searchInfo, i, eval);
+        eval = /*search(board, &searchInfo, -MATE_SCORE, MATE_SCORE, i, 0);*/aspirationWindow(board, &searchInfo, i, eval);
         moveToString(searchInfo.bestMove, bestMove);
         if(ABORT && i > 1) {
             break;
         }
-
-        U64 searchTime = getTime(&searchInfo.timer);
-        int speed = (searchTime < 1 ? 0 : (searchInfo.nodesCount / (searchTime / 1000.)));
-        int hashfull = (double)ttFilledSize  / (double)ttSize * 1000;
-
-        printf("info depth %d seldepth %d nodes %llu time %llu nps %d hashfull %d ", i, searchInfo.selDepth, searchInfo.nodesCount, searchTime, speed, hashfull);
-        printScore(eval);
-        printf(" pv ");
-        printPV(board, i, searchInfo.bestMove);
-        printf("\n");
-        fflush(stdout);
     }
 
 
@@ -54,7 +43,6 @@ int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score)
     char bestMove[6];
 
     int f = score;
-    printf("%d %d\n", alpha, beta);
     while(abs(f) < MATE_SCORE - 1) {
          f = search(board, searchInfo, alpha, beta, depth, 0);
 
@@ -69,7 +57,7 @@ int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score)
         }
 
         if(f > alpha && f < beta) {
-            printf("info depth %d nodes %llu time %llu nps %d hashfull %d ", depth, searchInfo->nodesCount, searchTime, speed, hashfull);
+            printf("info depth %d seldepth %d nodes %llu time %llu nps %d hashfull %d ", depth, searchInfo->selDepth, searchInfo->selDepth, searchInfo->nodesCount, searchTime, speed, hashfull);
             printScore(f);
             printf(" pv ");
             printPV(board, depth, searchInfo->bestMove);
@@ -83,7 +71,7 @@ int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score)
             beta = (alpha + beta) / 2;
             alpha = max(-MATE_SCORE, alpha - delta);
 
-            printf("info depth %d nodes %llu time %llu nps %d hashfull %d ", depth, searchInfo->nodesCount, searchTime, speed, hashfull);
+            printf("info depth %d seldepth %d nodes %llu time %llu nps %d hashfull %d ", depth, searchInfo->selDepth, searchInfo->nodesCount, searchTime, speed, hashfull);
             printScore(f);
             printf(" upperbound pv ");
             printPV(board, depth, searchInfo->bestMove);
@@ -94,7 +82,7 @@ int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score)
         if(f >= beta) {
             beta = min(MATE_SCORE, beta + delta);
 
-            printf("info depth %d nodes %llu time %llu nps %d hashfull %d ", depth, searchInfo->nodesCount, searchTime, speed, hashfull);
+            printf("info depth %d seldepth %d nodes %llu time %llu nps %d hashfull %d ", depth, searchInfo->selDepth, searchInfo->nodesCount, searchTime, speed, hashfull);
             printScore(f);
             printf(" lowerbound pv ");
             printPV(board, depth, searchInfo->bestMove);
@@ -152,7 +140,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
     Undo undo;
 
-    if(ttEntry->evalType && ttEntry->depth >= depth && !root /*&& depth > 1*/ && ttEntry->key == keyPosition) {
+    if(ttEntry->evalType && ttEntry->depth >= depth && !root && ttEntry->key == keyPosition) {
         int score = ttEntry->eval;
         if(score > MATE_SCORE - 100) {
             score -= height;
@@ -178,7 +166,8 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     int R = 2 + depth / 6;
     int staticEval = fullEval(board);
     
-    if(NullMovePruningAllow && !pvNode && haveNoPawnMaterial(board) && !weInCheck && !root && !searchInfo->nullMoveSearch && depth > R && (staticEval >= beta || depth <= 4)) {
+    int pieceCount = popcount(board->colours[WHITE] | board->colours[BLACK]);
+    if(NullMovePruningAllow && pieceCount > 7 && !pvNode && haveNoPawnMaterial(board) && !weInCheck && !root && !searchInfo->nullMoveSearch && depth > R && (staticEval >= beta || depth <= 4)) {
         makeNullMove(board);
         searchInfo->nullMoveSearch = 1;
 
@@ -202,6 +191,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     Transposition new_tt;
 
     int oldAlpha = alpha;
+
     while(*curMove) {
         int seeScore = 0;
         int nextDepth = depth - 1;
