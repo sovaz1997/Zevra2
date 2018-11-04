@@ -19,11 +19,10 @@ void iterativeDeeping(Board* board, TimeManager tm) {
     int eval = 0;
     for(int i = 1; i <= tm.depth; ++i) {
         eval = search(board, &searchInfo, -MATE_SCORE, MATE_SCORE, i, 0);//aspirationWindow(board, &searchInfo, i, eval);
-        
+        moveToString(searchInfo.bestMove, bestMove);
         if(ABORT && i > 1) {
             break;
         }
-        moveToString(searchInfo.bestMove, bestMove);
 
         U64 searchTime = getTime(&searchInfo.timer);
         int speed = (searchTime < 1 ? 0 : (searchInfo.nodesCount / (searchTime / 1000.)));
@@ -282,7 +281,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         
         if(eval > alpha) {
             alpha = eval;
-            if(root) {
+            if(root && !ABORT) {
                 searchInfo->bestMove = *curMove;
             }
 
