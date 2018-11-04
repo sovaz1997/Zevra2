@@ -7,14 +7,14 @@
 
 //Веса фигур
 enum figureWeights {
-    PAWN_EV = 100,
+    PAWN_EV = S(100, 120),
     KNIGHT_EV = 300,
     BISHOP_EV = 330,
     ROOK_EV = 550,
     QUEEN_EV = 1000
 };
 
-static int pVal[7] = {0, PAWN_EV, KNIGHT_EV, BISHOP_EV, ROOK_EV, QUEEN_EV, 0};
+static int pVal[7] = {0, MG(PAWN_EV), KNIGHT_EV, BISHOP_EV, ROOK_EV, QUEEN_EV, 0};
 
 //Бонусы мобильности
 static int QueenMobility[28] = {
