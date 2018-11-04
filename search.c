@@ -202,7 +202,6 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         
         ++movesCount;
 
-
         int extensions = inCheck(board, board->color);
         int goodMove = (searchInfo->killer[board->color][depth] == *curMove
         || searchInfo->secondKiller[board->color][depth] == *curMove

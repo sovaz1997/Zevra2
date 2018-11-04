@@ -2,18 +2,19 @@
 
 int fullEval(Board* board) {
     int eval = 0;
+    stage = stageGame(board);
 
     //Базовая оценка
     eval += materialEval(board);
     eval += psqtEval(board);
 
     //Оценка мобильности
-    eval += 0.5 * mobilityEval(board, WHITE);
-    eval -= 0.5 * mobilityEval(board, BLACK);
+    eval += (mobilityEval(board, WHITE) - mobilityEval(board, BLACK));
 
     //Разделенная оценка фигур
     eval += (pawnsEval(board, WHITE) - pawnsEval(board, BLACK));
     eval += bishopsEval(board);
+    eval += (rooksEval(board, WHITE) - rooksEval(board, BLACK));
 
     //Безопасность короля
     eval += (kingEval(board, WHITE) - kingEval(board, BLACK));
@@ -46,7 +47,6 @@ int materialEval(Board* board) {
 
 int psqtEval(Board* board) {
     int eval = 0;
-    int sg = stageGame(board);
 
     U64 mask = board->pieces[PAWN];
     eval += psqtPieceEval(board, mask, pawnPST);
@@ -64,7 +64,7 @@ int psqtEval(Board* board) {
     eval += psqtPieceEval(board, mask, queenPST);
 
     mask = board->pieces[KING];
-    eval += (psqtPieceEval(board, mask, kingPST) * sg / 98. + psqtPieceEval(board, mask, egKingPST) * (98. - sg) / 98.);
+    eval += (psqtPieceEval(board, mask, kingPST) * stage / 98. + psqtPieceEval(board, mask, egKingPST) * (98. - stage) / 98.);
     
     return eval;
 }
@@ -174,10 +174,11 @@ int pawnsEval(Board* board, int color) {
 
 int bishopsEval(Board* board) {
     int eval = 0;
+    int score = getScore(DoubleBishopsBonus, stage);
 
     //Бонус за наличие 2-х слонов
-    eval += (DoubleBishopsBonus * (popcount(board->pieces[BISHOP] & board->colours[WHITE]) > 1) -
-        DoubleBishopsBonus * (popcount(board->pieces[BISHOP] & board->colours[BLACK]) > 1));
+    eval += (score * (popcount(board->pieces[BISHOP] & board->colours[WHITE]) > 1) -
+        score * (popcount(board->pieces[BISHOP] & board->colours[BLACK]) > 1));
 
     return eval;
 }
@@ -245,14 +246,33 @@ int closeToMateScore(int eval) {
     return (eval >= MATE_SCORE / 2 || eval <= -MATE_SCORE / 2);
 }
 
-int stageGame(Board* board) {
-    return popcount(board->pieces[QUEEN] * 12) + popcount(board->pieces[ROOK] * 8) + popcount(board->pieces[BISHOP] * 5) + popcount(board->pieces[KNIGHT] * 5);
-}
-
 void initEval() {
     for(int i = 0; i < 64; ++i) {
         for(int j = 0; j < 64; ++j) {
             distanceBonus[i][j] = 14 - (abs(rankOf(i) - rankOf(j)) + abs(fileOf(i) - fileOf(j)));
         }   
     }
+}
+
+int stageGame(Board* board) {
+    return popcount(board->pieces[QUEEN] * 12) + popcount(board->pieces[ROOK] * 8) + popcount(board->pieces[BISHOP] * 5) + popcount(board->pieces[KNIGHT] * 5);
+}
+
+int rooksEval(Board* board, int color) {
+    int eval = 0;
+    U64 our = board->colours[color];
+    U64 enemy = board->colours[!color];
+    U64 occu = our | enemy;
+    
+    U64 rookMask = board->pieces[ROOK] & our;
+    
+    int bonus = getScore(RookOnOpenFileBonus, stage);
+
+    while(rookMask) {
+        int sq = firstOne(rookMask);
+        eval += bonus * !((color == WHITE ? plus8[sq] : minus8[sq]) & board->pieces[PAWN] & files[fileOf(sq)]);
+        clearBit(&rookMask, sq);
+    }
+
+    return eval;
 }

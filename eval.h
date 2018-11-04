@@ -3,6 +3,7 @@
 
 #include "board.h"
 #include "psqt.h"
+#include "score.h"
 
 //Веса фигур
 enum figureWeights {
@@ -27,10 +28,13 @@ static int KnightMobility[14] = {-50, -25, -10, -2, 5, 10, 15, 25};
 //Бонус проходных пешек
 static int PassedPawnBonus[8] = {0, 0, 10, 20, 40, 80, 120, 0};
 
-static int DoubleBishopsBonus = 30;
+static int DoubleBishopsBonus = S(30, 20);
 static int DoublePawnsPenalty = -15;
+static int RookOnOpenFileBonus = S(5, 0);
 
 int distanceBonus[64][64];
+
+int stage;
 
 static const int SafetyTable[100] = {
     0, 1, 2, 3, 5, 7, 9, 12, 15,
@@ -59,7 +63,7 @@ int attackCount(Board* board, int sq, int color);
 int getPassedPawnBonus(int sq, int color);
 int mateScore(int eval);
 int closeToMateScore(int eval);
-int stageGame(Board* board);
 void initEval();
+int stageGame(Board* board);
 
 #endif
