@@ -255,7 +255,7 @@ void initEval() {
 }
 
 int stageGame(Board* board) {
-    return popcount(board->pieces[QUEEN] * 12) + popcount(board->pieces[ROOK] * 8) + popcount(board->pieces[BISHOP] * 5) + popcount(board->pieces[KNIGHT] * 5);
+    return popcount(board->pieces[QUEEN]) * 12 + popcount(board->pieces[ROOK]) * 8 + popcount(board->pieces[BISHOP]) * 5 + popcount(board->pieces[KNIGHT]) * 5;
 }
 
 int rooksEval(Board* board, int color) {
