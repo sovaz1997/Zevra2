@@ -205,11 +205,10 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         
         ++movesCount;
 
-        int extensions = inCheck(board, board->color);
+        int extensions = inCheck(board, board->color) || MoveType(*curMove) == PROMOTION_MOVE;
         int goodMove = (searchInfo->killer[board->color][depth] == *curMove
         || searchInfo->secondKiller[board->color][depth] == *curMove
-        || extensions || MoveType(*curMove) == PROMOTION_MOVE
-        );
+        || extensions);
         
         int quiteMove = (!goodMove && !undo.capturedPiece);
 
