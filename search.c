@@ -1,8 +1,5 @@
 #include "search.h"
 
-
-int FutilityMargin[7] = {0, 50, 200, 250, 350, 500, 700};
-
 void* go(void* thread_data) {
     SearchArgs* args = (SearchArgs*)thread_data;
     iterativeDeeping(args->board, args->tm);
@@ -81,19 +78,6 @@ int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score)
 
         delta += delta / 2;
     }
-}
-
-void printSearchInfo(SearchInfo* info, Board* board, int depth, int eval, int evalType) {
-    U64 searchTime = getTime(&info->timer);
-    int speed = (searchTime < 1 ? 0 : (info->nodesCount / (searchTime / 1000.)));
-    int hashfull = (double)ttFilledSize  / (double)ttSize * 1000;
-    
-    printf("info depth %d seldepth %d nodes %llu time %llu nps %d hashfull %d ", depth, info->selDepth, info->nodesCount, searchTime, speed, hashfull);
-    printScore(eval);
-    printf(evalType == lowerbound ? " lowerbound pv " : evalType == upperbound ? " upperbound pv " : " pv ");
-    printPV(board, depth, info->bestMove);
-    printf("\n");
-    fflush(stdout);
 }
 
 int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth, int height) {

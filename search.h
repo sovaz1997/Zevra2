@@ -42,7 +42,7 @@ enum {
     exact = 3
 };
 
-extern int FutilityMargin[7];
+static int FutilityMargin[7] = {0, 50, 200, 250, 350, 500, 700};
 
 U16 moves[MAX_PLY][256];
 int movePrice[MAX_PLY][256];
@@ -70,6 +70,5 @@ void replaceTransposition(Transposition* tr, Transposition new_tr, int height);
 void setAbort(int val);
 void clearHistory();
 void compressHistory();
-void printSearchInfo(SearchInfo* info, Board* board, int depth, int eval, int evalType);
 
 #endif

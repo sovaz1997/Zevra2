@@ -21,6 +21,7 @@ void makeCommand();
 void printPV(Board* board, int depth, U16 bestMove);
 void printEngineInfo();
 void printScore(int score);
+void printSearchInfo(SearchInfo* info, Board* board, int depth, int eval, int evalType);
 void input(char* str);
 int findMove(char* move, Board* board);
 void readyok();
