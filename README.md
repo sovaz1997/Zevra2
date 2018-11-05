@@ -21,7 +21,9 @@ Elo difference: 95.60 +/- 27.96
 
 Проект вдохновлен:
 Chess programming wiki: https://www.chessprogramming.org/Main_Page
+
 Stockfish: https://github.com/official-stockfish/Stockfish
+
 Ethereal: https://github.com/AndyGrant/Ethereal
 
 Thanks: Guardian, Graham Banks, Ratosh (Piraccu developer), Daniel Anulliero (Isa developer), Евгений Котлов (Hedhehog author).
