@@ -451,7 +451,6 @@ void moveOrdering(Board* board, U16* moves, SearchInfo* searchInfo, int height, 
         } else if(toPiece) {
             U16 fromPiece = pieceType(board->squares[MoveFrom(*ptr)]);
             movePrice[height][i] = mvvLvaScores[fromPiece][toPiece] * 1000000;
-            //movePrice[height][i] = 10000 * seeScore;
         } else if(searchInfo->killer[board->color][depth] == *ptr) {
             movePrice[height][i] = 100000;
         } else if(depth >= 2 && searchInfo->killer[board->color][depth-2] == *ptr) {

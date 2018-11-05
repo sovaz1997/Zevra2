@@ -191,37 +191,6 @@ int getPassedPawnBonus(int sq, int color) {
     return -pawnPST[square(rankOf(sq), fileOf(sq))] + PassedPawnBonus[7 - rankOf(sq)];
 }
 
-int kingSafety(Board* board, int color) {
-    int attacks = 0;
-    int kingPos = firstOne(board->pieces[KING] & board->colours[color]);
-    U64 our = board->colours[color];
-    U64 mask = (kingAttacks[kingPos] & ~our | squareBitboard[kingPos]);
-
-    while(mask) {
-        int sq = firstOne(mask);
-        attacks += attackCount(board, sq, color);
-        clearBit(&mask, sq);
-    }
-
-    return -SafetyTable[min(99, attacks)];
-}
-
-int attackCount(Board* board, int sq, int color) {
-    int attacks = 0;
-
-    U64 our = board->colours[color];
-    U64 enemy = board->colours[!color];
-    U64 occu = our | enemy;
-
-    U64 possibleAttackers = attacksTo(board, sq);
-
-    attacks += 5 * popcount(possibleAttackers & enemy & board->pieces[QUEEN]);
-    attacks += 3 * popcount(possibleAttackers & enemy & board->pieces[ROOK]);
-    attacks += 2 * popcount(possibleAttackers & enemy & board->pieces[KNIGHT]);
-    attacks += 2 * popcount(possibleAttackers & enemy & board->pieces[BISHOP]);
-    return attacks;
-}
-
 int kingEval(Board* board, int color) {
     int eval = 0;
     U64 enemy = board->colours[!color];
