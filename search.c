@@ -447,7 +447,7 @@ void moveOrdering(Board* board, U16* moves, SearchInfo* searchInfo, int height, 
     for(i = 0; *ptr; ++i) {
         movePrice[height][i] = 0;
         U16 toPiece = pieceType(board->squares[MoveTo(*ptr)]);
-        //int seeScore = see(board, MoveTo(*ptr), board->squares[MoveTo(*ptr)], MoveFrom(*ptr), board->squares[MoveFrom(*ptr)]);
+        
         if(hashMove == *ptr) {
             movePrice[height][i] = 1000000000;
         } else if(toPiece) {
@@ -464,6 +464,13 @@ void moveOrdering(Board* board, U16* moves, SearchInfo* searchInfo, int height, 
             movePrice[height][i] = 99997;
         } else if(!toPiece) {
             movePrice[height][i] = history[board->color][MoveFrom(*ptr)][MoveTo(*ptr)];
+        }
+
+        if(toPiece) {
+            int seeScore = see(board, MoveTo(*ptr), board->squares[MoveTo(*ptr)], MoveFrom(*ptr), board->squares[MoveFrom(*ptr)]);
+            if(seeScore < 0 && hashMove != *ptr) {
+                movePrice[height][i] = seeScore;
+            }
         }
 
         if(searchInfo->bestMove == *ptr && !height) {
