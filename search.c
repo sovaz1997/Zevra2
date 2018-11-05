@@ -350,15 +350,17 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
     moveOrdering(board, moves[height], searchInfo, height, 0);
     U16* curMove = moves[height];
     Undo undo;
+    int pseudoMovesCount = 0;
     while(*curMove) {
         if(ABORT) {
             return 0;
         }
 
-        if(see(board, MoveTo(*curMove), board->squares[MoveTo(*curMove)], MoveFrom(*curMove), board->squares[MoveFrom(*curMove)]) < 0) {
-            ++curMove;
-            continue;
+        if(movePrice[height][pseudoMovesCount] < 0) {
+            break;
         }
+        
+        ++pseudoMovesCount;
 
         makeMove(board, *curMove, &undo);
     
