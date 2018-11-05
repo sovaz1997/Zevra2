@@ -186,19 +186,15 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
     U16* curMove = moves[height];
 
-    int movesCount = 0;
+    int movesCount = 0, pseudoMovesCount = 0;
 
     Transposition new_tt;
 
     int oldAlpha = alpha;
 
     while(*curMove) {
-        int seeScore = 0;
         int nextDepth = depth - 1;
-        if(board->squares[MoveTo(*curMove)]) {
-            seeScore = see(board, MoveTo(*curMove), board->squares[MoveTo(*curMove)], MoveFrom(*curMove), board->squares[MoveFrom(*curMove)]);
-        }
-
+        ++pseudoMovesCount;
         makeMove(board, *curMove, &undo);
 
         if(inCheck(board, !board->color)) {
@@ -214,6 +210,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         || searchInfo->secondKiller[board->color][depth] == *curMove
         || extensions || MoveType(*curMove) == PROMOTION_MOVE
         );
+        
         int quiteMove = (!goodMove && !undo.capturedPiece);
 
         if(root && depth > 12) {
@@ -232,11 +229,11 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
             }
         }
 
-        int reductions = lmr[min(depth, MAX_PLY - 1)][min(63, movesCount)] * quiteMove + (seeScore < 0);
+        int reductions = lmr[min(depth, MAX_PLY - 1)][min(63, movesCount)] * quiteMove + (movePrice[height][pseudoMovesCount - 1] < 0);
         int historyReduced = 0;
 
         //History pruning
-        if(HistoryPruningAllow && !pvNode && !extensions && !goodMove && depth >= 7 && movePrice[height][movesCount - 1] >= 0 && movePrice[height][movesCount - 1] <= 20000) {
+        if(HistoryPruningAllow && !pvNode && !extensions && !goodMove && depth >= 7 && movePrice[height][pseudoMovesCount - 1] >= 0 && movePrice[height][pseudoMovesCount - 1] <= 20000) {
             --nextDepth;
             historyReduced = 1;
         }
@@ -359,7 +356,7 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
         if(movePrice[height][pseudoMovesCount] < 0) {
             break;
         }
-        
+
         ++pseudoMovesCount;
 
         makeMove(board, *curMove, &undo);
