@@ -56,42 +56,44 @@ int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score)
             break;
         }
 
-        if(f > alpha && f < beta) {
-            printf("info depth %d seldepth %d nodes %llu time %llu nps %d hashfull %d ", depth, searchInfo->selDepth, searchInfo->nodesCount, searchTime, speed, hashfull);
-            printScore(f);
-            printf(" pv ");
-            printPV(board, depth, searchInfo->bestMove);
-            printf("\n");
-            fflush(stdout);
+        int evalType;
 
-            return f;
+        if(f > alpha && f < beta) {
+            evalType = exact;
         }
 
         if(f <= alpha) {
             beta = (alpha + beta) / 2;
             alpha = max(-MATE_SCORE, alpha - delta);
-
-            printf("info depth %d seldepth %d nodes %llu time %llu nps %d hashfull %d ", depth, searchInfo->selDepth, searchInfo->nodesCount, searchTime, speed, hashfull);
-            printScore(f);
-            printf(" upperbound pv ");
-            printPV(board, depth, searchInfo->bestMove);
-            printf("\n");
-            fflush(stdout);
+            evalType = upperbound;
         }
 
         if(f >= beta) {
             beta = min(MATE_SCORE, beta + delta);
+            evalType = lowerbound;
+        }
 
-            printf("info depth %d seldepth %d nodes %llu time %llu nps %d hashfull %d ", depth, searchInfo->selDepth, searchInfo->nodesCount, searchTime, speed, hashfull);
-            printScore(f);
-            printf(" lowerbound pv ");
-            printPV(board, depth, searchInfo->bestMove);
-            printf("\n");
-            fflush(stdout);
+        printSearchInfo(searchInfo, board, depth, f, exact);
+
+        if(evalType == exact) {
+            return f;
         }
 
         delta += delta / 2;
     }
+}
+
+void printSearchInfo(SearchInfo* info, Board* board, int depth, int eval, int evalType) {
+    U64 searchTime = getTime(&info->timer);
+    int speed = (searchTime < 1 ? 0 : (info->nodesCount / (searchTime / 1000.)));
+    int hashfull = (double)ttFilledSize  / (double)ttSize * 1000;
+    
+    printf("info depth %d seldepth %d nodes %llu time %llu nps %d hashfull %d ", depth, info->selDepth, info->nodesCount, searchTime, speed, hashfull);
+    printScore(eval);
+    printf(evalType == lowerbound ? " lowerbound pv " : evalType == upperbound ? " upperbound pv " : " pv ");
+    printPV(board, depth, info->bestMove);
+    printf("\n");
+    fflush(stdout);
 }
 
 int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth, int height) {

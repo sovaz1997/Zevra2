@@ -70,5 +70,6 @@ void replaceTransposition(Transposition* tr, Transposition new_tr, int height);
 void setAbort(int val);
 void clearHistory();
 void compressHistory();
+void printSearchInfo(SearchInfo* info, Board* board, int depth, int eval, int evalType);
 
 #endif
