@@ -70,7 +70,7 @@ int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score)
             evalType = lowerbound;
         }
 
-        printSearchInfo(searchInfo, board, depth, f, exact);
+        printSearchInfo(searchInfo, board, depth, f, evalType);
 
         if(evalType == exact) {
             return f;
