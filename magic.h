@@ -19,13 +19,8 @@ U64 bishopPossibleMovesSize[64];
 extern const U64 rookMagic[];
 extern const U64 bishopMagic[];
 
-
-void magicGen();
 U64 getAsIndex(U64 bitboard, int index);
 int getMagicIndex(U64 configuration, U64 magic, int size);
-U64 magicFind(U64 bitboard);
-int perfectHashTest(U64 bitboard, U64 magic);
-U64 magicRand();
 U64 blockerCut(int from, U64 occu, U64* directionArray, int direction, U64 possibleMoves);
 void magicArraysInit();
 void preInit();

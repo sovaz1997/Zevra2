@@ -22,38 +22,6 @@ const U64 bishopMagic[] = {
     70523380318336ull, 1104352912384ull, 576461852360577152ull, 35321844925456ull, 149181738462085632ull, 279323934980ull, 17660939600066ull, 4504703451136512ull
 };
 
-void magicGen() {
-    preInit();
-
-    //Генерация для ладьи
-    int max = 0;
-    for(int sq = 0; sq < 64; ++sq) {
-        int cur_attacks_cnt = popcount(rookMagicMask[sq]);
-        max = (cur_attacks_cnt > max ? cur_attacks_cnt : max);
-        
-        U64 magic = magicFind(rookMagicMask[sq]);
-        if(sq % 8 == 0) {
-            printf("\n");
-        }
-        printf("%llu, ", magic);
-    }
-    printf("Max for rooks: %d\n", max);
-
-    //Генерация для слона
-    max = 0;
-    for(int sq = 0; sq < 64; ++sq) {
-        int cur_attacks_cnt = popcount(bishopMagicMask[sq]);
-        max = (cur_attacks_cnt > max ? cur_attacks_cnt : max);
-        
-        U64 magic = magicFind(bishopMagicMask[sq]);
-        if(sq % 8 == 0) {
-            printf("\n");
-        }
-        printf("%llu, ", magic);
-    }
-    printf("Max for bishops: %d\n", max);
-}
-
 U64 getAsIndex(U64 bitboard, int index) {
     U64 result = 0;
 
@@ -71,55 +39,8 @@ U64 getAsIndex(U64 bitboard, int index) {
     return result;
 }
 
-U64 magicFind(U64 bitboard) {
-    U64 magic;
-    
-    while(1) {
-        magic = magicRand();
-
-        if(perfectHashTest(bitboard, magic)) {
-            return magic;
-        }
-    }
-
-    return magic;
-}
-
-int perfectHashTest(U64 bitboard, U64 magic) {
-    const int size = 1 << popcount(bitboard);
-    
-    int array[size];
-
-    memset(array, 0, sizeof(int) * size);
-
-    for(int i = 0; i < size; ++i) {
-        U64 configuration = getAsIndex(bitboard, i);
-        array[getMagicIndex(configuration, magic, popcount(bitboard))] = 1;
-    }
-
-    for(int i = 0; i < size; ++i) {
-        if(!array[i]) {
-            return 0;
-        }
-    }
-    
-
-    return 1;
-}
-
 int getMagicIndex(U64 configuration, U64 magic, int size) {  
     return (configuration * magic) >> (64 - size);
-}
-
-U64 magicRand() {
-    U64 result = 0;
-    
-    for(int i = 0; i < 7; ++i) {
-        int shift = rand() % 64;
-        result |= (1ull << shift);
-    }
-
-    return result;
 }
 
 void magicArraysInit() {
