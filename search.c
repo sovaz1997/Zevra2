@@ -244,10 +244,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
             if(LmrPruningAllow && movesCount >= 3 && quiteMove && !pvNode) {
                 eval = -search(board, searchInfo, -alpha - 1, -alpha, nextDepth + extensions - reductions, height + 1);
                 if(eval > alpha) {
-                    eval = -search(board, searchInfo, -alpha - 1, -alpha, nextDepth + extensions, height + 1);
-                    if(eval > alpha && eval < beta) {
-                        eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
-                    }
+                    eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
                 }
             } else {
                 eval = -search(board, searchInfo, -alpha - 1, -alpha, nextDepth + extensions, height + 1);
@@ -258,7 +255,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
             }
         }
 
-        if(HistoryPruningAllow &&  historyReduced && eval >= beta && depth >= 3) {
+        if(HistoryPruningAllow && historyReduced && eval >= beta && depth >= 3) {
             ++nextDepth;
             eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
         }
