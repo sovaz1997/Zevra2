@@ -12,18 +12,19 @@ Zevra 2 - полностью переписанный шахматный uci-д�
 На данный момент Zevra 2 находится в beta-версии и обгоняет Zevra v1.6.1 на~100
 пунктов ЭЛО в контроле 60s+0.6s (~2380-2400 ЭЛО CCRL 40/4).
 
-Результаты тестирования:
+#Результаты тестирования
 ```
 Zevra v2.0 beta vs. Zevra v1.8.6:
 Score: 200 - 87 - 134  [0.634] 421
 Elo difference: 95.60 +/- 27.96
 ```
 
-Проект вдохновлен:
+#Проект вдохновлен
 + Chess programming wiki: https://www.chessprogramming.org/Main_Page
 + Stockfish: https://github.com/official-stockfish/Stockfish
 + Ethereal: https://github.com/AndyGrant/Ethereal
 
-Thanks: Guardian, Graham Banks (the creator of many tournaments with
+#Thanks
+Guardian, Graham Banks (the creator of many tournaments with
 different engines), Ratosh (Pirarucu dev.), Daniel Anulliero(Isa dev.),
 Евгений Котлов (Hedhehog dev.), Сергей Кудрявцев (создатель сайта sdchess.ru).
