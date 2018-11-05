@@ -4,13 +4,12 @@ SRC = *.c
 OPTIMIZATIONS = -O3 -flto
 NATIVE = -march=native
 WARNINGS = -Wall -pedantic
-popcnt = -msee4.2 -mpopcnt
+POPCNT = -msse4.2 -mpopcnt
 DEBUG = -g -Wall -pedantic -fno-omit-frame-pointer -gdwarf-2
 LIBS = -lpthread -lm
-OUTPUT = zevra.exe
-OUTPUT_POPCNT = zevra_popcnt.exe
-OUTPUT_NONPOPCNT = zevra_nonpopcnt.exe
-
+OUTPUT = zevra
+OUTPUT_POPCNT = zevra_popcnt
+OUTPUT_NONPOPCNT = zevra_nonpopcnt
 
 all:
 	$(CC) $(CFLAGS) $(OPTIMIZATIONS) $(NATIVE) $(SRC) -o $(OUTPUT) $(LIBS)
