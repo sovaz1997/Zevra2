@@ -195,7 +195,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         int goodMove = (searchInfo->killer[board->color][depth] == *curMove
         || searchInfo->secondKiller[board->color][depth] == *curMove);
         
-        int quiteMove = (!goodMove && !undo.capturedPiece);
+        int quiteMove = (!goodMove && !undo.capturedPiece && MoveType(*curMove) != ENPASSANT_MOVE);
 
         if(root && depth > 12) {
             char moveStr[6];
