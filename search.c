@@ -413,7 +413,7 @@ void perft(Board* board, int depth) {
             end = start + 1;
         }
         
-        printf("Perft %d: %llu; speed: %d\n", i, nodes, nodes / (end - start));
+        printf("Perft %d: %llu; speed: %d; time: %.3fs\n", i, nodes, nodes / (end - start), (end - start) / 1000.);
     }
 }
 
