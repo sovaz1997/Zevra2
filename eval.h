@@ -44,7 +44,6 @@ int mobilityEval(Board* board, int color);
 int pawnsEval(Board* board, int color);
 int bishopsEval(Board* board);
 int rooksEval(Board* board, int color);
-int kingSafety(Board* board, int color);
 int kingEval(Board* board, int color);
 int attackCount(Board* board, int sq, int color);
 int getPassedPawnBonus(int sq, int color);
