@@ -26,4 +26,4 @@ Elo difference: 95.60 +/- 27.96
 # Thanks
 Guardian, Graham Banks (the creator of many tournaments with
 different engines), Ratosh (Pirarucu dev.), Daniel Anulliero(Isa dev.),
-Евгений Котлов (Hedhehog dev.), Сергей Кудрявцев (создатель сайта sdchess.ru).
+Евгений Котлов (Hedhehog dev.), Сергей Кудрявцев (sdchess.ru creator).
