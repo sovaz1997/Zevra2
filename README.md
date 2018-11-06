@@ -1,27 +1,24 @@
 # Zevra 2
 
-Zevra 2 - шахматный uci-движок.
+Zevra 2 - uci chess engine.
 
-Преимущества по сравнению с Zevra v1.8.6:
+Advantages:
 
-+ Perft-генератор в 2 раза быстрее;
-+ Уменьшен размер ячейки хеш-таблицы;
-+ Ускорена инициализация движка;
-+ Размер кода < 3000 строк;
-+ Уход от ООП-подхода;
-+ Реализация SEE.
++ Perft-gen 2-3x-faster;
++ Initialization speedup;
++ Code length < 3000;
++ +100 elo on Zevra v1.8.6.
 
-На данный момент Zevra 2 находится в beta-версии и обгоняет Zevra v1.6.1 на ~90-100
-пунктов ЭЛО в контроле 60s+0.6s (~2380-2400 ЭЛО CCRL 40/4).
+It's ~2380-2400 elo on CCRL now.
 
-# Результаты тестирования
+# Test results
 ```
 Zevra v2.0 beta vs. Zevra v1.8.6:
 Score: 200 - 87 - 134  [0.634] 421
 Elo difference: 95.60 +/- 27.96
 ```
 
-# Проект вдохновлен
+# Project inspired
 + Chess programming wiki: https://www.chessprogramming.org/Main_Page
 + Stockfish: https://github.com/official-stockfish/Stockfish
 + Ethereal: https://github.com/AndyGrant/Ethereal
