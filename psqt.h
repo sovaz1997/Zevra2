@@ -1,7 +1,8 @@
 #ifndef PSQT_H
 #define PSQT_H
 
-//Пешки
+//PSQT Tables
+
 static const int pawnPST[64] = {
     0,  0,  0,  0,  0,  0,  0,  0,
     50, 50, 50, 50, 50, 50, 50, 50,
@@ -13,7 +14,6 @@ static const int pawnPST[64] = {
     0,  0,  0,  0,  0,  0,  0,  0
 };
 
-// Кони
 static const int knightPST[64] = {
     -50, -40, -30, -30, -30, -30, -40, -50,
     -40, -20, 0, 0, 0, 0, -20, -40,
@@ -25,7 +25,6 @@ static const int knightPST[64] = {
     -50, -40, -30, -30, -30, -30, -40, -50
 };
 
-// Слоны
 static const int bishopPST[64] = {
     -20, -10, -10, -10, -10, -10, -10, -20,
     -10, 0, 0, 0, 0, 0, 0, -10,
@@ -37,7 +36,6 @@ static const int bishopPST[64] = {
     -20, -10, -10, -10, -10, -10, -10, -20
 };
 
-// Ладьи
 static const int rookPST[64] = {
     0, 0, 0, 0, 0, 0, 0, 0,
     5, 10, 10, 10, 10, 10, 10, 5,
@@ -49,7 +47,6 @@ static const int rookPST[64] = {
     0, 0, 0, 5, 5, 0, 0, 0
 };
 
-// Ферзи
 static const int queenPST[64] = {
     -20, -10, -10, -5, -5, -10, -10, -20,
     -10, 0, 0, 0, 0, 0, 0, -10,

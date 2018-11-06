@@ -73,10 +73,11 @@ U8 lastAttacker(Board* board, U64 bitboard);
 #define pieceType(piece) ((piece) >> 1)
 #define pieceColor(piece) ((piece) & 1)
 
-//Признаки позиции
+//Position signs
 int havePromotionPawn(Board* board);
 int haveNoPawnMaterial(Board* board);
 
+//Static exchange evaluation functions
 int see(Board* board, int toSq, U8 taget, int fromSq, U8 aPiece);
 U64 getLeastValuablePiece(Board* board, U64 attadef, int side, U8* piece);
 U64 considerXrays(Board* board, U64 occu, U64 attackdef, int sq);

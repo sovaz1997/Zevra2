@@ -6,13 +6,13 @@
 #define min(a, b) (a < b ? a : b)
 #define max(a, b) (a > b ? a : b)
 
-//Цвет
+//Color
 enum {
     WHITE = 0,
     BLACK = 1
 };
 
-//Названия фигур
+//Piece names
 enum {
     PAWN = 1,
     KNIGHT = 2,
@@ -22,22 +22,22 @@ enum {
     KING = 6
 };
 
-//Направление
+//Direction
 enum {
     UP = 0,
     DOWN = 1
 };
 
-//Поиск
+//Search limits
 enum {
     MAX_PLY = 128,
     MATE_SCORE = 30000
 };
 
-//Обозначения фигур
+//Piece chars
 static const char* PieceName[2] = {" PNBRQK", " pnbrqk"};
 
-//Переименование типов
+//Types
 typedef uint64_t U64;
 typedef uint32_t U32;
 typedef uint16_t U16;
@@ -47,7 +47,7 @@ typedef int16_t S16;
 typedef int32_t S32;
 typedef int64_t S64;
 
-//Структуры
+//Structures
 typedef struct Board Board;
 typedef struct Undo Undo;
 typedef struct SearchInfo SearchInfo;

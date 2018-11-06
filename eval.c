@@ -89,9 +89,9 @@ int psqtPieceEval(Board* board, U64 mask, const int* pstTable) {
 int mobilityEval(Board* board, int color) {
     int eval = 0;
 
-    U64 our = board->colours[color]; //наши фигуры
-    U64 enemy = board->colours[!color]; //чужие фигуры
-    U64 occu = (our | enemy); //все фигуры
+    U64 our = board->colours[color]; //our pieces
+    U64 enemy = board->colours[!color]; //enemy pieces
+    U64 occu = (our | enemy); //all pieces
 
     U64 mask = board->pieces[PAWN] & enemy;
     U64 pawnAttacks;
@@ -102,7 +102,7 @@ int mobilityEval(Board* board, int color) {
     }
     U64 possibleSq = ~pawnAttacks;
 
-    //Ладья
+    //Rooks mobility
     mask = board->pieces[ROOK] & our;
 
     while(mask) {
@@ -112,7 +112,7 @@ int mobilityEval(Board* board, int color) {
         clearBit(&mask, from);
     }
 
-    //Слон
+    //Bishops mobility
     mask = board->pieces[BISHOP] & our;
 
     while(mask) {
@@ -122,7 +122,7 @@ int mobilityEval(Board* board, int color) {
         clearBit(&mask, from);
     }
 
-    //Ферзь
+    //Queens mobility
     mask = board->pieces[QUEEN] & our;
 
     while(mask) {
@@ -132,7 +132,7 @@ int mobilityEval(Board* board, int color) {
         clearBit(&mask, from);
     }
 
-    //Конь
+    //Knights mobility
     mask = board->pieces[KNIGHT] & our;
 
     while(mask) {
@@ -151,6 +151,8 @@ int pawnsEval(Board* board, int color) {
     U64 ourPawns = board->colours[color] & board->pieces[PAWN];
     U64 enemyPawns = board->colours[!color] & board->pieces[PAWN];
 
+
+    //passed pawns bonus
     while(ourPawns) {
         int sq = firstOne(ourPawns);
         if(color == WHITE) {
@@ -176,7 +178,7 @@ int bishopsEval(Board* board) {
     int eval = 0;
     int score = getScore(DoubleBishopsBonus, stage);
 
-    //Бонус за наличие 2-х слонов
+    //double bishops bonus
     eval += (score * (popcount(board->pieces[BISHOP] & board->colours[WHITE]) > 1) -
         score * (popcount(board->pieces[BISHOP] & board->colours[BLACK]) > 1));
 
@@ -235,6 +237,7 @@ int rooksEval(Board* board, int color) {
     
     U64 rookMask = board->pieces[ROOK] & our;
     
+    //rook on open file bonus
     int bonus = getScore(RookOnOpenFileBonus, stage);
 
     while(rookMask) {

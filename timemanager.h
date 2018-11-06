@@ -5,7 +5,7 @@
 #include "types.h"
 #include "board.h"
 
-//Тип поиска
+//Search type
 enum {
     FixedTime = 0,
     FidexDepth = 1,

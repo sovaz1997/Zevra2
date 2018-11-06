@@ -15,7 +15,7 @@ U64 kingAttacks[64];
 U64 pawnMoves[2][64];
 U64 pawnAttacks[2][64];
 
-//Массивы лучей
+//Beams
 U64 plus1[64];
 U64 minus1[64];
 U64 plus8[64];
@@ -25,17 +25,14 @@ U64 minus7[64];
 U64 plus9[64];
 U64 minus9[64];
 
-//Маски
+//Masks
 U64 squareBitboard[64];
 U64 unSquareBitboard[64];
-
-//Поля одного цвета
-U64 whiteCells, blackCells;
 
 
 #define bitboardCell(cell_nb) (1ull << (cell_nb))
 
-//битбоарды для определения возможности рокировки
+//bitboards for castlings
 U64 shortCastlingBitboard[2];
 U64 longCastlingBitboard[2];
 

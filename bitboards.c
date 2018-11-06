@@ -56,14 +56,6 @@ void initBitboards() {
         }
     }
 
-    whiteCells = 0;
-    for(int sq = 0; sq < 64; ++sq) {
-        if(sq % 2) {
-            setBit(&whiteCells, sq);
-        }
-    }
-    blackCells = ~whiteCells;
-
     attacksGen();
 }
 
@@ -72,17 +64,17 @@ void attacksGen() {
     memset(pawnMoves, 0, sizeof(U64) * 64 * 2);
     memset(pawnAttacks, 0, sizeof(U64) * 64 * 2);
 
-    //Генерация атак ладьи
+    //Rook attacks gen
     for(int sq = 0; sq < 64; ++sq) {
         rookAttacks[sq] = (minus1[sq] | plus1[sq] | minus8[sq] | plus8[sq]);
     }
 
-    //Генерация атак слона
+    //Bishop attacks gen
     for(int sq = 0; sq < 64; ++sq) {
         bishopAttacks[sq] = (minus7[sq] | plus7[sq] | minus9[sq] | plus9[sq]);
     }
 
-    //Генерация атак коня
+    //Knight attack gen
 
     for(int sq = 0; sq < 64; ++sq) {
         int r = rankOf(sq);
@@ -114,7 +106,7 @@ void attacksGen() {
         }
     }
 
-    //Генерация атак короля
+    //King attack gen
 
     for(int sq = 0; sq < 64; ++sq) {
         int r = rankOf(sq);
@@ -148,7 +140,7 @@ void attacksGen() {
         }
     }
 
-    //Генерация ходов пешки
+    //Pawn moves gen
     for(int i = square(1, 0); i < square(7, 0); ++i) {
         if(rankOf(i) == 1) {
             setBit(&pawnMoves[WHITE][i], i + 8);
@@ -166,7 +158,7 @@ void attacksGen() {
         }
     }
 
-    //Генерация атак пешки
+    //Pawn attacks gen
 
     for(int sq = 0; sq < 64; ++sq) {
         pawnAttacks[WHITE][sq] |= ((1ull << (sq + 9)) & ~files[0]);
@@ -198,10 +190,12 @@ unsigned int clz(U64 bitboard) {
     return __builtin_clzll(bitboard);
 }
 
+//get number of first bit in U64 number
 unsigned int firstOne(U64 bitboard) {
     return ctz(bitboard);
 }
 
+//get number of last bit in U64 number
 unsigned int lastOne(U64 bitboard) {
     return 63 - clz(bitboard);
 }

@@ -16,7 +16,7 @@ enum figureWeights {
 
 static int pVal[7] = {0, MG(PAWN_EV), KNIGHT_EV, BISHOP_EV, ROOK_EV, QUEEN_EV, 0};
 
-//Бонусы мобильности
+//Mobility bonuses
 static int QueenMobility[28] = {
     -30, -20, -10, 0, 5, 10, 12, 15, 18, 20, 25, 30, 32, 35,
     40, 45, 50, 55, 57, 60, 63, 65, 70, 75, 80, 85, 90, 95
@@ -25,15 +25,14 @@ static int RookMobility[15] = {-30, -20, -10, 0, 10, 15, 20, 25, 30, 35, 40, 50,
 static int BishopMobility[14] = {-30, -10, 5, 15, 20, 25, 35, 40, 45, 50, 55, 60, 65, 70};
 static int KnightMobility[14] = {-50, -25, -10, -2, 5, 10, 15, 25};
 
-//Бонус проходных пешек
-static int PassedPawnBonus[8] = {0, 0, 10, 20, 40, 80, 120, 0};
 
+static int PassedPawnBonus[8] = {0, 0, 10, 20, 40, 80, 120, 0};
 static int DoubleBishopsBonus = S(30, 20);
 static int DoublePawnsPenalty = -15;
 static int RookOnOpenFileBonus = S(5, 0);
-
 int distanceBonus[64][64];
 
+//global (using for speed-up)
 int stage;
 
 int fullEval(Board* board);

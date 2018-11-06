@@ -34,7 +34,7 @@ struct SearchInfo {
     int selDepth;
 };
 
-//Тип оценки
+//Eval type
 enum {
     empty = 0,
     lowerbound = 1,
@@ -49,7 +49,7 @@ int movePrice[MAX_PLY][256];
 int mvvLvaScores[7][7];
 int lmr[MAX_PLY][64];
 
-//Эвристики
+//Heuristics control
 static int FutilityPruningAllow = 1;
 static int NullMovePruningAllow = 1;
 static int LmrPruningAllow = 1;

@@ -4,11 +4,11 @@ void movegen(Board* board, uint16_t* moveList) {
     int color = board->color;
 
     
-    U64 our = board->colours[color]; //наши фигуры
-    U64 enemy = board->colours[!color]; //чужие фигуры
-    U64 occu = (our | enemy); //все фигуры
+    U64 our = board->colours[color]; //our pieces
+    U64 enemy = board->colours[!color]; //enemy pieces
+    U64 occu = (our | enemy); //all pieces
 
-    //Ладья
+    //Rooks
     U64 mask = board->pieces[ROOK] & our;
 
     while(mask) {
@@ -19,7 +19,7 @@ void movegen(Board* board, uint16_t* moveList) {
         clearBit(&mask, from);
     }
 
-    //Слон
+    //Bishops
     mask = board->pieces[BISHOP] & our;
 
     while(mask) {
@@ -29,7 +29,7 @@ void movegen(Board* board, uint16_t* moveList) {
         clearBit(&mask, from);
     }
 
-    //Ферзь
+    //Queens
     mask = board->pieces[QUEEN] & our;
 
     while(mask) {
@@ -40,7 +40,7 @@ void movegen(Board* board, uint16_t* moveList) {
         clearBit(&mask, from);
     }
 
-    //Конь
+    //Knights
     mask = board->pieces[KNIGHT] & our;
 
     while(mask) {
@@ -51,7 +51,7 @@ void movegen(Board* board, uint16_t* moveList) {
         clearBit(&mask, from);
     }
 
-    //Король
+    //King
     mask = board->pieces[KING] & our;
 
     while(mask) {
@@ -62,7 +62,7 @@ void movegen(Board* board, uint16_t* moveList) {
         clearBit(&mask, from);
     }
 
-    //Пешка (ходы вперед)
+    //Pawns (moves)
     mask = board->pieces[PAWN] & our;
 
     while(mask) {
@@ -86,7 +86,7 @@ void movegen(Board* board, uint16_t* moveList) {
         clearBit(&mask, from);
     }
 
-    //Пешка (взятия)
+    //Pawns (captures)
     mask = board->pieces[PAWN] & our;
     U64 rightAttacks, leftAttacks;
 
@@ -116,7 +116,7 @@ void movegen(Board* board, uint16_t* moveList) {
         }
     }
 
-    //Рокировки
+    //Castlings
     U8 king = makePiece(KING, color);
     U8 rook = makePiece(ROOK, color);
     int castlingRank = (color == WHITE ? 0 : 7);
@@ -155,11 +155,11 @@ void movegen(Board* board, uint16_t* moveList) {
 void attackgen(Board* board, uint16_t* moveList) {
     int color = board->color;
     
-    U64 our = board->colours[color]; //наши фигуры
-    U64 enemy = board->colours[!color]; //чужие фигуры
-    U64 occu = (our | enemy); //все фигуры
+    U64 our = board->colours[color]; //our pieces
+    U64 enemy = board->colours[!color]; //enemy pieces
+    U64 occu = (our | enemy); //all pieces
 
-    //Ладья
+    //Rooks
     U64 mask = board->pieces[ROOK] & our;
 
     while(mask) {
@@ -170,7 +170,7 @@ void attackgen(Board* board, uint16_t* moveList) {
         clearBit(&mask, from);
     }
 
-    //Слон
+    //Bishops
     mask = board->pieces[BISHOP] & our;
 
     while(mask) {
@@ -180,7 +180,7 @@ void attackgen(Board* board, uint16_t* moveList) {
         clearBit(&mask, from);
     }
 
-    //Ферзь
+    //Queens
     mask = board->pieces[QUEEN] & our;
 
     while(mask) {
@@ -191,7 +191,7 @@ void attackgen(Board* board, uint16_t* moveList) {
         clearBit(&mask, from);
     }
 
-    //Конь
+    //Knights
     mask = board->pieces[KNIGHT] & our;
 
     while(mask) {
@@ -202,7 +202,7 @@ void attackgen(Board* board, uint16_t* moveList) {
         clearBit(&mask, from);
     }
 
-    //Король
+    //King
     mask = board->pieces[KING] & our;
 
     while(mask) {
@@ -213,7 +213,7 @@ void attackgen(Board* board, uint16_t* moveList) {
         clearBit(&mask, from);
     }
 
-    //Пешка (взятия)
+    //Pawn (captures)
     mask = board->pieces[PAWN] & our;
     U64 rightAttacks, leftAttacks;
 
