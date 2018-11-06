@@ -448,6 +448,10 @@ void moveOrdering(Board* board, U16* moves, SearchInfo* searchInfo, int height, 
             movePrice[height][i] = history[board->color][MoveFrom(*ptr)][MoveTo(*ptr)];
         }
 
+        if(MoveType(*ptr) == ENPASSANT_MOVE) {
+            movePrice[height][i] = mvvLvaScores[PAWN][PAWN] * 1000000;
+        }
+
         if(toPiece) {
             int seeScore = see(board, MoveTo(*ptr), board->squares[MoveTo(*ptr)], MoveFrom(*ptr), board->squares[MoveFrom(*ptr)]);
             if(seeScore < 0 && hashMove != *ptr) {
