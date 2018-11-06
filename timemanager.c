@@ -38,7 +38,7 @@ TimeManager createTournamentTm(Board* board, int wtime, int btime, int winc, int
 
 void setTournamentTime(TimeManager* tm, Board* board) {
     if(tm->movesToGo) {
-        tm->time = tm->tournamentTime[board->color] / tm->movesToGo + tm->tournamentInc[board->color] / 2;
+        tm->time = tm->tournamentTime[board->color] / (tm->movesToGo + 1) + tm->tournamentInc[board->color] / 2;
     } else {
         int pieceCount = popcount(board->colours[WHITE] | board->colours[BLACK]);
         tm->time = tm->tournamentTime[board->color] / (40 - (32 - pieceCount)) + tm->tournamentInc[board->color] / 2;

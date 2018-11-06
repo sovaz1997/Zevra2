@@ -75,7 +75,7 @@ int main() {
                             binc = atoi(inc);
                         } else if(!strcmp(go_param, "movestogo")) {
                             char* mtg = strtok_r(NULL, " ", &context);
-                            binc = atoi(mtg);
+                            movestogo = atoi(mtg);
                         }
 
                         go_param = strtok_r(NULL, " ", &context);
