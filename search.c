@@ -192,9 +192,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         ++movesCount;
 
         int extensions = inCheck(board, board->color) || MoveType(*curMove) == PROMOTION_MOVE;
-        int goodMove = (searchInfo->killer[board->color][depth] == *curMove
-        || searchInfo->secondKiller[board->color][depth] == *curMove);
-        
+        int goodMove = isKiller(searchInfo, board->color, *curMove, depth);
         int quiteMove = (!goodMove && !undo.capturedPiece && MoveType(*curMove) != ENPASSANT_MOVE);
 
         if(root && depth > 12) {
@@ -549,4 +547,18 @@ void compressHistory() {
             history[BLACK][i][j] /= 100;
         }   
     }
+}
+
+int isKiller(SearchInfo* info, int side, U16 move, int depth) {
+    if(info->killer[side][depth] == move || info->secondKiller[side][depth] == move) {
+        return 1;
+    }
+
+    if(depth >= 2) {
+        if(info->killer[side][depth - 2] == move || info->secondKiller[side][depth - 2] == move) {
+            return 1;
+        }
+    }
+
+    return 0;
 }

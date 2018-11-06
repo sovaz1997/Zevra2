@@ -70,5 +70,6 @@ void replaceTransposition(Transposition* tr, Transposition new_tr, int height);
 void setAbort(int val);
 void clearHistory();
 void compressHistory();
+int isKiller(SearchInfo* info, int side, U16 move, int depth);
 
 #endif
