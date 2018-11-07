@@ -9,14 +9,18 @@ Advantages:
 + Code length < 3000;
 + +100 elo on Zevra v1.8.6.
 
-It's ~2380-2400 elo on CCRL now.
+It's ~2350-2450 elo on CCRL now.
 
 # Test results
 ```
-Zevra v2.0 beta vs. Zevra v1.8.6:
-Score: 200 - 87 - 134  [0.634] 421
-Elo difference: 95.60 +/- 27.96
+tc=60s+0.6s
+Hash=64mb
+
+Score of Zevra v2.0 r172 vs Zevra v1.8.6 r672 popcnt: 251 - 110 - 208  [0.624] 569
+Elo difference: 87.93 +/- 23.03
 ```
+
+Tests vs. other engines: soon!
 
 # Project inspired
 + Chess programming wiki: https://www.chessprogramming.org/Main_Page
