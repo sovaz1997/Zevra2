@@ -238,7 +238,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
             }
         }
 
-        if(HistoryPruningAllow && historyReduced && eval >= beta && depth >= 3) {
+        if(HistoryPruningAllow && historyReduced && eval >= beta) {
             ++nextDepth;
             eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
         }
