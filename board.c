@@ -315,6 +315,10 @@ int attackedSquare(Board* board, int sq, int color) {
 }
 
 int inCheck(Board* board, int color) {
+    if(!(board->colours[color] & board->pieces[KING])) {
+        return 0;
+    }
+
     int kingPosition = firstOne(board->colours[color] & board->pieces[KING]);
     return attackedSquare(board, kingPosition, color);
 }
