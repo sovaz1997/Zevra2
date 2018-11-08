@@ -191,9 +191,9 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         
         ++movesCount;
 
-        int extensions = inCheck(board, board->color) || MoveType(*curMove) == PROMOTION_MOVE;
+        int extensions = inCheck(board, board->color) || MovePromotionPiece(*curMove) == QUEEN;
         int goodMove = isKiller(searchInfo, board->color, *curMove, depth);
-        int quiteMove = (!goodMove && !undo.capturedPiece && MoveType(*curMove) != ENPASSANT_MOVE);
+        int quiteMove = (!goodMove && !undo.capturedPiece && MoveType(*curMove) != ENPASSANT_MOVE) && MoveType(*curMove) != PROMOTION_MOVE;
 
         if(root && depth > 12) {
             char moveStr[6];
