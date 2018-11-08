@@ -457,6 +457,16 @@ void moveOrdering(Board* board, U16* moves, SearchInfo* searchInfo, int height, 
             }
         }
 
+        
+        if(MoveType(*ptr) == PROMOTION_MOVE) {
+            if(MovePromotionPiece(*ptr) == QUEEN) {
+                movePrice[height][i] = 999999999;
+            } else {
+                movePrice[height][i] = 0;
+            }
+        } 
+        
+
         if(searchInfo->bestMove == *ptr && !height) {
             movePrice[height][i] = 1000000000;
         } 
