@@ -167,7 +167,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         }
     }
 
-    if(pvNode && !ttEntry->move && depth >= 3) {
+    if(IIDAllow && !ttEntry->move && depth >= 3) {
         search(board, searchInfo, alpha, beta, depth - 2, height);
     }
 

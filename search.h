@@ -54,6 +54,7 @@ static int FutilityPruningAllow = 1;
 static int NullMovePruningAllow = 1;
 static int LmrPruningAllow = 1;
 static int HistoryPruningAllow = 1;
+static int IIDAllow = 0;
 
 void* go(void* thread_data);
 void iterativeDeeping(Board* board, TimeManager tm);
