@@ -151,6 +151,8 @@ int pawnsEval(Board* board, int color) {
     U64 ourPawns = board->colours[color] & board->pieces[PAWN];
     U64 enemyPawns = board->colours[!color] & board->pieces[PAWN];
 
+    //isolated pawn bonus
+    eval += (IsolatedPawnsHash[horizontalScan(ourPawns)]);
 
     //passed pawns bonus
     while(ourPawns) {
@@ -223,6 +225,23 @@ void initEval() {
             distanceBonus[i][j] = 14 - (abs(rankOf(i) - rankOf(j)) + abs(fileOf(i) - fileOf(j)));
         }   
     }
+
+    //Isolated pawn hash init
+    for(int i = 0; i < 256; ++i) {
+        for(int f = 0; f < 8; ++f) {
+            int leftEmpty = 1, rightEmpty = 1;
+            
+            if(f < 7) {
+                rightEmpty = !getBit8(i, f + 1);
+            }
+
+            if(f > 0) {
+                leftEmpty = !getBit8(i, f - 1);
+            }
+            
+            IsolatedPawnsHash[i] += IsolatedPawnPenalty * (leftEmpty && rightEmpty && getBit(i, f));
+        }
+    }
 }
 
 int stageGame(Board* board) {
@@ -247,4 +266,11 @@ int rooksEval(Board* board, int color) {
     }
 
     return eval;
+}
+
+U8 horizontalScan(U64 bitboard) {
+    return (!!(bitboard & files[0])) | (!!(bitboard & files[1]) << 1)
+        | (!!(bitboard & files[2])) << 2 | (!!(bitboard & files[3]) << 3)
+        | (!!(bitboard & files[4])) << 4 | (!!(bitboard & files[5]) << 5)
+        | (!!(bitboard & files[6])) << 6 | (!!(bitboard & files[7]) << 7);
 }

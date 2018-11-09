@@ -50,6 +50,7 @@ unsigned int lastOne(U64 bitboard);
 
 void setBit(U64* bitboard, int sq);
 int getBit(U64 bitboard, int sq);
+int getBit8(U8 bitboard, int nb);
 void clearBit(U64* bitboard, int sq);
 int rankOf(int sq);
 int fileOf(int sq);

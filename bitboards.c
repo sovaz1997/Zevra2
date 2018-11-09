@@ -213,6 +213,10 @@ int getBit(uint64_t bitboard, int sq) {
     return !!(bitboard & squareBitboard[sq]);
 }
 
+int getBit8(U8 bitboard, int nb) {
+    return !!(bitboard & squareBitboard[nb]);
+}
+
 void clearBit(uint64_t* bitboard, int sq) {
     (*bitboard) &= unSquareBitboard[sq];
 }

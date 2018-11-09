@@ -29,8 +29,11 @@ static int KnightMobility[14] = {-50, -25, -10, -2, 5, 10, 15, 25};
 static int PassedPawnBonus[8] = {0, 0, 10, 20, 40, 80, 120, 0};
 static int DoubleBishopsBonus = S(30, 20);
 static int DoublePawnsPenalty = -15;
+static int IsolatedPawnPenalty = -5;
 static int RookOnOpenFileBonus = S(5, 0);
 int distanceBonus[64][64];
+
+int IsolatedPawnsHash[256];
 
 //global (using for speed-up)
 int stage;
@@ -50,5 +53,6 @@ int mateScore(int eval);
 int closeToMateScore(int eval);
 void initEval();
 int stageGame(Board* board);
+U8 horizontalScan(U64 bitboard);
 
 #endif
