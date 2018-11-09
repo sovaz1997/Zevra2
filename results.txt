@@ -1,18 +1,12 @@
 Changes:
-If promote to queen than extension and not quiet move
+Change Futility margin weights
 
 Test results:
 -----------------------------------------------------------------------------
-tc: 1s+0.01s
+tc: 10s+0.1s
 Hash: 16mb
 -----------------------------------------------------------------------------
-Score of Zevra v2.0 r172 vs Zevra v2.0 r172: 1456 - 1319 - 1118  [0.518] 3893
-Elo difference: 12.23 +/- 9.21
+Score:: 415 - 313 - 456  [0.543] 1184
+Elo difference: 30.01 +/- 15.53
 SPRT: llr 2.2, lbound -2.2, ubound 2.2 - H1 was accepted
------------------------------------------------------------------------------
-tc=3s+0.02s
-Hash: 16mb
-Score of Zevra v2.0 r172 vs Zevra v2.0 r172: 1033 - 969 - 954  [0.511] 2956
-Elo difference: 7.52 +/- 10.30
-SPRT: llr 0.908, lbound -2.2, ubound 2.2
 -----------------------------------------------------------------------------

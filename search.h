@@ -42,7 +42,7 @@ enum {
     exact = 3
 };
 
-static int FutilityMargin[7] = {0, 50, 200, 250, 350, 500, 700};
+static int FutilityMargin[7] = {0, 50, 100, 150, 200, 250, 300};
 
 U16 moves[MAX_PLY][256];
 int movePrice[MAX_PLY][256];
