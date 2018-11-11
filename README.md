@@ -16,7 +16,7 @@ Zevra 2 is free and open-source UCI chess engine.
 tc: 10s+0.1s
 Hash: 16mb
 
-Score of Zevra v2.1 r183 vs Zevra v2.0 r172: 355 - 254 - 391  [0.550] 1000
+Score of Zevra v2.1 r183 dev vs Zevra v2.0 r172: 355 - 254 - 391  [0.550] 1000
 Elo difference: 35.21 +/- 16.82
 ```
 
