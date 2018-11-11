@@ -1,19 +1,8 @@
-Changes:
-+ Reverse futility pruning implementation
-
-Test results:
----------------------------------------------------------------
-tc: 3s+0.02s
-Hash: 16mb
-
-Score: 911 - 791 - 871  [0.523] 2573
-Elo difference: 16.22 +/- 10.91
-SPRT[0, 5]: llr 2.21, lbound -2.2, ubound 2.2 - H1 was accepted
+Regression test
 ---------------------------------------------------------------
 tc: 10s+0.1s
 Hash: 16mb
 
-Score: 430 - 373 - 469  [0.522] 1272
-Elo difference: 15.58 +/- 15.16
-SPRT[0, 5]: SPRT: llr 1.09, lbound -2.2, ubound 2.2
+Score: 355 - 254 - 391  [0.550] 1000
+Elo difference: 35.21 +/- 16.82
 ---------------------------------------------------------------
