@@ -43,6 +43,7 @@ enum {
 };
 
 static int FutilityStep = 50;
+static int ReverseFutilityStep = 90;
 
 U16 moves[MAX_PLY][256];
 int movePrice[MAX_PLY][256];
@@ -54,6 +55,7 @@ static int FutilityPruningAllow = 1;
 static int NullMovePruningAllow = 1;
 static int LmrPruningAllow = 1;
 static int HistoryPruningAllow = 1;
+static int ReverseFutilityPruningAllow = 1;
 static int IIDAllow = 0;
 
 void* go(void* thread_data);

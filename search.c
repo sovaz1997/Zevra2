@@ -167,6 +167,11 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         }
     }
 
+    //Reverse futility pruning
+    if(!pvNode && !weInCheck && depth <= 7 && staticEval - ReverseFutilityStep * depth > beta && ReverseFutilityPruningAllow) {
+        return staticEval;
+    }
+
     if(IIDAllow && !ttEntry->move && depth >= 3) {
         search(board, searchInfo, alpha, beta, depth - 2, height);
     }
