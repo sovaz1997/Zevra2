@@ -176,7 +176,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
     U16* curMove = moves[height];
 
-    int movesCount = 0, pseudoMovesCount = 0;
+    int movesCount = 0, pseudoMovesCount = 0, playedMovesCount = 0;
 
     Transposition new_tt;
 
@@ -215,7 +215,9 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
             }
         }
 
-        int reductions = lmr[min(depth, MAX_PLY - 1)][min(63, movesCount)];
+        ++playedMovesCount;
+
+        int reductions = lmr[min(depth, MAX_PLY - 1)][min(63, playedMovesCount)];
         int historyReduced = 0;
 
         //History pruning
