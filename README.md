@@ -11,14 +11,16 @@ Zevra 2 is free and open-source UCI chess engine.
 [SCET 60s+0.6s](https://sites.google.com/view/scet-testing/zevra)
 
 
-## Regression test
+## Regression tests
 ```
-tc=60s+0.6s
-Hash=64mb
+tc: 10s+0.1s
+Hash: 16mb
 
-Score of Zevra v2.0 r172 vs Zevra v1.8.6 r672 popcnt: 251 - 110 - 208  [0.624] 569
-Elo difference: 87.93 +/- 23.03
+Score of Zevra v2.1 r183 vs Zevra v2.0 r172: 355 - 254 - 391  [0.550] 1000
+Elo difference: 35.21 +/- 16.82
 ```
+
+![Regression graph](https://s8.hostingkartinok.com/uploads/images/2018/11/67b8b324b5330912a8b88f2740bd8c74.png)
 
 ## Project inspired
 + Chess programming wiki: https://www.chessprogramming.org/Main_Page
