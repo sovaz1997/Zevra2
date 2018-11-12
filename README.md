@@ -12,8 +12,11 @@ Zevra 2 is free and open-source UCI chess engine.
 
 
 ## Regression tests
+#### Time control
+```
 tc: 10s+0.1s
 Hash: 16mb
+```
 
 #### 12.11.2018
 ```
