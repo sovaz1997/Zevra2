@@ -177,6 +177,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         return quiesceSearch(board, searchInfo, alpha, beta, height);
     }
 
+    //IID
     if(IIDAllow && !ttEntry->move && depth >= 3) {
         search(board, searchInfo, alpha, beta, depth - 2, height);
     }
