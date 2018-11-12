@@ -44,6 +44,7 @@ enum {
 
 static int FutilityStep = 50;
 static int ReverseFutilityStep = 90;
+static int RazorMargin = 300;
 
 U16 moves[MAX_PLY][256];
 int movePrice[MAX_PLY][256];
@@ -56,6 +57,7 @@ static int NullMovePruningAllow = 1;
 static int LmrPruningAllow = 1;
 static int HistoryPruningAllow = 1;
 static int ReverseFutilityPruningAllow = 1;
+static int RazoringPruningAllow = 1;
 static int IIDAllow = 0;
 
 void* go(void* thread_data);
@@ -65,6 +67,7 @@ int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score)
 int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int height);
 U64 perftTest(Board* board, int depth, int height);
 void perft(Board* board, int depth);
+void* perftThreads(void* perftArgs);
 void moveOrdering(Board* board, U16* moves, SearchInfo* searchInfo, int height, int depth);
 void sort(U16* moves, int count, int height);
 void initSearch();

@@ -1,8 +1,12 @@
-Regression test
+Changes:
++ Razoring implementation
+
+Test results:
 ---------------------------------------------------------------
 tc: 10s+0.1s
 Hash: 16mb
 
-Score of Zevra v2.1 r183 vs Zevra v2.0 r172: 355 - 254 - 391  [0.550] 1000
-Elo difference: 35.21 +/- 16.82
+Score: 687 - 582 - 907  [0.524] 2176
+Elo difference: 16.78 +/- 11.14
+SPRT[0, 5]: SPRT: llr 2.21, lbound -2.2, ubound 2.2
 ---------------------------------------------------------------
