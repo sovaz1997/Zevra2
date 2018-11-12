@@ -2,6 +2,12 @@
 
 Zevra 2 is free and open-source UCI chess engine.
 
+## Compilation commands
+
++ `make all` - creating a version optimized for your CPU (will not work on other PCs)
++ `make popcnt` - creating a universal assembly with support for POPCNT instructions
++ `make nonpopcnt` - creating a universal assembly without the support of the POPCNT instruction
+
 ## Strength of the game
 
 ### Zevra v2.0 r172
