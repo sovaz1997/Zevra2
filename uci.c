@@ -154,7 +154,7 @@ int main() {
 }
 
 void printEngineInfo() {
-    printf("id name Zevra v2.1 r187 dev\nid author Oleg Smirnov\n");
+    printf("id name Zevra v2.1 r188 dev\nid author Oleg Smirnov\n");
 }
 
 void readyok() {

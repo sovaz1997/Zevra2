@@ -6,7 +6,7 @@ Test results:
 tc: 10s+0.1s
 Hash: 16mb
 
-Score: 687 - 582 - 907  [0.524] 2176
-Elo difference: 16.78 +/- 11.14
-SPRT[0, 5]: SPRT: llr 2.21, lbound -2.2, ubound 2.2
+Score: 836 - 789 - 1101  [0.509] 2726
+Elo difference: 5.99 +/- 10.06
+SPRT: llr 0.661, lbound -2.2, ubound 2.2
 ---------------------------------------------------------------

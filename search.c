@@ -173,7 +173,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     }
 
     //Razoring
-    if(!pvNode && !weInCheck && depth <= 3 && staticEval + RazorMargin * depth < alpha && RazoringPruningAllow) {
+    if(!pvNode && !weInCheck && depth <= 4 && staticEval + RazorMargin * depth < alpha && RazoringPruningAllow) {
         return quiesceSearch(board, searchInfo, alpha, beta, height);
     }
 
