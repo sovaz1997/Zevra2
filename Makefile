@@ -4,7 +4,7 @@ SRC = *.c
 OPTIMIZATIONS = -O3 -flto
 NATIVE = -march=native
 WARNINGS = -Wall -pedantic
-POPCNT = -msse4.2 -mpopcnt
+POPCNT = -DUSE_POPCNT -msse3 -mpopcnt
 DEBUG = -g -Wall -pedantic -fno-omit-frame-pointer -gdwarf-2
 LIBS = -lpthread -lm
 OUTPUT = zevra
@@ -19,6 +19,9 @@ nonpopcnt:
 	$(CC) $(CFLAGS) $(OPTIMIZATIONS) -static $(SRC) -o $(OUTPUT_NONPOPCNT) $(LIBS)
 debug:
 	$(CC) $(CFLAGS) $(DEBUG) $(WARNINGS) $(SRC) -o $(OUTPUT) $(LIBS)
+release:
+	make popcnt
+	make nonpopcnt
 
 clean:
 	rm -rf *.o $(OUTPUT)
