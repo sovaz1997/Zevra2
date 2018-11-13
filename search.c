@@ -125,8 +125,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         return 0;
     }
 
-    Undo undo;
-
+    //TT analysis
     if(ttEntry->evalType && ttEntry->depth >= depth && !root && ttEntry->key == keyPosition) {
         int score = ttEntry->eval;
         if(score > MATE_SCORE - 100) {
@@ -144,14 +143,17 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         }
     }
 
+    //go to quiescence search in leaf nodes
     if((depth <= 0 && !weInCheck) || height >= MAX_PLY - 1) {
         return quiesceSearch(board, searchInfo, alpha, beta, height);
     }
 
+    //calculate static eval
+    int staticEval = fullEval(board);
+
     //Null Move pruning
     
     int R = 2 + depth / 6;
-    int staticEval = fullEval(board);
     
     int pieceCount = popcount(board->colours[WHITE] | board->colours[BLACK]);
     if(NullMovePruningAllow && pieceCount > 7 && !pvNode && haveNoPawnMaterial(board) && !weInCheck && !root && !searchInfo->nullMoveSearch && depth > R && (staticEval >= beta || depth <= 4)) {
@@ -179,7 +181,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     }
 
     //IID
-    if(IIDAllow && !ttEntry->move && depth >= 3) {
+    if(IIDAllow && pvNode && !ttEntry->move && depth >= 3) {
         search(board, searchInfo, alpha, beta, depth - 2, height);
     }
 
@@ -187,12 +189,10 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     moveOrdering(board, moves[height], searchInfo, height, depth);
 
     U16* curMove = moves[height];
-
     int movesCount = 0, pseudoMovesCount = 0, playedMovesCount = 0;
-
     Transposition new_tt;
-
     int oldAlpha = alpha;
+    Undo undo;
 
     while(*curMove) {
         int nextDepth = depth - 1;

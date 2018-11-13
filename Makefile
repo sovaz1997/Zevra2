@@ -14,9 +14,9 @@ OUTPUT_NONPOPCNT = zevra_nonpopcnt
 all:
 	$(CC) $(CFLAGS) $(OPTIMIZATIONS) $(NATIVE) $(SRC) -o $(OUTPUT) $(LIBS)
 popcnt:
-	$(CC) $(CFLAGS) $(OPTIMIZATIONS) $(POPCNT) $(SRC) -o $(OUTPUT_POPCNT) $(LIBS)
+	$(CC) $(CFLAGS) $(OPTIMIZATIONS) -static $(POPCNT) $(SRC) -o $(OUTPUT_POPCNT) $(LIBS)
 nonpopcnt:
-	$(CC) $(CFLAGS) $(OPTIMIZATIONS) $(SRC) -o $(OUTPUT_NONPOPCNT) $(LIBS)
+	$(CC) $(CFLAGS) $(OPTIMIZATIONS) -static $(SRC) -o $(OUTPUT_NONPOPCNT) $(LIBS)
 debug:
 	$(CC) $(CFLAGS) $(DEBUG) $(WARNINGS) $(SRC) -o $(OUTPUT) $(LIBS)
 
