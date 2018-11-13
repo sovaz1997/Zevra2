@@ -81,6 +81,7 @@ int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score)
 }
 
 int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth, int height) {
+    searchInfo->selDepth = max(searchInfo->selDepth, height);
     ++searchInfo->nodesCount;
     if(ABORT) {
         return 0;
@@ -311,11 +312,6 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
     if(height >= MAX_PLY - 1) {
         return fullEval(board);
     }
-    
-    /*if(testAbort(getTime(&searchInfo->timer), searchInfo, &searchInfo->tm)) {
-        setAbort(1);
-        return 0;
-    }*/
 
     if(ABORT) {
         return 0;
