@@ -6,10 +6,11 @@
 #include "types.h"
 
 extern U64 nextSeed;
-U64 zobristKeys[15][64]; //key[piece]][sq]
+U64 zobristKeys[15][64]; //key[piece][sq]
 U64 zobristCastlingKeys[4];
 U64 zobristEnpassantKeys[64];
 U64 nullMoveKey;
+U64 otherSideKey;
 
 //xorshift*
 U64 rand64();

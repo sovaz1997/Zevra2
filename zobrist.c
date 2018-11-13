@@ -27,4 +27,5 @@ void zobristInit() {
     }
 
     nullMoveKey = rand64();
+    otherSideKey = rand64();
 }

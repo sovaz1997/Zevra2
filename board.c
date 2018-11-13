@@ -60,6 +60,10 @@ void setFen(Board* board, char* fen) {
     //Установка номера хода
     board->moveNumber = atoi(moveNumber_str);
     free(str);
+
+    if(board->color == BLACK) {
+        board->key ^= otherSideKey;
+    }
 }
 
 void getFen(Board* board, char* fen) {
@@ -213,7 +217,7 @@ void makeMove(Board* board, U16 move, Undo* undo) {
         ++board->moveNumber;
     }
     board->castling &= (board->pieces[KING] | board->pieces[ROOK]);
-    board->key = ~board->key;
+    board->key ^= otherSideKey;
 
     addMoveToHist(board);
 }
@@ -253,7 +257,7 @@ void unmakeMove(Board* board, U16 move, Undo* undo) {
         --board->moveNumber;
     }
     
-    board->key = ~board->key;
+    board->key ^= otherSideKey;
 
     revertMoveFromHist(board);
 }
