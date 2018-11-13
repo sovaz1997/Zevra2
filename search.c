@@ -119,7 +119,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
     int weInCheck = !!(inCheck(board, board->color));
 
-    if(depth >= 3 && testAbort(getTime(&searchInfo->timer), &searchInfo->tm)) {
+    if(depth >= 3 && testAbort(getTime(&searchInfo->timer), searchInfo->nodesCount, &searchInfo->tm)) {
         setAbort(1);
         return 0;
     }
@@ -312,10 +312,10 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
         return fullEval(board);
     }
     
-    if(testAbort(getTime(&searchInfo->timer), &searchInfo->tm)) {
+    /*if(testAbort(getTime(&searchInfo->timer), searchInfo, &searchInfo->tm)) {
         setAbort(1);
         return 0;
-    }
+    }*/
 
     if(ABORT) {
         return 0;

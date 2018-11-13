@@ -1,5 +1,5 @@
 #ifndef TIMEMANAGER_H
-#define TIMEMANAGE_C
+#define TIMEMANAGER_H
 
 #include <time.h>
 #include "types.h"
@@ -8,8 +8,9 @@
 //Search type
 enum {
     FixedTime = 0,
-    FidexDepth = 1,
-    Tournament = 2
+    FixedDepth = 1,
+    Tournament = 2,
+    FixedNodes = 3
 };
 
 struct Timer {
@@ -19,6 +20,7 @@ struct Timer {
 struct TimeManager {
     int searchType;
     int depth;
+    int nodes;
     U64 time;
     int tournamentTime[2];
     int tournamentInc[2];
@@ -31,7 +33,8 @@ U64 getTime(Timer* timer);
 TimeManager createFixTimeTm(U64 millis);
 TimeManager createFixDepthTm(int depth);
 TimeManager createTournamentTm(Board* board, int wtime, int btime, int winc, int binc, int movesToGo);
+TimeManager createFixedNodesTm(int depth);
 void setTournamentTime(TimeManager* tm, Board* board);
-int testAbort(int time, TimeManager* tm);
+int testAbort(int time, int nodesCount, TimeManager* tm);
 
 #endif

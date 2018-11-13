@@ -51,8 +51,10 @@ int main() {
                     char* time_str = strtok_r(NULL, " ", &context);
                     tm = createFixTimeTm(atoll(time_str));
                 } else if(!strcmp(go_param, "infinite")) {
-                    char* time_str = strtok_r(NULL, " ", &context);
                     tm = createFixDepthTm(MAX_PLY);
+                } else if(!strcmp(go_param, "nodes")) {
+                    char* nodes_str = strtok_r(NULL, " ", &context);
+                    tm = createFixedNodesTm(atoi(nodes_str));
                 } else {
                     int wtime = 0, btime = 0, winc = 0, binc = 0, movestogo = 0;
 

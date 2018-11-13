@@ -19,7 +19,15 @@ TimeManager createFixTimeTm(U64 millis) {
 TimeManager createFixDepthTm(int depth) {
     TimeManager tm;
     tm.depth = depth;
-    tm.searchType = FidexDepth;
+    tm.searchType = FixedDepth;
+    return tm;
+}
+
+TimeManager createFixedNodesTm(int nodes) {
+    TimeManager tm;
+    tm.depth = MAX_PLY;
+    tm.nodes = nodes;
+    tm.searchType = FixedNodes;
     return tm;
 }
 
@@ -45,6 +53,7 @@ void setTournamentTime(TimeManager* tm, Board* board) {
     }
 }
 
-int testAbort(int time, TimeManager* tm) {
-    return (tm->searchType == Tournament || tm->searchType == FixedTime) && time >= tm->time;
+int testAbort(int time, int nodesCount, TimeManager* tm) {
+    return ((tm->searchType == Tournament || tm->searchType == FixedTime) && time >= tm->time)
+    | (tm->searchType == FixedNodes && nodesCount >= tm->nodes);
 }
