@@ -65,12 +65,7 @@ void setFen(Board* board, char* fen) {
     }
 }
 
-void getFen(Board* board, char* fen) {
-
-}
-
 void setMovesRange(Board* board, char* moves) {
-    char* context = NULL;
     char* move = strtok(moves, " ");
     Undo undo;
     while(move) {
@@ -403,12 +398,12 @@ U64 attacksTo(Board* board, int sq) {
     rookQueens = board->pieces[ROOK] | board->pieces[QUEEN];
     bishopQueens = board->pieces[BISHOP] | board->pieces[QUEEN];
 
-    return pawnAttacks[WHITE][sq] & board->pieces[PAWN] & board->colours[BLACK]
-        | pawnAttacks[BLACK][sq] & board->pieces[PAWN] & board->colours[WHITE]
-        | knightAttacks[sq] & knights
-        | kingAttacks[sq] & kings
-        | rookQueens & rookPossibleMoves[sq][getMagicIndex(occu & rookMagicMask[sq] & unSquareBitboard[sq], rookMagic[sq], rookPossibleMovesSize[sq])]
-        | bishopQueens & bishopPossibleMoves[sq][getMagicIndex(occu & bishopMagicMask[sq] & unSquareBitboard[sq], bishopMagic[sq], bishopPossibleMovesSize[sq])];
+    return (pawnAttacks[WHITE][sq] & board->pieces[PAWN] & board->colours[BLACK])
+        | (pawnAttacks[BLACK][sq] & board->pieces[PAWN] & board->colours[WHITE])
+        | (knightAttacks[sq] & knights)
+        | (kingAttacks[sq] & kings)
+        | (rookQueens & rookPossibleMoves[sq][getMagicIndex(occu & rookMagicMask[sq] & unSquareBitboard[sq], rookMagic[sq], rookPossibleMovesSize[sq])])
+        | (bishopQueens & bishopPossibleMoves[sq][getMagicIndex(occu & bishopMagicMask[sq] & unSquareBitboard[sq], bishopMagic[sq], bishopPossibleMovesSize[sq])]);
 }
 
 int see(Board* board, int toSq, U8 taget, int fromSq, U8 aPiece) {

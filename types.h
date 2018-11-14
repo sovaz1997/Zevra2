@@ -35,7 +35,7 @@ enum {
 };
 
 //Piece chars
-static const char* PieceName[2] = {" PNBRQK", " pnbrqk"};
+static const char PieceName[2][7] = {" PNBRQK", " pnbrqk"};
 
 //Types
 typedef uint64_t U64;

@@ -35,6 +35,6 @@ TimeManager createFixDepthTm(int depth);
 TimeManager createTournamentTm(Board* board, int wtime, int btime, int winc, int binc, int movesToGo);
 TimeManager createFixedNodesTm(int depth);
 void setTournamentTime(TimeManager* tm, Board* board);
-int testAbort(int time, int nodesCount, TimeManager* tm);
+int testAbort(U64 time, int nodesCount, TimeManager* tm);
 
 #endif

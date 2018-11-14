@@ -141,7 +141,7 @@ void attacksGen() {
     }
 
     //Pawn moves gen
-    for(int i = square(1, 0); i < square(7, 0); ++i) {
+    for(unsigned int i = square(1, 0); i < square(7, 0); ++i) {
         if(rankOf(i) == 1) {
             setBit(&pawnMoves[WHITE][i], i + 8);
             setBit(&pawnMoves[WHITE][i], i + 16);
@@ -149,7 +149,7 @@ void attacksGen() {
             setBit(&pawnMoves[WHITE][i], i + 8);
         }        
     }
-    for(int i = square(6, 7); i >= square(1, 0); --i) {
+    for(unsigned int i = square(6, 7); i >= square(1, 0); --i) {
         if(rankOf(i) == 6) {
             setBit(&pawnMoves[BLACK][i], i - 8);
             setBit(&pawnMoves[BLACK][i], i - 16);

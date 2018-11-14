@@ -94,13 +94,13 @@ int mobilityEval(Board* board, int color) {
     U64 occu = (our | enemy); //all pieces
 
     U64 mask = board->pieces[PAWN] & enemy;
-    U64 pawnAttacks;
+    U64 pAttacks;
     if(!color == WHITE) {
-        pawnAttacks = ((mask << 9) & ~files[0]) | ((mask << 7) & ~files[7]);
+        pAttacks = ((mask << 9) & ~files[0]) | ((mask << 7) & ~files[7]);
     } else {
-        pawnAttacks = ((mask >> 9) & ~files[7]) | ((mask >> 7) & ~files[0]);
+        pAttacks = ((mask >> 9) & ~files[7]) | ((mask >> 7) & ~files[0]);
     }
-    U64 possibleSq = ~pawnAttacks;
+    U64 possibleSq = ~pAttacks;
 
     //Rooks mobility
     mask = board->pieces[ROOK] & our;
@@ -252,8 +252,6 @@ int stageGame(Board* board) {
 int rooksEval(Board* board, int color) {
     int eval = 0;
     U64 our = board->colours[color];
-    U64 enemy = board->colours[!color];
-    U64 occu = our | enemy;
     
     U64 rookMask = board->pieces[ROOK] & our;
     

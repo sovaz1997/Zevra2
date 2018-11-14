@@ -3,7 +3,7 @@ CFLAGS = -DNDEBUG -std=gnu11 -m64
 SRC = *.c
 OPTIMIZATIONS = -O3 -flto
 NATIVE = -march=native
-WARNINGS = -Wall -pedantic
+WARNINGS = -Wall -Wextra -Wshadow
 POPCNT = -DUSE_POPCNT -msse3 -mpopcnt
 DEBUG = -g -Wall -pedantic -fno-omit-frame-pointer -gdwarf-2
 LIBS = -lpthread -lm

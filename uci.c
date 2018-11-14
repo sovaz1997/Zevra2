@@ -13,7 +13,6 @@ int main() {
     setFen(board, startpos);
 
     char buff[65536];
-    char* context;
 
     GameInfo gameInfo;
     gameInfo.moveCount = 0;
@@ -30,12 +29,12 @@ int main() {
         
         char* fen = strstr(str, "fen") + 4;
         char* startposStr = strstr(str, "startpos");
-        char* moves = strstr(str, "moves");
+        char* mvs = strstr(str, "moves");
         char* name = strstr(str, "name") + 5;
         char* value = strstr(str, "value") + 6;
         
-        if(moves) {
-            moves += strlen("moves ");
+        if(mvs) {
+            mvs += strlen("moves ");
         }
 
         char* cmd = strtok(str, " ");
@@ -74,11 +73,11 @@ int main() {
                     while(go_param) {
 
                         if(!strcmp(go_param, "wtime")) {
-                            char* tm = strtok(NULL, " ");
-                            wtime = atoi(tm);
+                            char* tm_str = strtok(NULL, " ");
+                            wtime = atoi(tm_str);
                         } else if(!strcmp(go_param, "btime")) {
-                            char* tm = strtok(NULL, " ");
-                            btime = atoi(tm);
+                            char* tm_str = strtok(NULL, " ");
+                            btime = atoi(tm_str);
                         } else if(!strcmp(go_param, "winc")) {
                             char* inc = strtok(NULL, " ");
                             winc = atoi(inc);
@@ -110,7 +109,7 @@ int main() {
             }
             
             if(cmd_success_input) {
-                setMovesRange(board, moves);
+                setMovesRange(board, mvs);
             }
 
         } else if(!strcmp(cmd, "d") && SEARCH_COMPLETE) {
@@ -228,7 +227,6 @@ void printPV(Board* board, int depth, U16 bestMove) {
     Transposition* cur = &tt[board->key & ttIndex];
     
     for(int i = 0; (cur->evalType == lowerbound || cur->evalType == exact) && !isDraw(board) && i < depth + 20; ++i) {
-        char mv[6];
         moveToString(cur->move, mv);
 
         if(findMove(mv, board)) {
@@ -247,10 +245,10 @@ void printPV(Board* board, int depth, U16 bestMove) {
 }
 
 int findMove(char* move, Board* board) {
-    U16 moves[256];
-    movegen(board, moves);
+    U16 mvs[256];
+    movegen(board, mvs);
 
-    U16* curMove = moves;
+    U16* curMove = mvs;
     while(*curMove) {
         char mv[6];
         moveToString(*curMove, mv);

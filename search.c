@@ -4,6 +4,7 @@ void* go(void* thread_data) {
     SearchArgs* args = (SearchArgs*)thread_data;
     iterativeDeeping(args->board, args->tm);
     SEARCH_COMPLETE = 1;
+    return 0;
 }
 
 void iterativeDeeping(Board* board, TimeManager tm) {
@@ -41,19 +42,14 @@ int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score)
 
     int f = score;
     while(abs(f) < MATE_SCORE - 1) {
-         f = search(board, searchInfo, alpha, beta, depth, 0);
-
-        U64 searchTime = getTime(&searchInfo->timer);
-        int speed = (searchTime < 1 ? 0 : (searchInfo->nodesCount / (searchTime / 1000.)));
-        int hashfull = (double)ttFilledSize  / (double)ttSize * 1000;
-
+        f = search(board, searchInfo, alpha, beta, depth, 0);
         moveToString(searchInfo->bestMove, bestMove);
 
         if(ABORT) {
             break;
         }
 
-        int evalType;
+        int evalType = 0;
 
         if(f > alpha && f < beta) {
             evalType = exact;
@@ -73,11 +69,13 @@ int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score)
         printSearchInfo(searchInfo, board, depth, f, evalType);
 
         if(evalType == exact) {
-            return f;
+            break;
         }
 
         delta += delta / 2;
     }
+
+    return f;
 }
 
 int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth, int height) {
@@ -114,7 +112,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     int root = (height ? 0 : 1);
     int pvNode = (beta - alpha > 1);
 
-    if(isDraw(board) && !root || ABORT) {
+    if((isDraw(board) && !root) || ABORT) {
         return 0;
     }
 
@@ -191,6 +189,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     U16* curMove = moves[height];
     int movesCount = 0, pseudoMovesCount = 0, playedMovesCount = 0;
     Transposition new_tt;
+    setTransposition(&new_tt, keyPosition, 0, 0, depth, 0, ttAge);
     int oldAlpha = alpha;
     Undo undo;
 
@@ -431,11 +430,11 @@ void perft(Board* board, int depth) {
     }
 }
 
-void moveOrdering(Board* board, U16* moves, SearchInfo* searchInfo, int height, int depth) {
+void moveOrdering(Board* board, U16* mvs, SearchInfo* searchInfo, int height, int depth) {
     if(depth > MAX_PLY - 1) {
         depth = MAX_PLY - 1;
     }
-    U16* ptr = moves;
+    U16* ptr = mvs;
     U16 hashMove = tt[board->key & ttIndex].move;
     int i;
 
@@ -488,24 +487,24 @@ void moveOrdering(Board* board, U16* moves, SearchInfo* searchInfo, int height, 
         ++ptr;
     }
 
-    sort(moves, i, height);
+    sort(mvs, i, height);
 }
 
-void sort(U16* moves, int count, int height) {
+void sort(U16* mvs, int count, int height) {
     int i, j, key;
     U16 keyMove;
     for (i = 1; i < count; i++)  { 
         key = movePrice[height][i];
-        keyMove = moves[i];
+        keyMove = mvs[i];
         j = i - 1; 
     
         while (j >= 0 && movePrice[height][j] < key) { 
             movePrice[height][j + 1] = movePrice[height][j];
-            moves[j + 1] = moves[j];
+            mvs[j + 1] = mvs[j];
             --j;
         } 
         movePrice[height][j + 1] = key;
-        moves[j + 1] = keyMove;
+        mvs[j + 1] = keyMove;
     }
 }
 

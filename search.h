@@ -42,9 +42,9 @@ enum {
     exact = 3
 };
 
-static int FutilityStep = 50;
-static int ReverseFutilityStep = 90;
-static int RazorMargin = 300;
+static const int FutilityStep = 50;
+static const int ReverseFutilityStep = 90;
+static const int RazorMargin = 300;
 
 U16 moves[MAX_PLY][256];
 int movePrice[MAX_PLY][256];
@@ -52,13 +52,13 @@ int mvvLvaScores[7][7];
 int lmr[MAX_PLY][64];
 
 //Heuristics control
-static int FutilityPruningAllow = 1;
-static int NullMovePruningAllow = 1;
-static int LmrPruningAllow = 1;
-static int HistoryPruningAllow = 1;
-static int ReverseFutilityPruningAllow = 1;
-static int RazoringPruningAllow = 1;
-static int IIDAllow = 0;
+static const int FutilityPruningAllow = 1;
+static const int NullMovePruningAllow = 1;
+static const int LmrPruningAllow = 1;
+static const int HistoryPruningAllow = 1;
+static const int ReverseFutilityPruningAllow = 1;
+static const int RazoringPruningAllow = 1;
+static const int IIDAllow = 0;
 
 void* go(void* thread_data);
 void iterativeDeeping(Board* board, TimeManager tm);
@@ -68,8 +68,8 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
 U64 perftTest(Board* board, int depth, int height);
 void perft(Board* board, int depth);
 void* perftThreads(void* perftArgs);
-void moveOrdering(Board* board, U16* moves, SearchInfo* searchInfo, int height, int depth);
-void sort(U16* moves, int count, int height);
+void moveOrdering(Board* board, U16* mvs, SearchInfo* searchInfo, int height, int depth);
+void sort(U16* mvs, int count, int height);
 void initSearch();
 void resetSearchInfo(SearchInfo* info, TimeManager tm);
 void replaceTransposition(Transposition* tr, Transposition new_tr, int height);

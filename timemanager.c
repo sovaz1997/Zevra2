@@ -53,7 +53,7 @@ void setTournamentTime(TimeManager* tm, Board* board) {
     }
 }
 
-int testAbort(int time, int nodesCount, TimeManager* tm) {
+int testAbort(U64 time, int nodesCount, TimeManager* tm) {
     return ((tm->searchType == Tournament || tm->searchType == FixedTime) && time >= tm->time)
     | (tm->searchType == FixedNodes && nodesCount >= tm->nodes);
 }
