@@ -5,8 +5,8 @@
 #include "psqt.h"
 #include "score.h"
 
-//Веса фигур
-enum figureWeights {
+//Piece weights
+enum {
     PAWN_EV = S(100, 120),
     KNIGHT_EV = 300,
     BISHOP_EV = 330,
@@ -25,7 +25,7 @@ static int RookMobility[15] = {-30, -20, -10, 0, 10, 15, 20, 25, 30, 35, 40, 50,
 static int BishopMobility[14] = {-30, -10, 5, 15, 20, 25, 35, 40, 45, 50, 55, 60, 65, 70};
 static int KnightMobility[14] = {-50, -25, -10, -2, 5, 10, 15, 25};
 
-
+//additional bonuses and penalties
 static int PassedPawnBonus[8] = {0, 0, 10, 20, 40, 80, 120, 0};
 static int DoubleBishopsBonus = S(30, 20);
 static int DoublePawnsPenalty = -15;
@@ -33,6 +33,7 @@ static int IsolatedPawnPenalty = -5;
 static int RookOnOpenFileBonus = S(5, 0);
 int distanceBonus[64][64];
 
+//Hash eval
 int IsolatedPawnsHash[256];
 
 //global (using for speed-up)
