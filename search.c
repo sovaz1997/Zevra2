@@ -230,6 +230,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         ++playedMovesCount;
 
         int reductions = lmr[min(depth, MAX_PLY - 1)][min(63, playedMovesCount)];
+        
         int historyReduced = 0;
 
         //History pruning

@@ -37,13 +37,25 @@ int main() {
 
         char* cmd = strtok_r(str, " ", &context);
 
+        if(!cmd) {
+            continue;
+        }
+
         if(!strcmp(cmd, "go") && SEARCH_COMPLETE) {
             char* go_param = strtok_r(NULL, " ", &context);
+            if(!go_param) {
+                continue;
+            }
+
             if(!strcmp(go_param, "perft")) {
                 char* depth_str = strtok_r(NULL, " ", &context);
+                if(!depth_str) {
+                    continue;
+                }
                 perft(board, atoi(depth_str));
             } else {
                 TimeManager tm;
+
                 if(!strcmp(go_param, "depth")) {
                     char* depth_str = strtok_r(NULL, " ", &context);
                     tm = createFixDepthTm(atoi(depth_str));
@@ -59,10 +71,6 @@ int main() {
                     int wtime = 0, btime = 0, winc = 0, binc = 0, movestogo = 0;
 
                     while(1) {
-                        if(!go_param) {
-                            break;
-                        }
-
                         if(!strcmp(go_param, "wtime")) {
                             char* tm = strtok_r(NULL, " ", &context);
                             wtime = atoi(tm);
@@ -93,8 +101,6 @@ int main() {
                 pthread_t searchThread;
                 SEARCH_COMPLETE = 0;
                 pthread_create(&searchThread, NULL, &go, &args);
-                //iterativeDeeping(args.board, args.tm);
-                
             }
         } else if(!strcmp(cmd, "position") && SEARCH_COMPLETE) {
             gameInfo.moveCount = 0;
