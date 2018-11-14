@@ -20,7 +20,10 @@ int main() {
     board->gameInfo = &gameInfo;
     SEARCH_COMPLETE = 1;
 
+    TimeManager tm;
+
     while(1) {
+        int makeSearch = 0;
         input(buff);
 
         char* str = strdup(buff);
@@ -43,19 +46,17 @@ int main() {
 
         if(!strcmp(cmd, "go") && SEARCH_COMPLETE) {
             char* go_param = strtok_r(NULL, " ", &context);
+            
             if(!go_param) {
-                continue;
-            }
-
-            if(!strcmp(go_param, "perft")) {
+                tm = createFixDepthTm(MAX_PLY - 1);
+                makeSearch = 1;
+            } else if(!strcmp(go_param, "perft")) {
                 char* depth_str = strtok_r(NULL, " ", &context);
                 if(!depth_str) {
                     continue;
                 }
                 perft(board, atoi(depth_str));
             } else {
-                TimeManager tm;
-
                 if(!strcmp(go_param, "depth")) {
                     char* depth_str = strtok_r(NULL, " ", &context);
                     tm = createFixDepthTm(atoi(depth_str));
@@ -63,14 +64,15 @@ int main() {
                     char* time_str = strtok_r(NULL, " ", &context);
                     tm = createFixTimeTm(atoll(time_str));
                 } else if(!strcmp(go_param, "infinite")) {
-                    tm = createFixDepthTm(MAX_PLY);
+                    tm = createFixDepthTm(MAX_PLY - 1);
                 } else if(!strcmp(go_param, "nodes")) {
                     char* nodes_str = strtok_r(NULL, " ", &context);
                     tm = createFixedNodesTm(atoi(nodes_str));
                 } else {
                     int wtime = 0, btime = 0, winc = 0, binc = 0, movestogo = 0;
+                    
+                    while(go_param) {
 
-                    while(1) {
                         if(!strcmp(go_param, "wtime")) {
                             char* tm = strtok_r(NULL, " ", &context);
                             wtime = atoi(tm);
@@ -93,14 +95,7 @@ int main() {
 
                     tm = createTournamentTm(board, wtime, btime, winc, binc, movestogo);
                 }
-
-                SearchArgs args;
-                args.board = board;
-                args.tm = tm;
-                
-                pthread_t searchThread;
-                SEARCH_COMPLETE = 0;
-                pthread_create(&searchThread, NULL, &go, &args);
+                makeSearch = 1;
             }
         } else if(!strcmp(cmd, "position") && SEARCH_COMPLETE) {
             gameInfo.moveCount = 0;
@@ -151,6 +146,16 @@ int main() {
                     printf("info string hash cleared\n");
                 }
             }
+        }
+
+        if(makeSearch) {
+            SearchArgs args;
+            args.board = board;
+            args.tm = tm;
+            
+            pthread_t searchThread;
+            SEARCH_COMPLETE = 0;
+            pthread_create(&searchThread, NULL, &go, &args);
         }
 
         fflush(stdout);
