@@ -1,12 +1,8 @@
-Changes:
-+ Do not make reverse futility pruning and razoring if we have pawn on 7th rank
-
-Test results:
+Regression test:
 --------------------------------------------------------------
-tc: 3s+0.02s
+tc: 10s+0.1s
 Hash: 16mb
 
-Score: 709 - 594 - 667  [0.529] 1970
-Elo difference: 20.30 +/- 12.48
-SPRT[0, 5]: llr 2.2, lbound -2.2, ubound 2.2 - H1 was accepted
+Score of Zevra v2.1 r210 vs Zevra v2.0 r172: 749 - 466 - 785  [0.571] 2000
+Elo difference: 49.49 +/- 11.90
 --------------------------------------------------------------
