@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -std=c11 -m64
+CFLAGS = -DNDEBUG -std=gnu11 -m64
 SRC = *.c
 OPTIMIZATIONS = -O3 -flto
 NATIVE = -march=native

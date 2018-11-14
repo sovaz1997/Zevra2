@@ -38,35 +38,35 @@ int main() {
             moves += strlen("moves ");
         }
 
-        char* cmd = strtok_r(str, " ", &context);
+        char* cmd = strtok(str, " ");
 
         if(!cmd) {
             continue;
         }
 
         if(!strcmp(cmd, "go") && SEARCH_COMPLETE) {
-            char* go_param = strtok_r(NULL, " ", &context);
+            char* go_param = strtok(NULL, " ");
             
             if(!go_param) {
                 tm = createFixDepthTm(MAX_PLY - 1);
                 makeSearch = 1;
             } else if(!strcmp(go_param, "perft")) {
-                char* depth_str = strtok_r(NULL, " ", &context);
+                char* depth_str = strtok(NULL, " ");
                 if(!depth_str) {
                     continue;
                 }
                 perft(board, atoi(depth_str));
             } else {
                 if(!strcmp(go_param, "depth")) {
-                    char* depth_str = strtok_r(NULL, " ", &context);
+                    char* depth_str = strtok(NULL, " ");
                     tm = createFixDepthTm(atoi(depth_str));
                 } else if(!strcmp(go_param, "movetime")) {
-                    char* time_str = strtok_r(NULL, " ", &context);
+                    char* time_str = strtok(NULL, " ");
                     tm = createFixTimeTm(atoll(time_str));
                 } else if(!strcmp(go_param, "infinite")) {
                     tm = createFixDepthTm(MAX_PLY - 1);
                 } else if(!strcmp(go_param, "nodes")) {
-                    char* nodes_str = strtok_r(NULL, " ", &context);
+                    char* nodes_str = strtok(NULL, " ");
                     tm = createFixedNodesTm(atoi(nodes_str));
                 } else {
                     int wtime = 0, btime = 0, winc = 0, binc = 0, movestogo = 0;
@@ -74,23 +74,23 @@ int main() {
                     while(go_param) {
 
                         if(!strcmp(go_param, "wtime")) {
-                            char* tm = strtok_r(NULL, " ", &context);
+                            char* tm = strtok(NULL, " ");
                             wtime = atoi(tm);
                         } else if(!strcmp(go_param, "btime")) {
-                            char* tm = strtok_r(NULL, " ", &context);
+                            char* tm = strtok(NULL, " ");
                             btime = atoi(tm);
                         } else if(!strcmp(go_param, "winc")) {
-                            char* inc = strtok_r(NULL, " ", &context);
+                            char* inc = strtok(NULL, " ");
                             winc = atoi(inc);
                         } else if(!strcmp(go_param, "binc")) {
-                            char* inc = strtok_r(NULL, " ", &context);
+                            char* inc = strtok(NULL, " ");
                             binc = atoi(inc);
                         } else if(!strcmp(go_param, "movestogo")) {
-                            char* mtg = strtok_r(NULL, " ", &context);
+                            char* mtg = strtok(NULL, " ");
                             movestogo = atoi(mtg);
                         }
 
-                        go_param = strtok_r(NULL, " ", &context);
+                        go_param = strtok(NULL, " ");
                     }
 
                     tm = createTournamentTm(board, wtime, btime, winc, binc, movestogo);
@@ -99,7 +99,7 @@ int main() {
             }
         } else if(!strcmp(cmd, "position") && SEARCH_COMPLETE) {
             gameInfo.moveCount = 0;
-            cmd = strtok_r(NULL, " ", &context);
+            cmd = strtok(NULL, " ");
             int cmd_success_input = 0;
             if(startposStr) {
                 setFen(board, startpos);
@@ -193,7 +193,7 @@ void printSearchInfo(SearchInfo* info, Board* board, int depth, int eval, int ev
     int speed = (searchTime < 1 ? 0 : (info->nodesCount / (searchTime / 1000.)));
     int hashfull = (double)ttFilledSize  / (double)ttSize * 1000;
     
-    printf("info depth %d seldepth %d nodes %llu time %llu nps %d hashfull %d ", depth, info->selDepth, info->nodesCount, searchTime, speed, hashfull);
+    printf("info depth %d seldepth %d nodes %lu time %lu nps %d hashfull %d ", depth, info->selDepth, info->nodesCount, searchTime, speed, hashfull);
     printScore(eval);
     printf(evalType == lowerbound ? " lowerbound pv " : evalType == upperbound ? " upperbound pv " : " pv ");
     printPV(board, depth, info->bestMove);
@@ -202,7 +202,9 @@ void printSearchInfo(SearchInfo* info, Board* board, int depth, int eval, int ev
 }
 
 void input(char* str) {
-    fgets(str, 65536, stdin);
+    if(!fgets(str, 65536, stdin)) {
+        return;
+    }
     char* ptr = strchr(str, '\n');
     if (ptr) {
         *ptr = '\0';

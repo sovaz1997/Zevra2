@@ -1,7 +1,6 @@
 #ifndef UCI_H
 #define UCI_H
 
-#include <assert.h>
 #include "board.h"
 #include "search.h"
 #include "eval.h"

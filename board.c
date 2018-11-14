@@ -4,15 +4,14 @@ void setFen(Board* board, char* fen) {
     clearBoard(board);
 
     char* str = strdup(fen);
-    char* savePtr = NULL;
 
-    char* pieces_str = strtok_r(str, " ", &savePtr);
+    char* pieces_str = strtok(str, " ");
 
-    char* color_str = strtok_r(NULL, " ", &savePtr);
-    char* castlings_str = strtok_r(NULL, " ", &savePtr);
-    char* enpassantSquare_str = strtok_r(NULL, " ", &savePtr);
-    char* ruleNumber_str = strtok_r(NULL, " ", &savePtr);
-    char* moveNumber_str = strtok_r(NULL, " ", &savePtr);
+    char* color_str = strtok(NULL, " ");
+    char* castlings_str = strtok(NULL, " ");
+    char* enpassantSquare_str = strtok(NULL, " ");
+    char* ruleNumber_str = strtok(NULL, " ");
+    char* moveNumber_str = strtok(NULL, " ");
 
     //Установка фигур
 
@@ -26,7 +25,7 @@ void setFen(Board* board, char* fen) {
             f = 0;
         } else {
             int color = !!islower(*pieces_str);
-            char* piece = strchr(PieceName[color], *pieces_str);
+            const char* piece = strchr(PieceName[color], *pieces_str);
             setPiece(board, piece - PieceName[color], color, square(r, f++));
         }
 
@@ -72,11 +71,11 @@ void getFen(Board* board, char* fen) {
 
 void setMovesRange(Board* board, char* moves) {
     char* context = NULL;
-    char* move = strtok_r(moves, " ", &context);
+    char* move = strtok(moves, " ");
     Undo undo;
     while(move) {
         makeMove(board, stringToMove(board, move), &undo);
-        move = strtok_r(NULL, " ", &context);
+        move = strtok(NULL, " ");
     }
 }
 
@@ -100,7 +99,7 @@ void printBoard(Board* board) {
         printBoardSplitter();
     }
 
-    printf("Key: %llx\n\n", board->key);
+    printf("Key: %lx\n\n", board->key);
     printf("White check: %d \n", inCheck(board, WHITE));
     printf("Black check: %d \n\n", inCheck(board, BLACK));
     printf("Have promotion: %d\n", havePromotionPawn(board));

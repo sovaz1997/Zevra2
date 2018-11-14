@@ -23,7 +23,7 @@ void iterativeDeeping(Board* board, TimeManager tm) {
     }
 
 
-    printf("info nodes %llu time %llu\n", searchInfo.nodesCount, getTime(&searchInfo.timer));
+    printf("info nodes %lu time %lu\n", searchInfo.nodesCount, getTime(&searchInfo.timer));
     printf("bestmove %s\n", bestMove);
     fflush(stdout);
 }
@@ -404,7 +404,7 @@ U64 perftTest(Board* board, int depth, int height) {
                 for(int i = 0; i < height; ++i) {
                     printf(" ");
                 }
-                printf("%s: %llu\n", mv, count);
+                printf("%s: %lu\n", mv, count);
             }
         }
 
@@ -427,7 +427,7 @@ void perft(Board* board, int depth) {
             end = start + 1;
         }
         
-        printf("Perft %d: %llu; speed: %d; time: %.3fs\n", i, nodes, nodes / (end - start), (end - start) / 1000.);
+        printf("Perft %d: %lu; speed: %lu; time: %.3fs\n", i, nodes, nodes / (end - start), (end - start) / 1000.);
     }
 }
 

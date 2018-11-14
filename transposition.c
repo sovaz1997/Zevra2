@@ -47,13 +47,3 @@ U64 sizeToTTCount(U64 size) {
 
     return count;
 }
-
-void createDump(char* filename) {
-    FILE* dump = fopen(filename, "wb");
-    fwrite(tt, sizeof(Transposition), ttSize, dump);
-}
-
-void getDump(char* filename) {
-    FILE* dump = fopen(filename, "rb");
-    fread(tt, sizeof(Transposition), ttSize, dump);
-}

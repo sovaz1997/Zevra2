@@ -30,8 +30,4 @@ void clearTT();
 void replaceTranspositionEntry(Transposition* addr, Transposition* newEntry);
 U64 sizeToTTCount(U64 size);
 
-//save TT to file and get from file (using in debug)
-void createDump(char* filename);
-void getDump(char* filename);
-
 #endif
