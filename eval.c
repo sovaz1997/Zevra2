@@ -4,19 +4,19 @@ int fullEval(Board* board) {
     int eval = 0;
     stage = stageGame(board);
 
-    //Базовая оценка
+    //Base eval (Material + PSQT)
     eval += materialEval(board);
     eval += psqtEval(board);
 
-    //Оценка мобильности
+    //Mobility eval
     eval += (mobilityEval(board, WHITE) - mobilityEval(board, BLACK));
 
-    //Разделенная оценка фигур
+    //Pieces eval
     eval += (pawnsEval(board, WHITE) - pawnsEval(board, BLACK));
     eval += bishopsEval(board);
     eval += (rooksEval(board, WHITE) - rooksEval(board, BLACK));
 
-    //Безопасность короля
+    //King safety
     eval += (kingEval(board, WHITE) - kingEval(board, BLACK));
 
     return (board->color == WHITE ? eval : -eval);
