@@ -171,12 +171,12 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     }
 
     //Reverse futility pruning
-    if(!pvNode && !weInCheck && depth <= 7 && staticEval - ReverseFutilityStep * depth > beta && ReverseFutilityPruningAllow) {
+    if(!pvNode && !havePromotionPawn(board) && !weInCheck && depth <= 7 && staticEval - ReverseFutilityStep * depth > beta && ReverseFutilityPruningAllow) {
         return staticEval;
     }
 
     //Razoring
-    if(!pvNode && !weInCheck && depth <= 4 && staticEval + RazorMargin * depth < alpha && RazoringPruningAllow) {
+    if(!pvNode && !havePromotionPawn(board) && !weInCheck && depth <= 4 && staticEval + RazorMargin * depth < alpha && RazoringPruningAllow) {
         return quiesceSearch(board, searchInfo, alpha, beta, height);
     }
 
