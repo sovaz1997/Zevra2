@@ -228,7 +228,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
         ++playedMovesCount;
 
-        int reductions = lmr[min(depth, MAX_PLY - 1)][min(63, playedMovesCount)];
+        int reductions = lmr[min(depth, MAX_PLY - 1)][min(63, playedMovesCount - 1)];
         
         int historyReduced = 0;
 
@@ -239,7 +239,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         }
 
         int eval;
-        if(movesCount == 1) {
+        if(playedMovesCount == 1) {
             eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
         } else {
             if(LmrPruningAllow && movesCount >= 3 && quiteMove) {
