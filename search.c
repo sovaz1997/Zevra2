@@ -147,7 +147,12 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     }
 
     //calculate static eval
-    int staticEval = fullEval(board);
+    int staticEval;
+    if(ttEntry->evalType) {
+        staticEval = ttEntry->eval;
+    } else {
+        staticEval = fullEval(board);
+    }
 
     //Null Move pruning
     
