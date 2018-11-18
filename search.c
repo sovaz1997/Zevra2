@@ -322,15 +322,6 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
         return beta;
     }
 
-    int delta = QUEEN_EV;
-    if(havePromotionPawn(board)) {
-        delta += (QUEEN_EV - 200);
-    }
-
-    if(val < alpha - delta) {
-        return val;
-    }
-
     if(alpha < val) {
         alpha = val;
     }

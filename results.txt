@@ -1,8 +1,15 @@
-Regression test:
+Changes:
+Remove delta pruning (simplification)
+
+
+Results:
 --------------------------------------------------------------
 tc: 10s+0.1s
 Hash: 16mb
 
-Score of Zevra v2.1 r210 vs Zevra v2.0 r172: 749 - 466 - 785  [0.571] 2000
-Elo difference: 49.49 +/- 11.90
+Score of Zevra v2.1.1 r216 vs Zevra v2.1.1 r216: 636 - 562 - 486  [0.522] 1684
+Elo difference: 15.28 +/- 13.99
+SPRT: llr 1.25, lbound -2.2, ubound 2.2
 --------------------------------------------------------------
+
+Same result in 1+0.01 with LLR=2.20
