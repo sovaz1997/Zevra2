@@ -313,6 +313,8 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 }
 
 int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int height) {
+    ++searchInfo->nodesCount;
+
     searchInfo->selDepth = max(searchInfo->selDepth, height);
     if(height >= MAX_PLY - 1) {
         return fullEval(board);
@@ -363,7 +365,6 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
             continue;
         }
 
-        ++searchInfo->nodesCount;
         int score = -quiesceSearch(board, searchInfo, -beta, -alpha, height + 1);
 
         unmakeMove(board, *curMove, &undo);
