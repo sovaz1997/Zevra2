@@ -314,8 +314,12 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
 int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int height) {
     ++searchInfo->nodesCount;
-
     searchInfo->selDepth = max(searchInfo->selDepth, height);
+    
+    if(isDraw(board)) {
+        return 0;
+    }
+    
     if(height >= MAX_PLY - 1) {
         return fullEval(board);
     }
