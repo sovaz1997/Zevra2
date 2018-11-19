@@ -19,7 +19,7 @@ Zevra 2 is free and open-source UCI chess engine.
 
 ### Zevra v2.0 r172
 
-+ [CCRL 40/4](http://www.computerchess.org.uk/ccrl/404/cgi/engine_details.cgi?print=Details&each_game=1&eng=Zevra%202.0%20r172%2064-bit#Zevra_2_0_r172_64-bit): 2408 elo points
++ 2408 Elo in [CCRL 40/4](http://www.computerchess.org.uk/ccrl/404/cgi/engine_details.cgi?print=Details&each_game=1&eng=Zevra%202.0%20r172%2064-bit#Zevra_2_0_r172_64-bit)
 + 2429 Elo in [SCET 60s+0.6s](https://sites.google.com/view/scet-testing/zevra)
 
 
