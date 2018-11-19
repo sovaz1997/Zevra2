@@ -13,7 +13,7 @@ Zevra 2 is free and open-source UCI chess engine.
 
 ## Strength of the game
 
-### Zevra v2.1 r210
+### Zevra v2.1.1 r216
 
 + 2468 Elo in [SCET 60s+0.6s](https://sites.google.com/view/scet-testing/zevra)
 
