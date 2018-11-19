@@ -338,6 +338,7 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
     int pseudoMovesCount = 0;
 
     int eval = fullEval(board);
+    int best = eval;
 
     while(*curMove) {
         if(ABORT) {
@@ -366,12 +367,19 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
         int score = -quiesceSearch(board, searchInfo, -beta, -alpha, height + 1);
 
         unmakeMove(board, *curMove, &undo);
-        if(score >= beta) {
-            return beta;
+
+        if(score > best) {
+            best = score;
         }
+
         if(score > alpha) {
            alpha = score;
         }
+
+        if(score >= beta) {
+            break;
+        }
+
         ++curMove;
     }
 
@@ -379,7 +387,7 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
         return 0;
     }
 
-    return alpha;
+    return best;
 }
 
 U64 perftTest(Board* board, int depth, int height) {
