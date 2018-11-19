@@ -15,13 +15,12 @@ Zevra 2 is free and open-source UCI chess engine.
 
 ### Zevra v2.1 r210
 
-Last version of Zevra v2.1 r210 about 50 Elo stronger than Zevra v2.0 r172
++ 2468 Elo in [SCET 60s+0.6s](https://sites.google.com/view/scet-testing/zevra)
 
 ### Zevra v2.0 r172
 
-[CCRL 40/4](http://www.computerchess.org.uk/ccrl/404/cgi/engine_details.cgi?print=Details&each_game=1&eng=Zevra%202.0%20r172%2064-bit#Zevra_2_0_r172_64-bit): 2408 elo points
-
-[SCET 60s+0.6s](https://sites.google.com/view/scet-testing/zevra)
++ [CCRL 40/4](http://www.computerchess.org.uk/ccrl/404/cgi/engine_details.cgi?print=Details&each_game=1&eng=Zevra%202.0%20r172%2064-bit#Zevra_2_0_r172_64-bit): 2408 elo points
++ 2429 Elo in [SCET 60s+0.6s](https://sites.google.com/view/scet-testing/zevra)
 
 
 ## Regression tests (dev-versions)
@@ -31,23 +30,13 @@ tc: 10s+0.1s
 Hash: 16mb
 ```
 
-#### 14.11.2018
+#### 19.11.2018
 ```
-Score of Zevra v2.1 r210 vs Zevra v2.0 r172: 749 - 466 - 785  [0.571] 2000
-Elo difference: 49.49 +/- 11.90
-```
-#### 12.11.2018
-```
-Score of Zevra v2.1 r193 dev vs Zevra v2.0 r172: 767 - 491 - 742  [0.569] 2000
-Elo difference: 48.25 +/- 12.11
-```
-#### 11.11.2018
-```
-Score of Zevra v2.1 r183 dev vs Zevra v2.0 r172: 355 - 254 - 391  [0.550] 1000
-Elo difference: 35.21 +/- 16.82
+Score of Zevra v2.2 r227 dev vs Zevra v2.1.1 r216: 1920 - 1399 - 1681  [0.552] 5000
+Elo difference: 36.33 +/- 7.86
 ```
 
-![Regression graph](https://s8.hostingkartinok.com/uploads/images/2018/11/709815ef6225479350f327ce75817c05.png)
+![Regression graph](https://s8.hostingkartinok.com/uploads/images/2018/11/dea76a4e813452134e406433bf0ceb60.png)
 
 ## Project inspired
 + Chess programming wiki: https://www.chessprogramming.org/Main_Page
