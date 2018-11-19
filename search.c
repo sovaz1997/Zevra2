@@ -184,8 +184,8 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     }
 
     //IID
-    if(IIDAllow && pvNode && !ttEntry->move && depth >= 3) {
-        search(board, searchInfo, alpha, beta, depth - 2, height);
+    if(IIDAllow && pvNode && !ttEntry->move && depth >= 7) {
+        search(board, searchInfo, alpha, beta, depth - 6, height);
     }
 
     movegen(board, moves[height]);
@@ -336,6 +336,9 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
     U16* curMove = moves[height];
     Undo undo;
     int pseudoMovesCount = 0;
+
+    int eval = fullEval(board);
+
     while(*curMove) {
         if(ABORT) {
             return 0;
@@ -346,6 +349,10 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
         }
 
         ++pseudoMovesCount;
+
+        if(eval + tacticalImprovment(board, *curMove, movePrice[height][pseudoMovesCount - 1]) + QuiesceFutilityMargin < alpha) {
+            continue;
+        }
 
         makeMove(board, *curMove, &undo);
     
@@ -580,4 +587,16 @@ int isKiller(SearchInfo* info, int side, U16 move, int depth) {
     }
 
     return 0;
+}
+
+int tacticalImprovment(Board* board, U8 move, int seeScore) {
+    int val = seeScore;
+
+    if(MoveType(move) == ENPASSANT_MOVE) {
+        val = (pVal[PAWN]);
+    } else if(MoveType(move) == PROMOTION_MOVE) {
+        val += (pVal[MovePromotionPiece(move)] - pVal[PAWN]);
+    }
+
+    return val;
 }

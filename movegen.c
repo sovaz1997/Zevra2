@@ -13,7 +13,6 @@ void movegen(Board* board, uint16_t* moveList) {
     U64 mask = board->pieces[ROOK] & our;
 
     while(mask) {
-
         int from = firstOne(mask);
         U64 possibleMoves = ~kingPos & rookPossibleMoves[from][getMagicIndex(occu & rookMagicMask[from] & unSquareBitboard[from], rookMagic[from], rookPossibleMovesSize[from])];
         moveList = genMovesFromBitboard(from, possibleMoves & ~our, moveList);
@@ -245,6 +244,36 @@ void attackgen(Board* board, uint16_t* moveList) {
             leftAttacks = (mask >> 7) & ~files[0] & squareBitboard[board->enpassantSquare];
             moveList = genPawnCaptures(leftAttacks, -7, moveList, ENPASSANT_MOVE);
         }
+    }
+
+    //Pawns (promotions)
+    mask = board->pieces[PAWN] & our;
+
+    while(mask) {
+        int from = firstOne(mask);
+
+        U64 possibleMoves = pawnMoves[color][from];
+
+        if(color == WHITE) {
+            possibleMoves &= ranks[7];
+        } else {
+            possibleMoves &= ranks[0];
+        }
+
+        if(color == WHITE) {
+            if(possibleMoves & occu) {
+                possibleMoves &= ~plus8[firstOne(possibleMoves & occu) - 8];
+            }
+        } else {
+            if(possibleMoves & occu) {
+                possibleMoves &= ~minus8[lastOne(possibleMoves & occu) + 8];
+            }
+        }
+
+        moveList = genMovesFromBitboard(from, possibleMoves & ~(ranks[0] | ranks[7]), moveList);
+        moveList = genPromoMovesFromBitboard(from, possibleMoves & (ranks[0] | ranks[7]), moveList);
+
+        clearBit(&mask, from);
     }
 
     *moveList = 0;
