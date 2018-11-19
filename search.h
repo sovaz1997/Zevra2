@@ -78,6 +78,6 @@ void setAbort(int val);
 void clearHistory();
 void compressHistory();
 int isKiller(SearchInfo* info, int side, U16 move, int depth);
-int tacticalImprovment(Board* board, U8 move, int seeScore);
+int tacticalImprovment(Board* board, U16 move);
 
 #endif

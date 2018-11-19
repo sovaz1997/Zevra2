@@ -357,7 +357,8 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
 
         ++pseudoMovesCount;
 
-        if(eval + tacticalImprovment(board, *curMove, movePrice[height][pseudoMovesCount - 1]) + QuiesceFutilityMargin < alpha) {
+        if(eval + tacticalImprovment(board, *curMove) + QuiesceFutilityMargin < alpha) {
+            ++curMove;
             continue;
         }
 
@@ -602,8 +603,8 @@ int isKiller(SearchInfo* info, int side, U16 move, int depth) {
     return 0;
 }
 
-int tacticalImprovment(Board* board, U8 move, int seeScore) {
-    int val = seeScore;
+int tacticalImprovment(Board* board, U16 move) {
+    int val = pVal[pieceType(board->squares[MoveTo(move)])];
 
     if(MoveType(move) == ENPASSANT_MOVE) {
         val = (pVal[PAWN]);
