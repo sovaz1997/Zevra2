@@ -247,6 +247,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         if(playedMovesCount == 1) {
             eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
         } else {
+            //LMR pruning
             if(LmrPruningAllow && movesCount >= 3 && quiteMove) {
                 eval = -search(board, searchInfo, -alpha - 1, -alpha, nextDepth + extensions - reductions, height + 1);
                 if(eval > alpha) {
@@ -261,6 +262,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
             }
         }
 
+        //History pruning
         if(HistoryPruningAllow && historyReduced && eval >= beta) {
             ++nextDepth;
             eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
@@ -278,6 +280,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         }
         if(alpha >= beta) {
             if(!undo.capturedPiece) {
+                //fill killers and history
                 if(searchInfo->killer[board->color][depth]) {
                     searchInfo->secondKiller[board->color][height] = searchInfo->killer[board->color][depth];
                 }
@@ -351,12 +354,14 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
             return 0;
         }
 
+        //prune nodes with SEE < 0
         if(movePrice[height][pseudoMovesCount] < 0) {
             break;
         }
 
         ++pseudoMovesCount;
 
+        //Futility pruning in quiescence search
         if(eval + tacticalImprovment(board, *curMove) + QuiesceFutilityMargin < alpha) {
             ++curMove;
             continue;
