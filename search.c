@@ -234,14 +234,6 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         ++playedMovesCount;
 
         int reductions = lmr[min(depth, MAX_PLY - 1)][min(63, playedMovesCount - 1)];
-        
-        int historyReduced = 0;
-
-        //History pruning
-        if(HistoryPruningAllow && !pvNode && !extensions && !goodMove && depth >= 7 && movePrice[height][pseudoMovesCount - 1] >= 0 && movePrice[height][pseudoMovesCount - 1] <= 20000) {
-            --nextDepth;
-            historyReduced = 1;
-        }
 
         int eval;
         if(playedMovesCount == 1) {
@@ -260,12 +252,6 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
                     eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
                 }
             }
-        }
-
-        //History pruning
-        if(HistoryPruningAllow && historyReduced && eval >= beta) {
-            ++nextDepth;
-            eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
         }
 
         unmakeMove(board, *curMove, &undo);
