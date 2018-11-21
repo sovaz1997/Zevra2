@@ -19,11 +19,11 @@ void initTT(int size) {
 void reallocTT(int size) {
     ttSize = sizeToTTCount(size);
     void* tmp = realloc(tt, sizeof(Transposition) * ttSize);
-    if(!tmp) {
+    if(tmp) {
         tt = tmp;
+        ttIndex = ttSize - 1;
+        clearTT();
     }
-    ttIndex = ttSize - 1;
-    clearTT();
 }
 
 void clearTT() {
