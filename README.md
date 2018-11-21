@@ -1,5 +1,7 @@
 # Zevra 2
 
+Warning! Last versions of Zevra dev (>v2.1.1) have some problems in LTC
+
 ![Logo](https://s8.hostingkartinok.com/uploads/images/2018/11/4294efcd52c48d08915a9a2fc643f978.png)
 
 Zevra 2 is free and open-source UCI chess engine.
