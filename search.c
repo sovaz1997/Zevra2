@@ -499,12 +499,10 @@ void moveOrdering(Board* board, U16* mvs, SearchInfo* searchInfo, int height, in
 }
 
 void sort(U16* mvs, int count, int height) {
-    int i, j, key;
-    U16 keyMove;
-    for (i = 1; i < count; i++)  { 
-        key = movePrice[height][i];
-        keyMove = mvs[i];
-        j = i - 1; 
+    for (int i = 1; i < count; i++)  { 
+        int key = movePrice[height][i];
+        U16 keyMove = mvs[i];
+        int j = i - 1;
     
         while (j >= 0 && movePrice[height][j] < key) { 
             movePrice[height][j + 1] = movePrice[height][j];
