@@ -155,6 +155,7 @@ int main() {
             pthread_t searchThread;
             SEARCH_COMPLETE = 0;
             pthread_create(&searchThread, NULL, &go, &args);
+            pthread_detach(searchThread);
         }
 
         fflush(stdout);
