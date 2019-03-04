@@ -43,7 +43,6 @@ enum {
 };
 
 static const int FutilityStep = 50;
-static const int QuiesceFutilityMargin = 100;
 static const int ReverseFutilityStep = 90;
 static const int RazorMargin = 300;
 
@@ -56,9 +55,10 @@ int lmr[MAX_PLY][64];
 static const int FutilityPruningAllow = 1;
 static const int NullMovePruningAllow = 1;
 static const int LmrPruningAllow = 1;
+static const int HistoryPruningAllow = 1;
 static const int ReverseFutilityPruningAllow = 1;
 static const int RazoringPruningAllow = 1;
-static const int IIDAllow = 1;
+static const int IIDAllow = 0;
 
 void* go(void* thread_data);
 void iterativeDeeping(Board* board, TimeManager tm);
@@ -77,6 +77,5 @@ void setAbort(int val);
 void clearHistory();
 void compressHistory();
 int isKiller(SearchInfo* info, int side, U16 move, int depth);
-int tacticalImprovment(Board* board, U16 move);
 
 #endif

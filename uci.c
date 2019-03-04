@@ -155,7 +155,6 @@ int main() {
             pthread_t searchThread;
             SEARCH_COMPLETE = 0;
             pthread_create(&searchThread, NULL, &go, &args);
-            pthread_detach(searchThread);
         }
 
         fflush(stdout);
@@ -167,7 +166,7 @@ int main() {
 }
 
 void printEngineInfo() {
-    printf("id name Zevra v2.2 r240 dev\nid author Oleg Smirnov\n");
+    printf("id name Zevra v2.1.1 r216\nid author Oleg Smirnov\n");
 }
 
 void readyok() {

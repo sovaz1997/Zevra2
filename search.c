@@ -147,12 +147,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     }
 
     //calculate static eval
-    int staticEval;
-    if(ttEntry->key == keyPosition && ttEntry->evalType) {
-        staticEval = ttEntry->eval;
-    } else {
-        staticEval = fullEval(board);
-    }
+    int staticEval = fullEval(board);
 
     //Null Move pruning
     
@@ -184,8 +179,8 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     }
 
     //IID
-    if(IIDAllow && pvNode && !ttEntry->move && depth >= 7) {
-        search(board, searchInfo, alpha, beta, depth - 6, height);
+    if(IIDAllow && pvNode && !ttEntry->move && depth >= 3) {
+        search(board, searchInfo, alpha, beta, depth - 2, height);
     }
 
     movegen(board, moves[height]);
@@ -233,14 +228,21 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
         ++playedMovesCount;
 
-        int reductions = lmr[min(depth, MAX_PLY - 1)][min(63, playedMovesCount - 1)];
+        int reductions = lmr[min(depth, MAX_PLY - 1)][min(63, playedMovesCount)];
+        
+        int historyReduced = 0;
+
+        //History pruning
+        if(HistoryPruningAllow && !pvNode && !extensions && !goodMove && depth >= 7 && movePrice[height][pseudoMovesCount - 1] >= 0 && movePrice[height][pseudoMovesCount - 1] <= 20000) {
+            --nextDepth;
+            historyReduced = 1;
+        }
 
         int eval;
-        if(playedMovesCount == 1) {
+        if(movesCount == 1) {
             eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
         } else {
-            //LMR pruning
-            if(LmrPruningAllow && movesCount > 1 && quiteMove && depth > 2) {
+            if(LmrPruningAllow && movesCount >= 3 && quiteMove) {
                 eval = -search(board, searchInfo, -alpha - 1, -alpha, nextDepth + extensions - reductions, height + 1);
                 if(eval > alpha) {
                     eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
@@ -252,6 +254,11 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
                     eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
                 }
             }
+        }
+
+        if(HistoryPruningAllow && historyReduced && eval >= beta) {
+            ++nextDepth;
+            eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
         }
 
         unmakeMove(board, *curMove, &undo);
@@ -266,7 +273,6 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         }
         if(alpha >= beta) {
             if(!undo.capturedPiece) {
-                //fill killers and history
                 if(searchInfo->killer[board->color][depth]) {
                     searchInfo->secondKiller[board->color][height] = searchInfo->killer[board->color][depth];
                 }
@@ -302,13 +308,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 }
 
 int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int height) {
-    ++searchInfo->nodesCount;
     searchInfo->selDepth = max(searchInfo->selDepth, height);
-    
-    if(isDraw(board)) {
-        return 0;
-    }
-    
     if(height >= MAX_PLY - 1) {
         return fullEval(board);
     }
@@ -322,6 +322,15 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
         return beta;
     }
 
+    int delta = QUEEN_EV;
+    if(havePromotionPawn(board)) {
+        delta += (QUEEN_EV - 200);
+    }
+
+    if(val < alpha - delta) {
+        return val;
+    }
+
     if(alpha < val) {
         alpha = val;
     }
@@ -331,27 +340,16 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
     U16* curMove = moves[height];
     Undo undo;
     int pseudoMovesCount = 0;
-
-    int eval = fullEval(board);
-    int best = eval;
-
     while(*curMove) {
         if(ABORT) {
             return 0;
         }
 
-        //prune nodes with SEE < 0
         if(movePrice[height][pseudoMovesCount] < 0) {
             break;
         }
 
         ++pseudoMovesCount;
-
-        //Futility pruning in quiescence search
-        if(eval + tacticalImprovment(board, *curMove) + QuiesceFutilityMargin < alpha) {
-            ++curMove;
-            continue;
-        }
 
         makeMove(board, *curMove, &undo);
     
@@ -361,22 +359,16 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
             continue;
         }
 
+        ++searchInfo->nodesCount;
         int score = -quiesceSearch(board, searchInfo, -beta, -alpha, height + 1);
 
         unmakeMove(board, *curMove, &undo);
-
-        if(score > best) {
-            best = score;
+        if(score >= beta) {
+            return beta;
         }
-
         if(score > alpha) {
            alpha = score;
         }
-
-        if(score >= beta) {
-            break;
-        }
-
         ++curMove;
     }
 
@@ -384,7 +376,7 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
         return 0;
     }
 
-    return best;
+    return alpha;
 }
 
 U64 perftTest(Board* board, int depth, int height) {
@@ -499,10 +491,12 @@ void moveOrdering(Board* board, U16* mvs, SearchInfo* searchInfo, int height, in
 }
 
 void sort(U16* mvs, int count, int height) {
-    for (int i = 1; i < count; i++)  { 
-        int key = movePrice[height][i];
-        U16 keyMove = mvs[i];
-        int j = i - 1;
+    int i, j, key;
+    U16 keyMove;
+    for (i = 1; i < count; i++)  { 
+        key = movePrice[height][i];
+        keyMove = mvs[i];
+        j = i - 1; 
     
         while (j >= 0 && movePrice[height][j] < key) { 
             movePrice[height][j + 1] = movePrice[height][j];
@@ -590,16 +584,4 @@ int isKiller(SearchInfo* info, int side, U16 move, int depth) {
     }
 
     return 0;
-}
-
-int tacticalImprovment(Board* board, U16 move) {
-    int val = pVal[pieceType(board->squares[MoveTo(move)])];
-
-    if(MoveType(move) == ENPASSANT_MOVE) {
-        val = (pVal[PAWN]);
-    } else if(MoveType(move) == PROMOTION_MOVE) {
-        val += (pVal[MovePromotionPiece(move)] - pVal[PAWN]);
-    }
-
-    return val;
 }

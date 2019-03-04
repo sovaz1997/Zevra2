@@ -268,12 +268,8 @@ int rooksEval(Board* board, int color) {
 }
 
 U8 horizontalScan(U64 bitboard) {
-    return (!!(bitboard & files[0]))
-    | (!!(bitboard & files[1]) << 1)
-    | (!!(bitboard & files[2]) << 2)
-    | (!!(bitboard & files[3]) << 3)
-    | (!!(bitboard & files[4]) << 4)
-    | (!!(bitboard & files[5]) << 5)
-    | (!!(bitboard & files[6]) << 6)
-    | (!!(bitboard & files[7]) << 7);
+    return (!!(bitboard & files[0])) | (!!(bitboard & files[1]) << 1)
+        | (!!(bitboard & files[2])) << 2 | (!!(bitboard & files[3]) << 3)
+        | (!!(bitboard & files[4])) << 4 | (!!(bitboard & files[5]) << 5)
+        | (!!(bitboard & files[6])) << 6 | (!!(bitboard & files[7]) << 7);
 }

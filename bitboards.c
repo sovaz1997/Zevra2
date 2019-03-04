@@ -161,19 +161,11 @@ void attacksGen() {
     //Pawn attacks gen
 
     for(int sq = 0; sq < 64; ++sq) {
-        if(sq + 9 < 64) {
-            pawnAttacks[WHITE][sq] |= ((1ull << (sq + 9)) & ~files[0]);
-        }
-        if(sq + 7 < 64) {
-            pawnAttacks[WHITE][sq] |= ((1ull << (sq + 7)) & ~files[7]);
-        }
+        pawnAttacks[WHITE][sq] |= ((1ull << (sq + 9)) & ~files[0]);
+        pawnAttacks[WHITE][sq] |= ((1ull << (sq + 7)) & ~files[7]);
 
-        if(sq - 9 >= 0) {
-            pawnAttacks[BLACK][sq] |= ((1ull << (sq - 9)) & ~files[7]);
-        }
-        if(sq - 7 >= 0) {
-            pawnAttacks[BLACK][sq] |= ((1ull << (sq - 7)) & ~files[0]);
-        }
+        pawnAttacks[BLACK][sq] |= ((1ull << (sq - 9)) & ~files[7]);
+        pawnAttacks[BLACK][sq] |= ((1ull << (sq - 7)) & ~files[0]);
     }
 }
 
