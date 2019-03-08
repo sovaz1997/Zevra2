@@ -245,7 +245,7 @@ int search(Board* board, Undo* prevUndo, SearchInfo* searchInfo, int alpha, int 
         if(movesCount == 1) {
             eval = -search(board, &undo, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
         } else {
-            if(LmrPruningAllow && movesCount >= 3 && quiteMove) {
+            if(LmrPruningAllow && playedMovesCount >= 3 && quiteMove) {
                 eval = -search(board, &undo, searchInfo, -alpha - 1, -alpha, nextDepth + extensions - reductions, height + 1);
                 if(eval > alpha) {
                     eval = -search(board, &undo, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
