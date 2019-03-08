@@ -1,9 +1,117 @@
-Regression test
+Heuristics test (tc=3+0.02, Hash=16)
 
------------------------------------------------------------------------------------
-tc=10s+0.1s
-Hash=16mb
+# PLAYER                                           :  RATING  ERROR  POINTS  PLAYED   (%)  CFS(%)    W    D    L  D(%)  OppAvg
+1 Zevra v2.1.1 r216                                :   306.3   26.4  1085.0    1333    81     100  969  232  132    17    41.8
+2 Zevra v2.1.1 r216 FutilityPruning                :   152.1   23.5   826.5    1333    62     100  702  249  382    19    63.7
+3 Zevra v2.1.1 r216 ReverseFutilityPruning         :    58.6   22.9   640.5    1333    48      95  516  249  568    19    77.3
+4 Zevra v2.1.1 r216 RazoringPruning                :    39.7   23.3   602.5    1333    45      69  474  257  602    19    79.9
+5 Zevra v2.1.1 r216 LmrPruning                     :    33.9   23.2   591.0    1333    44      89  453  276  604    21    80.6
+6 Zevra v2.1.1 r216 NullMovePruning                :    19.5   23.0   562.0    1333    42      95  434  256  643    19    82.7
+7 Zevra v2.1.1 r216 no heuristics                  :     0.0   ----   523.5    1333    39      83  404  239  690    18    85.5
+8 Zevra v2.1.1 r216 HistoryPruning                 :   -11.2   23.4   501.0    1333    38     ---  375  252  706    19    87.3
 
-Score of Zevra v2.2 r240 dev vs Zevra v2.1.1 r216: 2079 - 1268 - 1653  [0.581] 5000
-Elo difference: 56.86 +/- 7.92
------------------------------------------------------------------------------------
+White advantage = 28.80 +/- 4.55
+Draw rate (equal opponents) = 20.87 % +/- 0.59
+
+
+Head to head statistics:
+
+1) Zevra v2.1.1 r216                             306.3 :   1333 (+969,=232,-132),  81.4 %
+
+   vs.                                                  :  games (   +,   =,   -),   (%) :    Diff,    SD, CFS (%)
+   Zevra v2.1.1 r216 FutilityPruning                    :    190 ( 112,  44,  34),  70.5 :  +154.2,  13.1,  100.0
+   Zevra v2.1.1 r216 ReverseFutilityPruning             :    191 ( 136,  37,  18),  80.9 :  +247.7,  13.2,  100.0
+   Zevra v2.1.1 r216 RazoringPruning                    :    191 ( 144,  27,  20),  82.5 :  +266.6,  13.3,  100.0
+   Zevra v2.1.1 r216 LmrPruning                         :    190 ( 140,  40,  10),  84.2 :  +272.4,  13.3,  100.0
+   Zevra v2.1.1 r216 NullMovePruning                    :    190 ( 147,  27,  16),  84.5 :  +286.8,  13.3,  100.0
+   Zevra v2.1.1 r216 no heuristics                      :    190 ( 152,  25,  13),  86.6 :  +306.3,  13.5,  100.0
+   Zevra v2.1.1 r216 HistoryPruning                     :    191 ( 138,  32,  21),  80.6 :  +317.5,  13.4,  100.0
+
+2) Zevra v2.1.1 r216 FutilityPruning             152.1 :   1333 (+702,=249,-382),  62.0 %
+
+   vs.                                                  :  games (   +,   =,   -),   (%) :    Diff,    SD, CFS (%)
+   Zevra v2.1.1 r216                                    :    190 (  34,  44, 112),  29.5 :  -154.2,  13.1,    0.0
+   Zevra v2.1.1 r216 ReverseFutilityPruning             :    190 ( 110,  32,  48),  66.3 :   +93.5,  11.7,  100.0
+   Zevra v2.1.1 r216 RazoringPruning                    :    190 ( 100,  37,  53),  62.4 :  +112.4,  12.0,  100.0
+   Zevra v2.1.1 r216 LmrPruning                         :    190 ( 109,  31,  50),  65.5 :  +118.2,  12.0,  100.0
+   Zevra v2.1.1 r216 NullMovePruning                    :    191 ( 113,  37,  41),  68.8 :  +132.6,  11.8,  100.0
+   Zevra v2.1.1 r216 no heuristics                      :    191 ( 114,  35,  42),  68.8 :  +152.1,  12.0,  100.0
+   Zevra v2.1.1 r216 HistoryPruning                     :    191 ( 122,  33,  36),  72.5 :  +163.4,  12.1,  100.0
+
+3) Zevra v2.1.1 r216 ReverseFutilityPruning  58.6      :   1333 (+516,=249,-568),  48.0 %
+
+   vs.                                                  :  games (   +,   =,   -),   (%) :    Diff,    SD, CFS (%)
+   Zevra v2.1.1 r216                                    :    191 (  18,  37, 136),  19.1 :  -247.7,  13.2,    0.0
+   Zevra v2.1.1 r216 FutilityPruning                    :    190 (  48,  32, 110),  33.7 :   -93.5,  11.7,    0.0
+   Zevra v2.1.1 r216 RazoringPruning                    :    190 (  83,  41,  66),  54.5 :   +18.9,  11.7,   94.7
+   Zevra v2.1.1 r216 LmrPruning                         :    191 (  90,  36,  65),  56.5 :   +24.7,  11.6,   98.3
+   Zevra v2.1.1 r216 NullMovePruning                    :    190 (  91,  32,  67),  56.3 :   +39.1,  11.7,  100.0
+   Zevra v2.1.1 r216 no heuristics                      :    191 (  93,  38,  60),  58.6 :   +58.6,  11.7,  100.0
+   Zevra v2.1.1 r216 HistoryPruning                     :    190 (  93,  33,  64),  57.6 :   +69.8,  11.7,  100.0
+
+4) Zevra v2.1.1 r216 RazoringPruning              39.7 :   1333 (+474,=257,-602),  45.2 %
+
+   vs.                                                  :  games (   +,   =,   -),   (%) :    Diff,    SD, CFS (%)
+   Zevra v2.1.1 r216                                    :    191 (  20,  27, 144),  17.5 :  -266.6,  13.3,    0.0
+   Zevra v2.1.1 r216 FutilityPruning                    :    190 (  53,  37, 100),  37.6 :  -112.4,  12.0,    0.0
+   Zevra v2.1.1 r216 ReverseFutilityPruning             :    190 (  66,  41,  83),  45.5 :   -18.9,  11.7,    5.3
+   Zevra v2.1.1 r216 LmrPruning                         :    190 (  79,  39,  72),  51.8 :    +5.8,  11.7,   68.9
+   Zevra v2.1.1 r216 NullMovePruning                    :    191 (  79,  35,  77),  50.5 :   +20.2,  11.7,   95.8
+   Zevra v2.1.1 r216 no heuristics                      :    190 (  87,  35,  68),  55.0 :   +39.7,  11.9,  100.0
+   Zevra v2.1.1 r216 HistoryPruning                     :    191 (  90,  43,  58),  58.4 :   +50.9,  11.8,  100.0
+
+5) Zevra v2.1.1 r216 LmrPruning                   33.9 :   1333 (+453,=276,-604),  44.3 %
+
+   vs.                                                  :  games (   +,   =,   -),   (%) :    Diff,    SD, CFS (%)
+   Zevra v2.1.1 r216                                    :    190 (  10,  40, 140),  15.8 :  -272.4,  13.3,    0.0
+   Zevra v2.1.1 r216 FutilityPruning                    :    190 (  50,  31, 109),  34.5 :  -118.2,  12.0,    0.0
+   Zevra v2.1.1 r216 ReverseFutilityPruning             :    191 (  65,  36,  90),  43.5 :   -24.7,  11.6,    1.7
+   Zevra v2.1.1 r216 RazoringPruning                    :    190 (  72,  39,  79),  48.2 :    -5.8,  11.7,   31.1
+   Zevra v2.1.1 r216 NullMovePruning                    :    191 (  76,  47,  68),  52.1 :   +14.4,  11.6,   89.3
+   Zevra v2.1.1 r216 no heuristics                      :    191 (  89,  37,  65),  56.3 :   +33.9,  11.8,   99.8
+   Zevra v2.1.1 r216 HistoryPruning                     :    190 (  91,  46,  53),  60.0 :   +45.2,  11.9,  100.0
+
+6) Zevra v2.1.1 r216 NullMovePruning              19.5 :   1333 (+434,=256,-643),  42.2 %
+
+   vs.                                                  :  games (   +,   =,   -),   (%) :    Diff,    SD, CFS (%)
+   Zevra v2.1.1 r216                                    :    190 (  16,  27, 147),  15.5 :  -286.8,  13.3,    0.0
+   Zevra v2.1.1 r216 FutilityPruning                    :    191 (  41,  37, 113),  31.2 :  -132.6,  11.8,    0.0
+   Zevra v2.1.1 r216 ReverseFutilityPruning             :    190 (  67,  32,  91),  43.7 :   -39.1,  11.7,    0.0
+   Zevra v2.1.1 r216 RazoringPruning                    :    191 (  77,  35,  79),  49.5 :   -20.2,  11.7,    4.2
+   Zevra v2.1.1 r216 LmrPruning                         :    191 (  68,  47,  76),  47.9 :   -14.4,  11.6,   10.7
+   Zevra v2.1.1 r216 no heuristics                      :    190 (  86,  41,  63),  56.1 :   +19.5,  11.8,   95.1
+   Zevra v2.1.1 r216 HistoryPruning                     :    190 (  79,  37,  74),  51.3 :   +30.7,  11.7,   99.6
+
+7) Zevra v2.1.1 r216 no heuristics                 0.0 :   1333 (+404,=239,-690),  39.3 %
+
+   vs.                                                  :  games (   +,   =,   -),   (%) :    Diff,    SD, CFS (%)
+   Zevra v2.1.1 r216                                    :    190 (  13,  25, 152),  13.4 :  -306.3,  13.5,    0.0
+   Zevra v2.1.1 r216 FutilityPruning                    :    191 (  42,  35, 114),  31.2 :  -152.1,  12.0,    0.0
+   Zevra v2.1.1 r216 ReverseFutilityPruning             :    191 (  60,  38,  93),  41.4 :   -58.6,  11.7,    0.0
+   Zevra v2.1.1 r216 RazoringPruning                    :    190 (  68,  35,  87),  45.0 :   -39.7,  11.9,    0.0
+   Zevra v2.1.1 r216 LmrPruning                         :    191 (  65,  37,  89),  43.7 :   -33.9,  11.8,    0.2
+   Zevra v2.1.1 r216 NullMovePruning                    :    190 (  63,  41,  86),  43.9 :   -19.5,  11.8,    4.9
+   Zevra v2.1.1 r216 HistoryPruning                     :    190 (  93,  28,  69),  56.3 :   +11.2,  12.0,   82.7
+
+8) Zevra v2.1.1 r216 HistoryPruning              -11.2 :   1333 (+375,=252,-706),  37.6 %
+
+   vs.                                                  :  games (   +,   =,   -),   (%) :    Diff,    SD, CFS (%)
+   Zevra v2.1.1 r216                                    :    191 (  21,  32, 138),  19.4 :  -317.5,  13.4,    0.0
+   Zevra v2.1.1 r216 FutilityPruning                    :    191 (  36,  33, 122),  27.5 :  -163.4,  12.1,    0.0
+   Zevra v2.1.1 r216 ReverseFutilityPruning             :    190 (  64,  33,  93),  42.4 :   -69.8,  11.7,    0.0
+   Zevra v2.1.1 r216 RazoringPruning                    :    191 (  58,  43,  90),  41.6 :   -50.9,  11.8,    0.0
+   Zevra v2.1.1 r216 LmrPruning                         :    190 (  53,  46,  91),  40.0 :   -45.2,  11.9,    0.0
+   Zevra v2.1.1 r216 NullMovePruning                    :    190 (  74,  37,  79),  48.7 :   -30.7,  11.7,    0.4
+   Zevra v2.1.1 r216 no heuristics                      :    190 (  69,  28,  93),  43.7 :   -11.2,  12.0,   17.3
+
+LOS-matrix:
+
+"N","NAME",0,1,2,3,4,5,6,7
+0,"    Zevra v2.1.1 r216",,100.0,100.0,100.0,100.0,100.0,100.0,100.0
+1,"Zevra v2.1.1 r216 FutilityPruning",0.0,,100.0,100.0,100.0,100.0,100.0,100.0
+2,"Zevra v2.1.1 r216 ReverseFutilityPruning",0.0,0.0,,94.7,98.3,100.0,100.0,100.0
+3,"Zevra v2.1.1 r216 RazoringPruning",0.0,0.0,5.3,,68.9,95.8,100.0,100.0
+4,"Zevra v2.1.1 r216 LmrPruning",0.0,0.0,1.7,31.1,,89.3,99.8,100.0
+5,"Zevra v2.1.1 r216 NullMovePruning",0.0,0.0,0.0,4.2,10.7,,95.1,99.6
+6,"Zevra v2.1.1 r216 no heuristics",0.0,0.0,0.0,0.0,0.2,4.9,,82.7
+7,"Zevra v2.1.1 r216 HistoryPruning",0.0,0.0,0.0,0.0,0.0,0.4,17.3,
