@@ -35,6 +35,7 @@ struct Undo {
     int enpassantSquare;
     U64 castling;
     U8 capturedPiece;
+    int capturedPosition;
 };
 
 void setFen(Board* board, char* fen);
@@ -51,7 +52,7 @@ U8 makePiece(int piece_type, int color);
 void printPiece(U8 piece);
 void makeMove(Board* board, U16 move, Undo* undo);
 void unmakeMove(Board* board, U16 move, Undo* undo);
-void setUndo(Board* board, Undo* undo, U8 capturedPiece);
+void setUndo(Board* board, Undo* undo, U8 capturedPiece, int capturedPosition);
 void getUndo(Board* board, Undo* undo);
 int attackedSquare(Board* board, int sq, int color);
 U64 attacksTo(Board* board, int sq);

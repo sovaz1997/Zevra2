@@ -160,7 +160,7 @@ void printPiece(U8 piece) {
 }
 
 void makeMove(Board* board, U16 move, Undo* undo) {
-    setUndo(board, undo, board->squares[MoveTo(move)]);
+    setUndo(board, undo, board->squares[MoveTo(move)], MoveTo(move));
 
     if(MoveType(move) == NORMAL_MOVE && !board->squares[MoveTo(move)] && pieceType(board->squares[MoveFrom(move)]) != PAWN) {
         ++board->ruleNumber;
@@ -266,8 +266,9 @@ void unmakeNullMove(Board* board) {
     board->key ^= nullMoveKey;
 }
 
-void setUndo(Board* board, Undo* undo, U8 capturedPiece) {
+void setUndo(Board* board, Undo* undo, U8 capturedPiece, int capturedPosition) {
     undo->capturedPiece = capturedPiece;
+    undo->capturedPosition = 
     undo->castling = board->castling;
     undo->enpassantSquare = board->enpassantSquare;
     undo->ruleNumber = board->ruleNumber;

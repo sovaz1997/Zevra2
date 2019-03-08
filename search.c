@@ -35,14 +35,14 @@ int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score)
     int beta = min(MATE_SCORE, score + delta);
 
     if(depth <= 5) {
-        return search(board, searchInfo, -MATE_SCORE, MATE_SCORE, depth, 0);
+        return search(board, NULL, searchInfo, -MATE_SCORE, MATE_SCORE, depth, 0);
     }
 
     char bestMove[6];
 
     int f = score;
     while(abs(f) < MATE_SCORE - 1) {
-        f = search(board, searchInfo, alpha, beta, depth, 0);
+        f = search(board, NULL, searchInfo, alpha, beta, depth, 0);
         moveToString(searchInfo->bestMove, bestMove);
 
         if(ABORT) {
@@ -78,7 +78,7 @@ int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score)
     return f;
 }
 
-int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth, int height) {
+int search(Board* board, Undo* prevUndo, SearchInfo* searchInfo, int alpha, int beta, int depth, int height) {
     searchInfo->selDepth = max(searchInfo->selDepth, height);
     ++searchInfo->nodesCount;
     if(ABORT) {
@@ -143,7 +143,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
     //go to quiescence search in leaf nodes
     if((depth <= 0 && !weInCheck) || height >= MAX_PLY - 1) {
-        return quiesceSearch(board, searchInfo, alpha, beta, height);
+        return quiesceSearch(board, prevUndo, searchInfo, alpha, beta, height);
     }
 
     //calculate static eval
@@ -158,7 +158,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         makeNullMove(board);
         searchInfo->nullMoveSearch = 1;
 
-        int eval = -search(board, searchInfo, -beta, -beta + 1, depth - 1 - R, height + 1);
+        int eval = -search(board, NULL, searchInfo, -beta, -beta + 1, depth - 1 - R, height + 1);
 
         searchInfo->nullMoveSearch = 0;
         unmakeNullMove(board);
@@ -176,16 +176,16 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
     //Razoring
     if(!pvNode && !havePromotionPawn(board) && !weInCheck && depth <= 4 && staticEval + RazorMargin * depth < alpha && RazoringPruningAllow) {
-        return quiesceSearch(board, searchInfo, alpha, beta, height);
+        return quiesceSearch(board, prevUndo, searchInfo, alpha, beta, height);
     }
 
     //IID
     if(IIDAllow && pvNode && !ttEntry->move && depth >= 3) {
-        search(board, searchInfo, alpha, beta, depth - 2, height);
+        search(board, prevUndo, searchInfo, alpha, beta, depth - 2, height);
     }
 
     movegen(board, moves[height]);
-    moveOrdering(board, moves[height], searchInfo, height, depth);
+    moveOrdering(board, prevUndo, moves[height], searchInfo, height, depth);
 
     U16* curMove = moves[height];
     int movesCount = 0, pseudoMovesCount = 0, playedMovesCount = 0;
@@ -208,6 +208,8 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         ++movesCount;
 
         int extensions = inCheck(board, board->color) || MovePromotionPiece(*curMove) == QUEEN;
+
+
         int goodMove = isKiller(searchInfo, board->color, *curMove, depth);
         int quiteMove = (!goodMove && !undo.capturedPiece && MoveType(*curMove) != ENPASSANT_MOVE) && MoveType(*curMove) != PROMOTION_MOVE;
 
@@ -241,25 +243,25 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
         int eval;
         if(movesCount == 1) {
-            eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
+            eval = -search(board, &undo, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
         } else {
             if(LmrPruningAllow && movesCount >= 3 && quiteMove) {
-                eval = -search(board, searchInfo, -alpha - 1, -alpha, nextDepth + extensions - reductions, height + 1);
+                eval = -search(board, &undo, searchInfo, -alpha - 1, -alpha, nextDepth + extensions - reductions, height + 1);
                 if(eval > alpha) {
-                    eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
+                    eval = -search(board, &undo, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
                 }
             } else {
-                eval = -search(board, searchInfo, -alpha - 1, -alpha, nextDepth + extensions, height + 1);
+                eval = -search(board, &undo, searchInfo, -alpha - 1, -alpha, nextDepth + extensions, height + 1);
     
                 if(eval > alpha && eval < beta) {
-                    eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
+                    eval = -search(board, &undo, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
                 }
             }
         }
 
         if(HistoryPruningAllow && historyReduced && eval >= beta) {
             ++nextDepth;
-            eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
+            eval = -search(board, &undo, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
         }
 
         unmakeMove(board, *curMove, &undo);
@@ -308,7 +310,21 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     return alpha;
 }
 
-int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int height) {
+int isRecapture(Board* board, Undo* undo, U16* move) {
+    int capturedPiecePosition = -1;
+    
+    if(undo) {
+        capturedPiecePosition = undo->capturedPosition;
+    }
+
+    if(capturedPiecePosition == MoveTo(*move)) {
+        return 1;
+    }
+
+    return 0;
+}
+
+int quiesceSearch(Board* board, Undo* prevUndo, SearchInfo* searchInfo, int alpha, int beta, int height) {
     searchInfo->selDepth = max(searchInfo->selDepth, height);
     if(height >= MAX_PLY - 1) {
         return fullEval(board);
@@ -337,7 +353,7 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
     }
 
     attackgen(board, moves[height]);
-    moveOrdering(board, moves[height], searchInfo, height, 0);
+    moveOrdering(board, prevUndo, moves[height], searchInfo, height, 0);
     U16* curMove = moves[height];
     Undo undo;
     int pseudoMovesCount = 0;
@@ -361,7 +377,7 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
         }
 
         ++searchInfo->nodesCount;
-        int score = -quiesceSearch(board, searchInfo, -beta, -alpha, height + 1);
+        int score = -quiesceSearch(board, &undo, searchInfo, -beta, -alpha, height + 1);
 
         unmakeMove(board, *curMove, &undo);
         if(score >= beta) {
@@ -431,7 +447,7 @@ void perft(Board* board, int depth) {
     }
 }
 
-void moveOrdering(Board* board, U16* mvs, SearchInfo* searchInfo, int height, int depth) {
+void moveOrdering(Board* board, Undo* undo, U16* mvs, SearchInfo* searchInfo, int height, int depth) {
     if(depth > MAX_PLY - 1) {
         depth = MAX_PLY - 1;
     }
@@ -446,8 +462,17 @@ void moveOrdering(Board* board, U16* mvs, SearchInfo* searchInfo, int height, in
         if(hashMove == *ptr) {
             movePrice[height][i] = 1000000000;
         } else if(toPiece) {
+            int capturedPiecePosition = -1;
+            
+            if(undo) {
+                capturedPiecePosition = undo->capturedPosition;
+            }
             U16 fromPiece = pieceType(board->squares[MoveFrom(*ptr)]);
             movePrice[height][i] = mvvLvaScores[fromPiece][toPiece] * 1000000;
+
+            if(isRecapture(board, undo, ptr)) {
+                movePrice[height][i] = 999999999;
+            }
         } else if(depth < MAX_PLY && searchInfo->killer[board->color][depth] == *ptr) {
             movePrice[height][i] = 100000;
         } else if(depth >= 2 && depth < MAX_PLY && searchInfo->killer[board->color][depth-2] == *ptr) {
