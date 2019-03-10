@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -DNDEBUG -std=gnu11 -m64
+CFLAGS = -std=gnu11 -m64
 SRC = *.c
 OPTIMIZATIONS = -O3 -flto
 NATIVE = -march=native
@@ -12,11 +12,11 @@ OUTPUT_POPCNT = zevra_popcnt
 OUTPUT_NONPOPCNT = zevra_nonpopcnt
 
 all:
-	$(CC) $(CFLAGS) $(OPTIMIZATIONS) $(NATIVE) $(SRC) -o $(OUTPUT) $(LIBS)
+	$(CC) $(CFLAGS) -DNDEBUG $(OPTIMIZATIONS) $(NATIVE) $(SRC) -o $(OUTPUT) $(LIBS)
 popcnt:
-	$(CC) $(CFLAGS) $(OPTIMIZATIONS) -static $(POPCNT) $(SRC) -o $(OUTPUT_POPCNT) $(LIBS)
+	$(CC) $(CFLAGS) -DNDEBUG $(OPTIMIZATIONS) -static $(POPCNT) $(SRC) -o $(OUTPUT_POPCNT) $(LIBS)
 nonpopcnt:
-	$(CC) $(CFLAGS) $(OPTIMIZATIONS) -static $(SRC) -o $(OUTPUT_NONPOPCNT) $(LIBS)
+	$(CC) $(CFLAGS) -DNDEBUG $(OPTIMIZATIONS) -static $(SRC) -o $(OUTPUT_NONPOPCNT) $(LIBS)
 debug:
 	$(CC) $(CFLAGS) $(DEBUG) $(WARNINGS) $(SRC) -o $(OUTPUT) $(LIBS)
 release:

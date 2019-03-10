@@ -1,6 +1,7 @@
 #ifndef TRANSPOSITION_H
 #define TRANSPOSITION_H
 
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>

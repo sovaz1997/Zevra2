@@ -2,6 +2,7 @@
 
 void setTransposition(Transposition* entry, U64 key, int eval, int evalType, int depth, U16 move, int age) {
     entry->key = key;
+    assert(abs(eval) <= 65535);
     entry->eval = eval;
     entry->evalType = evalType;
     entry->move = move;
