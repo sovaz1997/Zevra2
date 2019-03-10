@@ -66,11 +66,13 @@ void setFen(Board* board, char* fen) {
 }
 
 void setMovesRange(Board* board, char* moves) {
-    char* move = strtok(moves, " ");
-    Undo undo;
-    while(move) {
-        makeMove(board, stringToMove(board, move), &undo);
-        move = strtok(NULL, " ");
+    if(moves) {
+        char* move = strtok(moves, " ");
+        Undo undo;
+        while(move) {
+            makeMove(board, stringToMove(board, move), &undo);
+            move = strtok(NULL, " ");
+        }
     }
 }
 
