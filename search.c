@@ -23,7 +23,6 @@ void iterativeDeeping(Board* board, TimeManager tm) {
         }
     }
 
-
     printf("info nodes %lu time %lu\n", searchInfo.nodesCount, getTime(&searchInfo.timer));
     printf("bestmove %s\n", bestMove);
     fflush(stdout);
@@ -106,9 +105,6 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         }
     }
 
-    U64 keyPosition = board->key;
-    Transposition* ttEntry = &tt[keyPosition & ttIndex];
-
     int root = (height ? 0 : 1);
     int pvNode = (beta - alpha > 1);
 
@@ -122,6 +118,10 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         setAbort(1);
         return 0;
     }
+
+    U64 keyPosition = board->key;
+    Transposition* ttEntry = &tt[keyPosition & ttIndex];
+    assert((keyPosition & ttIndex) < ttSize);
 
     //TT analysis
     if(ttEntry->evalType && ttEntry->depth >= depth && !root && ttEntry->key == keyPosition) {
