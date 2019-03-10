@@ -77,6 +77,5 @@ void setAbort(int val);
 void clearHistory();
 void compressHistory();
 int isKiller(SearchInfo* info, int side, U16 move, int depth);
-int isRecapture(Board* board, Undo* undo, U16* move);
 
 #endif

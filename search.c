@@ -310,20 +310,6 @@ int search(Board* board, Undo* prevUndo, SearchInfo* searchInfo, int alpha, int 
     return alpha;
 }
 
-int isRecapture(Board* board, Undo* undo, U16* move) {
-    int capturedPiecePosition = -1;
-    
-    if(undo) {
-        capturedPiecePosition = undo->capturedPosition;
-    }
-
-    if(capturedPiecePosition == MoveTo(*move)) {
-        return 1;
-    }
-
-    return 0;
-}
-
 int quiesceSearch(Board* board, Undo* prevUndo, SearchInfo* searchInfo, int alpha, int beta, int height) {
     searchInfo->selDepth = max(searchInfo->selDepth, height);
     if(height >= MAX_PLY - 1) {
@@ -462,17 +448,8 @@ void moveOrdering(Board* board, Undo* undo, U16* mvs, SearchInfo* searchInfo, in
         if(hashMove == *ptr) {
             movePrice[height][i] = 1000000000;
         } else if(toPiece) {
-            int capturedPiecePosition = -1;
-            
-            if(undo) {
-                capturedPiecePosition = undo->capturedPosition;
-            }
             U16 fromPiece = pieceType(board->squares[MoveFrom(*ptr)]);
             movePrice[height][i] = mvvLvaScores[fromPiece][toPiece] * 1000000;
-
-            if(isRecapture(board, undo, ptr)) {
-                movePrice[height][i] = 999999999;
-            }
         } else if(depth < MAX_PLY && searchInfo->killer[board->color][depth] == *ptr) {
             movePrice[height][i] = 100000;
         } else if(depth >= 2 && depth < MAX_PLY && searchInfo->killer[board->color][depth-2] == *ptr) {
