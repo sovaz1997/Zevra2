@@ -357,6 +357,16 @@ int isDraw(Board* board) {
         return 1;
     }
 
+    U64 piecesCount = popcount(board->colours[0] | board->colours[1]);
+    //8/8/8/4b3/8/8/4k1Kp/8 b - - 27 34 - bug
+    if(piecesCount <= 3) {
+        if(piecesCount <= 2) {
+            return 1;
+        } else {
+            return popcount(board->pieces[KNIGHT]) == 1 || popcount(board->pieces[BISHOP]) == 1;
+        }
+    }
+
     return 0;
 }
 
