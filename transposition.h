@@ -13,13 +13,12 @@ Transposition* tt;
 U64 ttSize;
 U64 ttFilledSize;
 U64 ttIndex;
-int ttAge;
 
 struct Transposition {
     U64 key;
     S16 eval;
     U8 depth;
-    S8 age;
+    S16 age;
     U8 evalType;
     U16 move;
 };

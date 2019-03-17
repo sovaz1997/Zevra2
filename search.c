@@ -8,7 +8,6 @@ void* go(void* thread_data) {
 }
 
 void iterativeDeeping(Board* board, TimeManager tm) {
-    ++ttAge;
     SearchInfo searchInfo;
     char bestMove[6];
 
@@ -182,7 +181,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     U16* curMove = moves[height];
     int movesCount = 0, pseudoMovesCount = 0, playedMovesCount = 0;
     Transposition new_tt;
-    setTransposition(&new_tt, keyPosition, 0, 0, depth, 0, ttAge, height);
+    setTransposition(&new_tt, keyPosition, 0, 0, depth, 0, board->gameInfo->moveCount, height);
     int oldAlpha = alpha;
     Undo undo;
 
@@ -264,7 +263,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
                 searchInfo->bestMove = *curMove;
             }
 
-            setTransposition(&new_tt, keyPosition, alpha, (alpha >= beta ? lowerbound : exact), depth, *curMove, ttAge, height);
+            setTransposition(&new_tt, keyPosition, alpha, (alpha >= beta ? lowerbound : exact), depth, *curMove, board->gameInfo->moveCount, height);
         }
         if(alpha >= beta) {
             if(!undo.capturedPiece) {
@@ -286,10 +285,10 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     }
 
     if(oldAlpha == alpha) {
-        setTransposition(&new_tt, keyPosition, alpha, upperbound, depth, 0, ttAge, height);
+        setTransposition(&new_tt, keyPosition, alpha, upperbound, depth, 0, board->gameInfo->moveCount, height);
     }
 
-    replaceTransposition(ttEntry, new_tt, height);
+    replaceTransposition(ttEntry, new_tt, height, board->gameInfo->moveCount);
 
     if(!movesCount) {
         if(inCheck(board, board->color)) {
@@ -526,8 +525,8 @@ void resetSearchInfo(SearchInfo* info, TimeManager tm) {
     compressHistory();
 }
 
-void replaceTransposition(Transposition* tr, Transposition new_tr, int height) {
-    if(tr->age + 5 < ttAge || !tr->evalType) {
+void replaceTransposition(Transposition* tr, Transposition new_tr, int height, int curAge) {
+    if(tr->age + 5 < curAge || !tr->evalType) {
         replaceTranspositionEntry(tr, &new_tr);
         return;
     }

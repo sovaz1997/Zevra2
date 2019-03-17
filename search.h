@@ -72,7 +72,7 @@ void moveOrdering(Board* board, U16* mvs, SearchInfo* searchInfo, int height, in
 void sort(U16* mvs, int count, int height);
 void initSearch();
 void resetSearchInfo(SearchInfo* info, TimeManager tm);
-void replaceTransposition(Transposition* tr, Transposition new_tr, int height);
+void replaceTransposition(Transposition* tr, Transposition new_tr, int height, int curAge);
 void setAbort(int val);
 void clearHistory();
 void compressHistory();
