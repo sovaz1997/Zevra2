@@ -533,7 +533,7 @@ void replaceTransposition(Transposition* tr, Transposition new_tr, int height) {
     }
 
     if(new_tr.depth >= tr->depth) {
-        if(new_tr.evalType == upperbound && tr->evalType != upperbound && tr->evalType) {
+        if(new_tr.evalType == upperbound && tr->evalType != upperbound) {
             return;
         }
         replaceTranspositionEntry(tr, &new_tr);
