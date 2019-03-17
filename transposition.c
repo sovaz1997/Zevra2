@@ -32,6 +32,7 @@ void reallocTT(int size) {
 
 void clearTT() {
     memset(tt, 0, sizeof(Transposition) * ttSize);
+    ttAge = 0;
     ttFilledSize = 0;
 }
 
