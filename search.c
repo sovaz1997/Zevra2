@@ -121,23 +121,15 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
     U64 keyPosition = board->key;
     Transposition* ttEntry = &tt[keyPosition & ttIndex];
-    assert((keyPosition & ttIndex) < ttSize);
 
     //TT analysis
     if(ttEntry->evalType && ttEntry->depth >= depth && !root && ttEntry->key == keyPosition) {
-        int score = ttEntry->eval;
-        if(score > MATE_SCORE - 100) {
-            score -= height;
-        } else if(score < -MATE_SCORE + 100) {
-            score += height;
-        }
-
-        if(ttEntry->evalType == lowerbound && score >= beta && !mateScore(score)) {
-            return score;
-        } else if(ttEntry->evalType == upperbound && score <= alpha && !mateScore(score)) {
-            return score;
+        if(ttEntry->evalType == lowerbound && ttEntry->eval >= beta && !mateScore(ttEntry->eval)) {
+            return evalFromTT(ttEntry->eval, height);
+        } else if(ttEntry->evalType == upperbound && ttEntry->eval <= alpha && !mateScore(ttEntry->eval)) {
+            return evalFromTT(ttEntry->eval, height);
         } else if(ttEntry->evalType == exact) {
-            return score;
+            return evalFromTT(ttEntry->eval, height);
         }
     }
 
@@ -190,7 +182,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     U16* curMove = moves[height];
     int movesCount = 0, pseudoMovesCount = 0, playedMovesCount = 0;
     Transposition new_tt;
-    setTransposition(&new_tt, keyPosition, 0, 0, depth, 0, ttAge);
+    setTransposition(&new_tt, keyPosition, 0, 0, depth, 0, ttAge, height);
     int oldAlpha = alpha;
     Undo undo;
 
@@ -272,7 +264,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
                 searchInfo->bestMove = *curMove;
             }
 
-            setTransposition(&new_tt, keyPosition, alpha, (alpha >= beta ? lowerbound : exact), depth, *curMove, ttAge);
+            setTransposition(&new_tt, keyPosition, alpha, (alpha >= beta ? lowerbound : exact), depth, *curMove, ttAge, height);
         }
         if(alpha >= beta) {
             if(!undo.capturedPiece) {
@@ -294,7 +286,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     }
 
     if(oldAlpha == alpha) {
-        setTransposition(&new_tt, keyPosition, alpha, upperbound, depth, 0, ttAge);
+        setTransposition(&new_tt, keyPosition, alpha, upperbound, depth, 0, ttAge, height);
     }
 
     replaceTransposition(ttEntry, new_tt, height);
@@ -535,22 +527,13 @@ void resetSearchInfo(SearchInfo* info, TimeManager tm) {
 }
 
 void replaceTransposition(Transposition* tr, Transposition new_tr, int height) {
-    int score = new_tr.eval;
-
-    if(score > MATE_SCORE - 100) {
-        score += height;
-    } else if(score < -MATE_SCORE + 100) {
-        score -= height;
-    }
-
     if(tr->age + 5 < ttAge || !tr->evalType) {
         replaceTranspositionEntry(tr, &new_tr);
         return;
     }
 
     if(new_tr.depth >= tr->depth) {
-        new_tr.eval = score;
-        if(new_tr.evalType == upperbound && tr->evalType != upperbound) {
+        if(new_tr.evalType == upperbound && tr->evalType != upperbound && tr->evalType) {
             return;
         }
         replaceTranspositionEntry(tr, &new_tr);

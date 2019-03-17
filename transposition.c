@@ -1,9 +1,8 @@
 #include "transposition.h"
 
-void setTransposition(Transposition* entry, U64 key, int eval, int evalType, int depth, U16 move, int age) {
+void setTransposition(Transposition* entry, U64 key, int eval, int evalType, int depth, U16 move, int age, int height) {
     entry->key = key;
-    assert(abs(eval) <= 65535);
-    entry->eval = eval;
+    entry->eval = evalToTT(eval, height);
     entry->evalType = evalType;
     entry->move = move;
     entry->depth = depth;
@@ -54,4 +53,24 @@ U64 sizeToTTCount(U64 size) {
     }
 
     return count;
+}
+
+int evalToTT(int eval, int height) {
+    if(eval > MATE_SCORE - 100) {
+        return eval + height;
+    } else if(eval < -MATE_SCORE + 100) {
+        return eval - height;
+    }
+
+    return eval;
+}
+
+int evalFromTT(int eval, int height) {
+    if(eval > MATE_SCORE - 100) {
+        return eval - height;
+    } else if(eval < -MATE_SCORE + 100) {
+        return eval + height;
+    }
+
+    return eval;
 }
