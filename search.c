@@ -181,10 +181,11 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
     U16* curMove = moves[height];
     int movesCount = 0, pseudoMovesCount = 0, playedMovesCount = 0;
-    Transposition new_tt;
-    setTransposition(&new_tt, keyPosition, 0, 0, depth, 0, ttAge, height);
-    int oldAlpha = alpha;
     Undo undo;
+
+    int hashType = upperbound;
+
+    U16 curBestMove = 0;
 
     while(*curMove) {
         int nextDepth = depth - 1;
@@ -250,6 +251,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
                 }
             }
         }
+        
 
         if(HistoryPruningAllow && historyReduced && eval >= beta) {
             ++nextDepth;
@@ -260,11 +262,12 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         
         if(eval > alpha) {
             alpha = eval;
+            curBestMove = *curMove;
             if(root && !ABORT) {
                 searchInfo->bestMove = *curMove;
             }
 
-            setTransposition(&new_tt, keyPosition, alpha, (alpha >= beta ? lowerbound : exact), depth, *curMove, ttAge, height);
+            hashType = exact;
         }
         if(alpha >= beta) {
             if(!undo.capturedPiece) {
@@ -276,6 +279,8 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
                 history[board->color][MoveFrom(*curMove)][MoveTo(*curMove)] += (depth * depth);
             }
 
+            hashType = lowerbound;
+
             break;
         }
         ++curMove;
@@ -285,10 +290,8 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         return 0;
     }
 
-    if(oldAlpha == alpha) {
-        setTransposition(&new_tt, keyPosition, alpha, upperbound, depth, 0, ttAge, height);
-    }
-
+    Transposition new_tt;
+    setTransposition(&new_tt, keyPosition, alpha, hashType, depth, curBestMove, ttAge, height);
     replaceTransposition(ttEntry, new_tt, height);
 
     if(!movesCount) {
