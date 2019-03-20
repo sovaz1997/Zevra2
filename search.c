@@ -161,7 +161,6 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         }
     }
 
-
     //Reverse futility pruning
     if(!pvNode && !havePromotionPawn(board) && !weInCheck && depth <= 7 && staticEval - ReverseFutilityStep * depth > beta && ReverseFutilityPruningAllow) {
         return staticEval;
@@ -347,7 +346,6 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
         if(ABORT) {
             return 0;
         }
-
 
         movePick(pseudoMovesCount, height);
 

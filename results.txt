@@ -1,4 +1,4 @@
-Regression test (tc=3+0.02, Hash=16)
+Move ordering with sort algorithm ->  move ordering with move pick (sort of necessity)
 
 Score of Zevra v2.1.2 r248 vs Zevra v2.1.2 r248: 1439 - 1307 - 1373  [0.516] 4119
 Elo difference: 11.14 +/- 8.65
