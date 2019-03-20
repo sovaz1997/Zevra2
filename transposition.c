@@ -67,6 +67,6 @@ int evalFromTT(int eval, int height) {
         return eval - height;
     else if(eval < -MATE_SCORE + 100)
         return eval + height;
-
+        
     return eval;
 }

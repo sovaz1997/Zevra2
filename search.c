@@ -76,6 +76,7 @@ int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score)
 int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth, int height) {
     searchInfo->selDepth = max(searchInfo->selDepth, height);
     ++searchInfo->nodesCount;
+    
     if(ABORT)
         return 0;
 
@@ -167,16 +168,12 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     Undo undo;
 
     int hashType = upperbound;
-
     U16 curBestMove = 0;
 
     while(*curMove) {
         int nextDepth = depth - 1;
-
         movePick(pseudoMovesCount, height);
-
         ++pseudoMovesCount;
-
         makeMove(board, *curMove, &undo);
 
         if(inCheck(board, !board->color)) {
@@ -270,9 +267,8 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         ++curMove;
     }
 
-    if(ABORT) {
+    if(ABORT)
         return 0;
-    }
 
     Transposition new_tt;
     setTransposition(&new_tt, keyPosition, alpha, hashType, depth, curBestMove, ttAge, height);
