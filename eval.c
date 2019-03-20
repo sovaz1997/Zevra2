@@ -74,12 +74,11 @@ int psqtPieceEval(Board* board, U64 mask, const int* pstTable) {
 
     while(mask) {
         int sq = firstOne(mask);
-        if(squareBitboard[sq] & board->colours[WHITE]) {
+        if(squareBitboard[sq] & board->colours[WHITE])
             eval += *(pstTable + square(7 - rankOf(sq), fileOf(sq)));
-            
-        } else {
+        else
             eval -= *(pstTable + sq);
-        }
+
         clearBit(&mask, sq);
     }
 
@@ -95,11 +94,12 @@ int mobilityEval(Board* board, int color) {
 
     U64 mask = board->pieces[PAWN] & enemy;
     U64 pAttacks;
-    if(!color == WHITE) {
+
+    if(!color == WHITE)
         pAttacks = ((mask << 9) & ~files[0]) | ((mask << 7) & ~files[7]);
-    } else {
+    else 
         pAttacks = ((mask >> 9) & ~files[7]) | ((mask >> 7) & ~files[0]);
-    }
+
     U64 possibleSq = ~pAttacks;
 
     //Rooks mobility
@@ -158,21 +158,18 @@ int pawnsEval(Board* board, int color) {
     while(ourPawns) {
         int sq = firstOne(ourPawns);
         if(color == WHITE) {
-            if(!(plus8[sq] & enemyPawns)) {
+            if(!(plus8[sq] & enemyPawns))
                 eval += getPassedPawnBonus(sq, color);
-            }
         } else {
-            if(!(minus8[sq] & enemyPawns)) {
+            if(!(minus8[sq] & enemyPawns))
                 eval += getPassedPawnBonus(sq, color);
-            }
         }
         clearBit(&ourPawns, sq);
     }
 
     //double pawns bonus
-    for(int f = 0; f < 8; ++f) {
+    for(int f = 0; f < 8; ++f)
         eval -= DoublePawnsPenalty * (popcount(ourPawns & files[f]) > 1);
-    }
 
     return eval;
 }
@@ -189,9 +186,8 @@ int bishopsEval(Board* board) {
 }
 
 int getPassedPawnBonus(int sq, int color) {
-    if(color == WHITE) {
+    if(color == WHITE)
         return -pawnPST[square(7 - rankOf(sq), fileOf(sq))] + PassedPawnBonus[rankOf(sq)];
-    }
     
     return -pawnPST[square(rankOf(sq), fileOf(sq))] + PassedPawnBonus[7 - rankOf(sq)];
 }
@@ -222,9 +218,8 @@ int closeToMateScore(int eval) {
 
 void initEval() {
     for(int i = 0; i < 64; ++i) {
-        for(int j = 0; j < 64; ++j) {
-            distanceBonus[i][j] = 14 - (abs(rankOf(i) - rankOf(j)) + abs(fileOf(i) - fileOf(j)));
-        }   
+        for(int j = 0; j < 64; ++j)
+            distanceBonus[i][j] = 14 - (abs(rankOf(i) - rankOf(j)) + abs(fileOf(i) - fileOf(j))); 
     }
 
     //Isolated pawn hash init
@@ -232,13 +227,10 @@ void initEval() {
         for(int f = 0; f < 8; ++f) {
             int leftEmpty = 1, rightEmpty = 1;
             
-            if(f < 7) {
+            if(f < 7)
                 rightEmpty = !getBit8(i, f + 1);
-            }
-
-            if(f > 0) {
+            if(f > 0)
                 leftEmpty = !getBit8(i, f - 1);
-            }
             
             IsolatedPawnsHash[i] += IsolatedPawnPenalty * (leftEmpty && rightEmpty && getBit(i, f));
         }

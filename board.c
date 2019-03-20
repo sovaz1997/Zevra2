@@ -37,15 +37,14 @@ void setFen(Board* board, char* fen) {
     //Установка рокировки
 
     while(*castlings_str) {
-        if(*castlings_str == 'K') {
+        if(*castlings_str == 'K')
             board->castling |= shortCastlingBitboard[WHITE];
-        } else if(*castlings_str == 'Q') {
+        else if(*castlings_str == 'Q')
             board->castling |= longCastlingBitboard[WHITE];
-        } else if(*castlings_str == 'k') {
+        else if(*castlings_str == 'k')
             board->castling |= shortCastlingBitboard[BLACK];
-        } else if(*castlings_str == 'q') {
+        else if(*castlings_str == 'q')
             board->castling |= longCastlingBitboard[BLACK];
-        }
 
         ++castlings_str;
     }
@@ -60,9 +59,8 @@ void setFen(Board* board, char* fen) {
     board->moveNumber = atoi(moveNumber_str);
     free(str);
 
-    if(board->color == BLACK) {
+    if(board->color == BLACK)
         board->key ^= otherSideKey;
-    }
 }
 
 void setMovesRange(Board* board, char* moves) {
@@ -104,11 +102,10 @@ void printBoard(Board* board) {
 
 void printBoardSplitter() {
     for(int i = 0; i < 33; ++i) {
-        if(i % 4 == 0) {
+        if(i % 4 == 0)
             printf("+");
-        } else {
+        else
             printf("-");
-        }
     }
     printf("\n");
 }
@@ -122,9 +119,8 @@ void setPiece(Board* board, int piece, int color, int square) {
 }
 
 void clearPiece(Board* board, int square) {
-    if(!board->squares[square]) {
+    if(!board->squares[square])
         return;
-    }
     
     U8 piece = board->squares[square];
     board->key ^= zobristKeys[board->squares[square]][square];
@@ -154,64 +150,56 @@ U8 makePiece(int piece_type, int color) {
 }
 
 void printPiece(U8 piece) {
-    if(piece) {
+    if(piece)
         printf("%c", PieceName[pieceColor(piece)][pieceType(piece)]);
-    } else {
+    else
         printf(" ");
-    }
 }
 
 void makeMove(Board* board, U16 move, Undo* undo) {
     setUndo(board, undo, board->squares[MoveTo(move)]);
 
-    if(MoveType(move) == NORMAL_MOVE && !board->squares[MoveTo(move)] && pieceType(board->squares[MoveFrom(move)]) != PAWN) {
+    if(MoveType(move) == NORMAL_MOVE && !board->squares[MoveTo(move)] && pieceType(board->squares[MoveFrom(move)]) != PAWN)
         ++board->ruleNumber;
-    } else {
+    else
         board->ruleNumber = 0;
-    }
     
     movePiece(board, MoveFrom(move), MoveTo(move));
     int epClear = 1;
     if(MoveType(move) == CASTLE_MOVE) {
         U8 king = makePiece(KING, board->color);
         int castlingRank = (board->color == WHITE ? 0 : 7);
-        if(board->squares[square(castlingRank, 6)] == king) {
+        if(board->squares[square(castlingRank, 6)] == king)
             movePiece(board, square(castlingRank, 7), square(castlingRank, 5));
-        } else if(board->squares[square(castlingRank, 2)] == king) {
+        else if(board->squares[square(castlingRank, 2)] == king)
             movePiece(board, square(castlingRank, 0), square(castlingRank, 3));
-        }
     } else if(MoveType(move) == PROMOTION_MOVE) {
         setPiece(board, MovePromotionPiece(move), board->color, MoveTo(move));
     } else if(MoveType(move) == ENPASSANT_MOVE) {
-        if(board->color == WHITE) {
+        if(board->color == WHITE)
             clearPiece(board, board->enpassantSquare - 8);
-        } else {
+        else
             clearPiece(board, board->enpassantSquare + 8);
-        }
     } else {
         if(board->squares[MoveTo(move)] == makePiece(PAWN, board->color)) {
             if(abs(MoveTo(move) - MoveFrom(move)) == 16) {
-                if(board->color == WHITE) {
+                if(board->color == WHITE)
                     board->enpassantSquare = MoveTo(move) - 8;
-                } else {
+                else
                     board->enpassantSquare = MoveTo(move) + 8;
-                }
-                
                 epClear = 0;
             }
         }
     }
 
-    if(epClear) {
+    if(epClear)
         board->enpassantSquare = 0;
-    }
-
 
     board->color = !board->color;
     
-    if(board->color == WHITE) {
+    if(board->color == WHITE)
         ++board->moveNumber;
-    }
+
     board->castling &= (board->pieces[KING] | board->pieces[ROOK]);
     board->key ^= otherSideKey;
 
@@ -225,17 +213,15 @@ void unmakeMove(Board* board, U16 move, Undo* undo) {
         int castlingRank = (!board->color == WHITE ? 0 : 7);
         U8 king = makePiece(KING, !board->color);        
 
-        if(board->squares[square(castlingRank, 6)] == king) {
+        if(board->squares[square(castlingRank, 6)] == king)
             movePiece(board, square(castlingRank, 5), square(castlingRank, 7));
-        } else if(board->squares[square(castlingRank, 2)] == king) {
+        else if(board->squares[square(castlingRank, 2)] == king)
             movePiece(board, square(castlingRank, 3), square(castlingRank, 0));
-        }
     } else if(MoveType(move) == ENPASSANT_MOVE) {
-        if(!board->color == WHITE) {
+        if(!board->color == WHITE)
             setPiece(board, PAWN, board->color, undo->enpassantSquare - 8);
-        } else {
+        else
             setPiece(board, PAWN, board->color, undo->enpassantSquare + 8);
-        }
     }
 
     movePiece(board, MoveTo(move), MoveFrom(move));
@@ -244,14 +230,12 @@ void unmakeMove(Board* board, U16 move, Undo* undo) {
         setPiece(board, PAWN, !board->color, MoveFrom(move));
     }
 
-    if(undo->capturedPiece) {
+    if(undo->capturedPiece)
         setPiece(board, pieceType(undo->capturedPiece), pieceColor(undo->capturedPiece), MoveTo(move));
-    }
     
     board->color = !board->color;
-    if(board->color == BLACK) {
+    if(board->color == BLACK)
         --board->moveNumber;
-    }
     
     board->key ^= otherSideKey;
 
@@ -289,52 +273,42 @@ int attackedSquare(Board* board, int sq, int color) {
     U64 enemy = board->colours[!color];
     U64 occu = our | enemy;
 
-    if(pawnAttacks[color][sq] & board->pieces[PAWN] & enemy) {
+    if(pawnAttacks[color][sq] & board->pieces[PAWN] & enemy)
         return 1;
-    }
-
-    if(knightAttacks[sq] & enemy & board->pieces[KNIGHT]) {
+    if(knightAttacks[sq] & enemy & board->pieces[KNIGHT])
         return 1;
-    }
-
-    if(kingAttacks[sq] & board->pieces[KING] & enemy) {
+    if(kingAttacks[sq] & board->pieces[KING] & enemy)
         return 1;
-    }
 
     U64 rookQueens = board->pieces[ROOK] | board->pieces[QUEEN];
-    if(enemy & rookQueens & rookPossibleMoves[sq][getMagicIndex(occu & rookMagicMask[sq] & unSquareBitboard[sq], rookMagic[sq], rookPossibleMovesSize[sq])]) {
+    if(enemy & rookQueens & rookPossibleMoves[sq][getMagicIndex(occu & rookMagicMask[sq] & unSquareBitboard[sq], rookMagic[sq], rookPossibleMovesSize[sq])])
         return 1;
-    }
 
     U64 bishopQueens = board->pieces[BISHOP] | board->pieces[QUEEN];
-    if(enemy & bishopQueens & bishopPossibleMoves[sq][getMagicIndex(occu & bishopMagicMask[sq] & unSquareBitboard[sq], bishopMagic[sq], bishopPossibleMovesSize[sq])]) {
+    if(enemy & bishopQueens & bishopPossibleMoves[sq][getMagicIndex(occu & bishopMagicMask[sq] & unSquareBitboard[sq], bishopMagic[sq], bishopPossibleMovesSize[sq])])
         return 1;
-    }
 
     return 0;
 }
 
 int inCheck(Board* board, int color) {
-    if(!(board->colours[color] & board->pieces[KING])) {
+    if(!(board->colours[color] & board->pieces[KING]))
         return 0;
-    }
 
     int kingPosition = firstOne(board->colours[color] & board->pieces[KING]);
     return attackedSquare(board, kingPosition, color);
 }
 
 U8 firstAttacker(Board* board, U64 bitboard) {
-    if(!bitboard) {
+    if(!bitboard)
         return 0;
-    }
 
     return board->squares[firstOne(bitboard)];
 }
 
 U8 lastAttacker(Board* board, U64 bitboard) {
-    if(!bitboard) {
+    if(!bitboard)
         return 0;
-    }
 
     return board->squares[lastOne(bitboard)];
 }
@@ -349,22 +323,18 @@ void revertMoveFromHist(Board* board) {
 }
 
 int isDraw(Board* board) {
-    if(repeatCount(board) >= 2) {
+    if(repeatCount(board) >= 2)
         return 1;
-    }
-    
-    if(board->ruleNumber >= 100) {
+    if(board->ruleNumber >= 100)
         return 1;
-    }
 
     U64 piecesCount = popcount(board->colours[0] | board->colours[1]);
-    //8/8/8/4b3/8/8/4k1Kp/8 b - - 27 34 - bug
+
     if(piecesCount <= 3) {
-        if(piecesCount <= 2) {
+        if(piecesCount <= 2)
             return 1;
-        } else {
+        else
             return popcount(board->pieces[KNIGHT]) == 1 || popcount(board->pieces[BISHOP]) == 1;
-        }
     }
 
     return 0;
@@ -375,9 +345,8 @@ int repeatCount(Board* board) {
     int rpt = 0;
     U64 currentKey = board->key;
     for(int i = gameInfo->moveCount - 1; i >= 0; --i) {
-        if(gameInfo->moveHistory[i] == currentKey) {
+        if(gameInfo->moveHistory[i] == currentKey)
             ++rpt;
-        }
     }
 
     return rpt;
@@ -429,21 +398,18 @@ int see(Board* board, int toSq, U8 taget, int fromSq, U8 aPiece) {
     do {
         d++;
         gain[d] = pVal[pieceType(aPiece)] - gain[d - 1];
-        if(max(gain[d - 1], gain[d]) < 0) {
+        if(max(gain[d - 1], gain[d]) < 0)
             break;
-        }
         attadef ^= fromSet;
         occu ^= fromSet;
-        if(fromSet & mayXray) {
+        if(fromSet & mayXray)
             attadef |= considerXrays(board, occu, attadef, toSq);
-        }
         color = !color;
         fromSet = getLeastValuablePiece(board, attadef, color, &aPiece);
     } while(fromSet);
 
-    while (--d)  {
+    while (--d)
         gain[d-1]= -max(-gain[d-1], gain[d]);
-    }
     
     return gain[0];
 }
@@ -452,9 +418,8 @@ U64 getLeastValuablePiece(Board* board, U64 attadef, int side, U8* piece) {
    U64 our = board->colours[side];
    for (*piece = makePiece(PAWN, side); *piece <= makePiece(KING, side); *piece += 2) {
       U64 subset = attadef & board->pieces[pieceType(*piece)] & our;
-      if (subset) {
+      if (subset)
          return  subset & -subset;
-      }
    }
    return 0;
 }
@@ -462,23 +427,22 @@ U64 getLeastValuablePiece(Board* board, U64 attadef, int side, U8* piece) {
 U64 considerXrays(Board* board, U64 occu, U64 attackdef, int sq) {
     U64 rookQueens = board->pieces[ROOK] | board->pieces[QUEEN];
     U64 bishopQueens = board->pieces[BISHOP] | board->pieces[QUEEN];
-    if(!(attackdef & minus1[sq]) && (occu & minus1[sq])) {
+    if(!(attackdef & minus1[sq]) && (occu & minus1[sq]))
         return squareBitboard[lastOne(occu & minus1[sq])] & rookQueens;
-    } else if(!(attackdef & minus7[sq]) && (occu & minus7[sq])) {
+    else if(!(attackdef & minus7[sq]) && (occu & minus7[sq]))
         return squareBitboard[lastOne(occu & minus7[sq])] & bishopQueens;
-    } else if(!(attackdef & minus9[sq]) && (occu & minus9[sq])) {
+    else if(!(attackdef & minus9[sq]) && (occu & minus9[sq]))
         return squareBitboard[lastOne(occu & minus9[sq])] & bishopQueens;
-    } else if(!(attackdef & minus8[sq]) && (occu & minus8[sq])) {
+    else if(!(attackdef & minus8[sq]) && (occu & minus8[sq]))
         return squareBitboard[lastOne(occu & minus8[sq])] & rookQueens;
-    } else if(!(attackdef & plus1[sq]) && (occu & plus1[sq])) {
+    else if(!(attackdef & plus1[sq]) && (occu & plus1[sq]))
         return squareBitboard[firstOne(occu & plus1[sq])] & rookQueens;
-    } else if(!(attackdef & plus7[sq]) && (occu & plus7[sq])) {
+    else if(!(attackdef & plus7[sq]) && (occu & plus7[sq]))
         return squareBitboard[firstOne(occu & plus7[sq])] & bishopQueens;
-    } else if(!(attackdef & plus9[sq]) && (occu & plus9[sq])) {
+    else if(!(attackdef & plus9[sq]) && (occu & plus9[sq]))
         return squareBitboard[firstOne(occu & plus9[sq])] & bishopQueens;
-    } else if(!(attackdef & plus8[sq]) && (occu & plus8[sq])) {
+    else if(!(attackdef & plus8[sq]) && (occu & plus8[sq]))
         return squareBitboard[firstOne(occu & plus8[sq])] & rookQueens;
-    }
 
     return 0;
 }

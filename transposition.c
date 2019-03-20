@@ -37,9 +37,8 @@ void clearTT() {
 }
 
 void replaceTranspositionEntry(Transposition* addr, Transposition* newEntry) {
-    if(!addr->evalType) {
+    if(!addr->evalType)
         ++ttFilledSize;
-    }
     *addr = *newEntry;
 }
 
@@ -48,29 +47,26 @@ U64 sizeToTTCount(U64 size) {
     size *= (1024 * 1024);
     for(count = 1; count * sizeof(Transposition) <= size; count *= 2);
 
-    if(count * sizeof(Transposition) > size) {
+    if(count * sizeof(Transposition) > size)
         count /= 2;
-    }
 
     return count;
 }
 
 int evalToTT(int eval, int height) {
-    if(eval > MATE_SCORE - 100) {
+    if(eval > MATE_SCORE - 100)
         return eval + height;
-    } else if(eval < -MATE_SCORE + 100) {
+    else if(eval < -MATE_SCORE + 100)
         return eval - height;
-    }
 
     return eval;
 }
 
 int evalFromTT(int eval, int height) {
-    if(eval > MATE_SCORE - 100) {
+    if(eval > MATE_SCORE - 100)
         return eval - height;
-    } else if(eval < -MATE_SCORE + 100) {
+    else if(eval < -MATE_SCORE + 100)
         return eval + height;
-    }
 
     return eval;
 }

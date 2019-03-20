@@ -18,9 +18,8 @@ void iterativeDeeping(Board* board, TimeManager tm) {
     for(int i = 1; i <= tm.depth; ++i) {
         eval = aspirationWindow(board, &searchInfo, i, eval);
         moveToString(searchInfo.bestMove, bestMove);
-        if(ABORT && i > 1) {
+        if(ABORT && i > 1)
             break;
-        }
     }
 
     printf("info nodes %lu time %lu\n", searchInfo.nodesCount, getTime(&searchInfo.timer));
@@ -33,9 +32,8 @@ int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score)
     int alpha = max(-MATE_SCORE, score - delta);
     int beta = min(MATE_SCORE, score + delta);
 
-    if(depth <= 5) {
+    if(depth <= 5)
         return search(board, searchInfo, -MATE_SCORE, MATE_SCORE, depth, 0);
-    }
 
     char bestMove[6];
 
@@ -45,15 +43,13 @@ int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score)
         
         moveToString(searchInfo->bestMove, bestMove);
 
-        if(ABORT) {
+        if(ABORT)
             break;
-        }
 
         int evalType = 0;
 
-        if(f > alpha && f < beta) {
+        if(f > alpha && f < beta)
             evalType = exact;
-        }
 
         if(f <= alpha) {
             beta = (alpha + beta) / 2;
@@ -68,9 +64,8 @@ int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score)
 
         printSearchInfo(searchInfo, board, depth, f, evalType);
 
-        if(evalType == exact) {
+        if(evalType == exact)
             break;
-        }
 
         delta += delta / 2;
     }
@@ -81,37 +76,32 @@ int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score)
 int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth, int height) {
     searchInfo->selDepth = max(searchInfo->selDepth, height);
     ++searchInfo->nodesCount;
-    if(ABORT) {
+    if(ABORT)
         return 0;
-    }
 
-    if(depth < 0 || depth > MAX_PLY - 1) {
+    if(depth < 0 || depth > MAX_PLY - 1)
         depth = 0;
-    }
 
     //Mate Distance Pruning
     int mate_val = MATE_SCORE - height;
     if(mate_val < beta) {
         beta = mate_val;
-        if(alpha >= mate_val) {
+        if(alpha >= mate_val)
             return mate_val;
-        }
     }
 
     mate_val = -MATE_SCORE + height;
     if(mate_val > alpha) {
         alpha = mate_val;
-        if(beta <= mate_val) {
+        if(beta <= mate_val)
             return mate_val;
-        }
     }
 
     int root = (height ? 0 : 1);
     int pvNode = (beta - alpha > 1);
 
-    if((isDraw(board) && !root) || ABORT) {
+    if((isDraw(board) && !root) || ABORT)
         return 0;
-    }
 
     int weInCheck = !!(inCheck(board, board->color));
 
@@ -125,19 +115,16 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
     //TT analysis
     if(ttEntry->evalType && ttEntry->depth >= depth && !root && ttEntry->key == keyPosition) {
-        if(ttEntry->evalType == lowerbound && ttEntry->eval >= beta && !mateScore(ttEntry->eval)) {
-            return evalFromTT(ttEntry->eval, height);
-        } else if(ttEntry->evalType == upperbound && ttEntry->eval <= alpha && !mateScore(ttEntry->eval)) {
-            return evalFromTT(ttEntry->eval, height);
-        } else if(ttEntry->evalType == exact) {
-            return evalFromTT(ttEntry->eval, height);
+        if(ttEntry->evalType == lowerbound && ttEntry->eval >= beta && !mateScore(ttEntry->eval) ||
+           ttEntry->evalType == upperbound && ttEntry->eval <= alpha && !mateScore(ttEntry->eval) ||
+           ttEntry->evalType == exact) {
+               return evalFromTT(ttEntry->eval, height);
         }
     }
 
     //go to quiescence search in leaf nodes
-    if((depth <= 0 && !weInCheck) || height >= MAX_PLY - 1) {
+    if((depth <= 0 && !weInCheck) || height >= MAX_PLY - 1)
         return quiesceSearch(board, searchInfo, alpha, beta, height);
-    }
 
     //calculate static eval
     int staticEval = fullEval(board);
@@ -156,25 +143,21 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         searchInfo->nullMoveSearch = 0;
         unmakeNullMove(board);
 
-        if(eval >= beta) {
+        if(eval >= beta)
             return beta;
-        }
     }
 
     //Reverse futility pruning
-    if(!pvNode && !havePromotionPawn(board) && !weInCheck && depth <= 7 && staticEval - ReverseFutilityStep * depth > beta && ReverseFutilityPruningAllow) {
+    if(!pvNode && !havePromotionPawn(board) && !weInCheck && depth <= 7 && staticEval - ReverseFutilityStep * depth > beta && ReverseFutilityPruningAllow)
         return staticEval;
-    }
 
     //Razoring
-    if(!pvNode && !havePromotionPawn(board) && !weInCheck && depth <= 4 && staticEval + RazorMargin * depth < alpha && RazoringPruningAllow) {
+    if(!pvNode && !havePromotionPawn(board) && !weInCheck && depth <= 4 && staticEval + RazorMargin * depth < alpha && RazoringPruningAllow)
         return quiesceSearch(board, searchInfo, alpha, beta, height);
-    }
 
     //IID
-    if(IIDAllow && pvNode && !ttEntry->move && depth >= 3) {
+    if(IIDAllow && pvNode && !ttEntry->move && depth >= 3)
         search(board, searchInfo, alpha, beta, depth - 2, height);
-    }
 
     movegen(board, moves[height]);
     moveOrdering(board, moves[height], searchInfo, height, depth);
@@ -244,15 +227,13 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         } else {
             if(LmrPruningAllow && playedMovesCount >= 3 && quiteMove) {
                 eval = -search(board, searchInfo, -alpha - 1, -alpha, nextDepth + extensions - reductions, height + 1);
-                if(eval > alpha) {
+                if(eval > alpha)
                     eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
-                }
             } else {
                 eval = -search(board, searchInfo, -alpha - 1, -alpha, nextDepth + extensions, height + 1);
     
-                if(eval > alpha && eval < beta) {
+                if(eval > alpha && eval < beta)
                     eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
-                }
             }
         }
         
@@ -267,17 +248,16 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         if(eval > alpha) {
             alpha = eval;
             curBestMove = *curMove;
-            if(root && !ABORT) {
+
+            if(root && !ABORT)
                 searchInfo->bestMove = *curMove;
-            }
 
             hashType = exact;
         }
         if(alpha >= beta) {
             if(!undo.capturedPiece) {
-                if(searchInfo->killer[board->color][depth]) {
+                if(searchInfo->killer[board->color][depth])
                     searchInfo->secondKiller[board->color][height] = searchInfo->killer[board->color][depth];
-                }
                 
                 searchInfo->killer[board->color][depth] = *curMove;
                 history[board->color][MoveFrom(*curMove)][MoveTo(*curMove)] += (depth * depth);
@@ -299,11 +279,10 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     replaceTransposition(ttEntry, new_tt, height);
 
     if(!movesCount) {
-        if(inCheck(board, board->color)) {
+        if(inCheck(board, board->color))
             return -MATE_SCORE + height;
-        } else {
+        else
             return 0;
-        }
     }
 
     return alpha;
@@ -311,31 +290,25 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
 int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int height) {
     searchInfo->selDepth = max(searchInfo->selDepth, height);
-    if(height >= MAX_PLY - 1) {
+    if(height >= MAX_PLY - 1)
         return fullEval(board);
-    }
 
-    if(ABORT) {
+    if(ABORT)
         return 0;
-    }
     
     int val = fullEval(board);
-    if(val >= beta) {
+    if(val >= beta)
         return beta;
-    }
 
     int delta = QUEEN_EV;
-    if(havePromotionPawn(board)) {
+    if(havePromotionPawn(board))
         delta += (QUEEN_EV - 200);
-    }
 
-    if(val < alpha - delta) {
+    if(val < alpha - delta)
         return val;
-    }
 
-    if(alpha < val) {
+    if(alpha < val)
         alpha = val;
-    }
 
     attackgen(board, moves[height]);
     moveOrdering(board, moves[height], searchInfo, height, 0);
@@ -343,15 +316,13 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
     Undo undo;
     int pseudoMovesCount = 0;
     while(*curMove) {
-        if(ABORT) {
+        if(ABORT)
             return 0;
-        }
 
         movePick(pseudoMovesCount, height);
 
-        if(movePrice[height][pseudoMovesCount] < 0) {
+        if(movePrice[height][pseudoMovesCount] < 0)
             break;
-        }
 
         ++pseudoMovesCount;
 
@@ -367,26 +338,23 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
         int score = -quiesceSearch(board, searchInfo, -beta, -alpha, height + 1);
 
         unmakeMove(board, *curMove, &undo);
-        if(score >= beta) {
+        if(score >= beta)
             return beta;
-        }
-        if(score > alpha) {
+        if(score > alpha)
            alpha = score;
-        }
+
         ++curMove;
     }
 
-    if(ABORT) {
+    if(ABORT)
         return 0;
-    }
 
     return alpha;
 }
 
 U64 perftTest(Board* board, int depth, int height) {
-    if(!depth) {
+    if(!depth)
         return 1;
-    }
 
 
     movegen(board, moves[height]);
@@ -404,17 +372,15 @@ U64 perftTest(Board* board, int depth, int height) {
             if(!height) {
                 char mv[6];
                 moveToString(*curMove, mv);
-                for(int i = 0; i < height; ++i) {
+                for(int i = 0; i < height; ++i)
                     printf(" ");
-                }
+
                 printf("%s: %lu\n", mv, count);
             }
         }
 
         result += count;
-
         unmakeMove(board, *curMove, &undo);
-
         ++curMove;
     }
 
@@ -426,18 +392,18 @@ void perft(Board* board, int depth) {
         clock_t start = clock();
         U64 nodes = perftTest(board, i, 0);
         clock_t end = clock();
-        if(!(end - start)) {
+
+        if(!(end - start))
             end = start + 1;
-        }
         
         printf("Perft %d: %lu; speed: %lu; time: %.3fs\n", i, nodes, nodes / (end - start), (end - start) / 1000.);
     }
 }
 
 void moveOrdering(Board* board, U16* mvs, SearchInfo* searchInfo, int height, int depth) {
-    if(depth > MAX_PLY - 1) {
+    if(depth > MAX_PLY - 1)
         depth = MAX_PLY - 1;
-    }
+
     U16* ptr = mvs;
     U16 hashMove = tt[board->key & ttIndex].move;
     int i;
@@ -446,47 +412,40 @@ void moveOrdering(Board* board, U16* mvs, SearchInfo* searchInfo, int height, in
         movePrice[height][i] = 0;
         U16 toPiece = pieceType(board->squares[MoveTo(*ptr)]);
         
-        if(hashMove == *ptr) {
+        if(hashMove == *ptr)
             movePrice[height][i] = 1000000000;
-        } else if(toPiece) {
-            U16 fromPiece = pieceType(board->squares[MoveFrom(*ptr)]);
-            movePrice[height][i] = mvvLvaScores[fromPiece][toPiece] * 1000000;
-        } else if(depth < MAX_PLY && searchInfo->killer[board->color][depth] == *ptr) {
+        else if(toPiece)
+            movePrice[height][i] = mvvLvaScores[pieceType(board->squares[MoveFrom(*ptr)])][toPiece] * 1000000;
+        else if(depth < MAX_PLY && searchInfo->killer[board->color][depth] == *ptr)
             movePrice[height][i] = 100000;
-        } else if(depth >= 2 && depth < MAX_PLY && searchInfo->killer[board->color][depth-2] == *ptr) {
+        else if(depth >= 2 && depth < MAX_PLY && searchInfo->killer[board->color][depth-2] == *ptr)
             movePrice[height][i] = 99999;
-        } else if(depth < MAX_PLY && searchInfo->secondKiller[board->color][depth] == *ptr) {
+        else if(depth < MAX_PLY && searchInfo->secondKiller[board->color][depth] == *ptr)
             movePrice[height][i] = 99998;
-        } else if(depth >= 2 && depth < MAX_PLY && searchInfo->secondKiller[board->color][depth-2] == *ptr) {
+        else if(depth >= 2 && depth < MAX_PLY && searchInfo->secondKiller[board->color][depth-2] == *ptr)
             movePrice[height][i] = 99997;
-        } else if(!toPiece) {
+        else if(!toPiece)
             movePrice[height][i] = history[board->color][MoveFrom(*ptr)][MoveTo(*ptr)];
-        }
 
-        if(MoveType(*ptr) == ENPASSANT_MOVE) {
+        if(MoveType(*ptr) == ENPASSANT_MOVE)
             movePrice[height][i] = mvvLvaScores[PAWN][PAWN] * 1000000;
-        }
 
         if(toPiece) {
             int seeScore = see(board, MoveTo(*ptr), board->squares[MoveTo(*ptr)], MoveFrom(*ptr), board->squares[MoveFrom(*ptr)]);
-            if(seeScore < 0 && hashMove != *ptr) {
+            if(seeScore < 0 && hashMove != *ptr)
                 movePrice[height][i] = seeScore;
-            }
         }
 
         
         if(MoveType(*ptr) == PROMOTION_MOVE) {
-            if(MovePromotionPiece(*ptr) == QUEEN) {
+            if(MovePromotionPiece(*ptr) == QUEEN)
                 movePrice[height][i] = 999999999;
-            } else {
+            else
                 movePrice[height][i] = 0;
-            }
         } 
         
-
-        if(searchInfo->bestMove == *ptr && !height) {
+        if(searchInfo->bestMove == *ptr && !height)
             movePrice[height][i] = 1000000000;
-        } 
 
         ++ptr;
     }
@@ -516,15 +475,13 @@ void movePick(int moveNumber, int height) {
 
 void initSearch() {
     for(int attacker = 1; attacker < 7; ++attacker) {
-        for(int victim = 1; victim < 7; ++victim) {
+        for(int victim = 1; victim < 7; ++victim)
             mvvLvaScores[attacker][victim] = 64 * victim - attacker;
-        }
     }
 
     for(int i = 0; i < MAX_PLY; ++i) {
-        for(int j = 0; j < 64; ++j) {
+        for(int j = 0; j < 64; ++j)
             lmr[i][j]  = 0.75 + log(i) * log(j) / 2.25;
-        }
     }
 
     clearHistory();
@@ -544,9 +501,8 @@ void replaceTransposition(Transposition* tr, Transposition new_tr, int height) {
     }
 
     if(new_tr.depth >= tr->depth) {
-        if(new_tr.evalType == upperbound && tr->evalType != upperbound) {
+        if(new_tr.evalType == upperbound && tr->evalType != upperbound)
             return;
-        }
         replaceTranspositionEntry(tr, &new_tr);
     }
 }
@@ -570,14 +526,12 @@ void compressHistory() {
 }
 
 int isKiller(SearchInfo* info, int side, U16 move, int depth) {
-    if(info->killer[side][depth] == move || info->secondKiller[side][depth] == move) {
+    if(info->killer[side][depth] == move || info->secondKiller[side][depth] == move)
         return 1;
-    }
 
     if(depth >= 2) {
-        if(info->killer[side][depth - 2] == move || info->secondKiller[side][depth - 2] == move) {
+        if(info->killer[side][depth - 2] == move || info->secondKiller[side][depth - 2] == move)
             return 1;
-        }
     }
 
     return 0;

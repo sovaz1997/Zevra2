@@ -19,9 +19,8 @@ U16 stringToMove(Board* board, char* str) {
     while(*ptr) {
         char cmp_str[6];
         moveToString(*ptr, cmp_str);
-        if(!strcmp(cmp_str, str)) {
+        if(!strcmp(cmp_str, str))
             return *ptr;
-        }
         ++ptr;
     }
 

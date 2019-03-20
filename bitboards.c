@@ -11,7 +11,7 @@ void initBitboards() {
     shortCastlingBitboard[BLACK] = bitboardCell(square(7, 4)) | bitboardCell(square(7, 7));
     longCastlingBitboard[BLACK] = bitboardCell(square(7, 4)) | bitboardCell(square(7, 0));
 
-    //Инициализация лучей
+    //Beams initialization
     memset(plus1, 0, sizeof(U64) * 64);
     memset(plus7, 0, sizeof(U64) * 64);
     memset(plus8, 0, sizeof(U64) * 64);
@@ -65,14 +65,12 @@ void attacksGen() {
     memset(pawnAttacks, 0, sizeof(U64) * 64 * 2);
 
     //Rook attacks gen
-    for(int sq = 0; sq < 64; ++sq) {
+    for(int sq = 0; sq < 64; ++sq)
         rookAttacks[sq] = (minus1[sq] | plus1[sq] | minus8[sq] | plus8[sq]);
-    }
 
     //Bishop attacks gen
-    for(int sq = 0; sq < 64; ++sq) {
+    for(int sq = 0; sq < 64; ++sq)
         bishopAttacks[sq] = (minus7[sq] | plus7[sq] | minus9[sq] | plus9[sq]);
-    }
 
     //Knight attack gen
 
@@ -80,30 +78,22 @@ void attacksGen() {
         int r = rankOf(sq);
         int f = fileOf(sq);
 
-        if(r + 2 < 8 && f + 1 < 8) {
+        if(r + 2 < 8 && f + 1 < 8)
             setBit(&knightAttacks[sq], square(r + 2, f + 1));
-        }
-        if(r + 2 < 8 && f - 1 >= 0) {
+        if(r + 2 < 8 && f - 1 >= 0)
             setBit(&knightAttacks[sq], square(r + 2, f - 1));
-        }
-        if(r - 2 >= 0 && f + 1 < 8) {
+        if(r - 2 >= 0 && f + 1 < 8)
             setBit(&knightAttacks[sq], square(r - 2, f + 1));
-        }
-        if(r - 2 >= 0 && f - 1 >= 0) {
+        if(r - 2 >= 0 && f - 1 >= 0)
             setBit(&knightAttacks[sq], square(r - 2, f - 1));
-        }
-        if(r + 1 < 8 && f + 2 < 8) {
+        if(r + 1 < 8 && f + 2 < 8)
             setBit(&knightAttacks[sq], square(r + 1, f + 2));
-        }
-        if(r + 1 < 8 && f - 2 >= 0) {
+        if(r + 1 < 8 && f - 2 >= 0)
             setBit(&knightAttacks[sq], square(r + 1, f - 2));
-        }
-        if(r - 1 >= 0 && f + 2 < 8) {
+        if(r - 1 >= 0 && f + 2 < 8)
             setBit(&knightAttacks[sq], square(r - 1, f + 2));
-        }
-        if(r - 1 >= 0 && f - 2 >= 0) {
+        if(r - 1 >= 0 && f - 2 >= 0)
             setBit(&knightAttacks[sq], square(r - 1, f - 2));
-        }
     }
 
     //King attack gen
@@ -112,32 +102,24 @@ void attacksGen() {
         int r = rankOf(sq);
         int f = fileOf(sq);
 
-        if(r + 1 < 8 && f + 1 < 8) {
+        if(r + 1 < 8 && f + 1 < 8)
             setBit(&kingAttacks[sq], square(r + 1, f + 1));
-        }
-        if(r + 1 < 8 && f - 1 >= 0) {
+        if(r + 1 < 8 && f - 1 >= 0)
             setBit(&kingAttacks[sq], square(r + 1, f - 1));
-        }
-        if(r + 1 < 8) {
+        if(r + 1 < 8)
             setBit(&kingAttacks[sq], square(r + 1, f));
-        }
 
-        if(r - 1 >= 0 && f + 1 < 8) {
+        if(r - 1 >= 0 && f + 1 < 8)
             setBit(&kingAttacks[sq], square(r - 1, f + 1));
-        }
-        if(r - 1 >= 0 && f - 1 >= 0) {
+        if(r - 1 >= 0 && f - 1 >= 0)
             setBit(&kingAttacks[sq], square(r - 1, f - 1));
-        }
-        if(r - 1 >= 0) {
+        if(r - 1 >= 0)
             setBit(&kingAttacks[sq], square(r - 1, f));
-        }
 
-        if(f + 1 < 8) {
+        if(f + 1 < 8)
             setBit(&kingAttacks[sq], square(r, f + 1));
-        }
-        if(f - 1 >= 0) {
+        if(f - 1 >= 0)
             setBit(&kingAttacks[sq], square(r, f - 1));
-        }
     }
 
     //Pawn moves gen
@@ -171,9 +153,8 @@ void attacksGen() {
 
 void printBitboard(U64 bitboard) {
     for(int i = 7; i >= 0; --i) {
-        for(int j = 0; j < 8; ++j) {
+        for(int j = 0; j < 8; ++j)
             printf("%d", !!(bitboard & bitboardCell(square(i, j))));
-        }
         printf("\n");
     }
 }
@@ -201,7 +182,6 @@ unsigned int lastOne(U64 bitboard) {
 }
 
 unsigned int ctz(U64 bitboard) {
-    
     return __builtin_ctzll(bitboard);
 }
 

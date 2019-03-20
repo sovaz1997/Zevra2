@@ -33,15 +33,13 @@ int main() {
         char* name = strstr(str, "name") + 5;
         char* value = strstr(str, "value") + 6;
         
-        if(mvs) {
+        if(mvs)
             mvs += strlen("moves ");
-        }
 
         char* cmd = strtok(str, " ");
 
-        if(!cmd) {
+        if(!cmd)
             continue;
-        }
 
         if(!strcmp(cmd, "go") && SEARCH_COMPLETE) {
             char* go_param = strtok(NULL, " ");
@@ -108,9 +106,8 @@ int main() {
                 cmd_success_input = 1;
             }
             
-            if(cmd_success_input) {
+            if(cmd_success_input)
                 setMovesRange(board, mvs);
-            }
 
         } else if(!strcmp(cmd, "d") && SEARCH_COMPLETE) {
             printBoard(board);
@@ -180,11 +177,10 @@ void printScore(int score) {
     if(abs(score) < MATE_SCORE - 100) {
         printf("score cp %d", score);
     } else {
-        if(score < 0) {
+        if(score < 0)
             printf("score mate %d", (-MATE_SCORE - score) / 2);
-        } else {
+        else
             printf("score mate %d", (MATE_SCORE - score + 1) / 2);
-        }
     }
 }
 
@@ -202,17 +198,14 @@ void printSearchInfo(SearchInfo* info, Board* board, int depth, int eval, int ev
 }
 
 void input(char* str) {
-    if(!fgets(str, 65536, stdin)) {
+    if(!fgets(str, 65536, stdin))
         return;
-    }
     char* ptr = strchr(str, '\n');
-    if (ptr) {
+    if (ptr)
         *ptr = '\0';
-    } 
     ptr = strchr(str, '\r');
-    if (ptr) {
+    if (ptr)
         *ptr = '\0';
-    }
 }
 
 void printPV(Board* board, int depth, U16 bestMove) {
@@ -232,13 +225,11 @@ void printPV(Board* board, int depth, U16 bestMove) {
 
         if(findMove(mv, board)) {
             makeMove(board, cur->move, &undo);
-            if(inCheck(board, !board->color)) {
+            if(inCheck(board, !board->color))
                 break;
-            }
             printf("%s ", mv);
-        } else {
+        } else
             break;
-        }
         cur = &tt[board->key & ttIndex];
     }
     *board = b;
@@ -253,9 +244,8 @@ int findMove(char* move, Board* board) {
     while(*curMove) {
         char mv[6];
         moveToString(*curMove, mv);
-        if(!strcmp(move, mv)) {
+        if(!strcmp(move, mv))
             return 1;
-        }
         ++curMove;
     }
 

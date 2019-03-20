@@ -28,9 +28,8 @@ U64 getAsIndex(U64 bitboard, int index) {
     for(int shift = 0; bitboard; ++shift) {
         int sq = firstOne(bitboard);
 
-        if((1ull << shift) & index) {
+        if((1ull << shift) & index)
             setBit(&result, sq);
-        }
 
         clearBit(&bitboard, sq);
     }

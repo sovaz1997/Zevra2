@@ -13,7 +13,6 @@ void movegen(Board* board, uint16_t* moveList) {
     U64 mask = board->pieces[ROOK] & our;
 
     while(mask) {
-
         int from = firstOne(mask);
         U64 possibleMoves = ~kingPos & rookPossibleMoves[from][getMagicIndex(occu & rookMagicMask[from] & unSquareBitboard[from], rookMagic[from], rookPossibleMovesSize[from])];
         moveList = genMovesFromBitboard(from, possibleMoves & ~our, moveList);
@@ -47,7 +46,6 @@ void movegen(Board* board, uint16_t* moveList) {
 
     while(mask) {
         int from = firstOne(mask);
-
         U64 possibleMoves = ~kingPos & knightAttacks[from];
         moveList = genMovesFromBitboard(from, possibleMoves & ~our, moveList);
         clearBit(&mask, from);
@@ -73,13 +71,11 @@ void movegen(Board* board, uint16_t* moveList) {
         U64 possibleMoves = pawnMoves[color][from];
 
         if(color == WHITE) {
-            if(possibleMoves & occu) {
+            if(possibleMoves & occu)
                 possibleMoves &= ~plus8[firstOne(possibleMoves & occu) - 8];
-            }
         } else {
-            if(possibleMoves & occu) {
+            if(possibleMoves & occu)
                 possibleMoves &= ~minus8[lastOne(possibleMoves & occu) + 8];
-            }
         }
 
         moveList = genMovesFromBitboard(from, possibleMoves & ~(ranks[0] | ranks[7]), moveList);
