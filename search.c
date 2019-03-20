@@ -42,6 +42,7 @@ int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score)
     int f = score;
     while(abs(f) < MATE_SCORE - 1) {
         f = search(board, searchInfo, alpha, beta, depth, 0);
+        
         moveToString(searchInfo->bestMove, bestMove);
 
         if(ABORT) {
@@ -189,7 +190,11 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
     while(*curMove) {
         int nextDepth = depth - 1;
+
+        movePick(pseudoMovesCount, moves[height], height);
+
         ++pseudoMovesCount;
+
         makeMove(board, *curMove, &undo);
 
         if(inCheck(board, !board->color)) {
@@ -343,6 +348,9 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
             return 0;
         }
 
+
+        movePick(pseudoMovesCount, moves[height], height);
+
         if(movePrice[height][pseudoMovesCount] < 0) {
             break;
         }
@@ -484,26 +492,28 @@ void moveOrdering(Board* board, U16* mvs, SearchInfo* searchInfo, int height, in
 
         ++ptr;
     }
-
-    sort(mvs, i, height);
 }
 
-void sort(U16* mvs, int count, int height) {
-    int i, j, key;
-    U16 keyMove;
-    for (i = 1; i < count; i++)  { 
-        key = movePrice[height][i];
-        keyMove = mvs[i];
-        j = i - 1; 
-    
-        while (j >= 0 && movePrice[height][j] < key) { 
-            movePrice[height][j + 1] = movePrice[height][j];
-            mvs[j + 1] = mvs[j];
-            --j;
-        } 
-        movePrice[height][j + 1] = key;
-        mvs[j + 1] = keyMove;
+void movePick(int moveNumber, U16* moves, int height) {
+    int bestPrice = movePrice[height][moveNumber];
+    int bestNumber = moveNumber;
+
+    for(int i = moveNumber + 1; moves[i]; ++i) {
+        if(movePrice[height][i] > bestPrice) {
+            bestNumber = i;
+            bestPrice = movePrice[height][i];
+        }
     }
+
+    U16 tmpMove = moves[moveNumber];
+    moves[moveNumber] = moves[bestNumber];
+    moves[bestNumber] = tmpMove;
+
+    int tmpPrice = movePrice[height][moveNumber];
+    movePrice[height][moveNumber] = movePrice[height][bestNumber];
+    movePrice[height][bestNumber] = tmpPrice;
+
+
 }
 
 void initSearch() {

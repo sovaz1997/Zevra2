@@ -69,7 +69,6 @@ U64 perftTest(Board* board, int depth, int height);
 void perft(Board* board, int depth);
 void* perftThreads(void* perftArgs);
 void moveOrdering(Board* board, U16* mvs, SearchInfo* searchInfo, int height, int depth);
-void sort(U16* mvs, int count, int height);
 void initSearch();
 void resetSearchInfo(SearchInfo* info, TimeManager tm);
 void replaceTransposition(Transposition* tr, Transposition new_tr, int height);
@@ -77,5 +76,6 @@ void setAbort(int val);
 void clearHistory();
 void compressHistory();
 int isKiller(SearchInfo* info, int side, U16 move, int depth);
+void movePick(int moveNumber, U16* moves, int height);
 
 #endif
