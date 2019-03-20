@@ -76,6 +76,6 @@ void setAbort(int val);
 void clearHistory();
 void compressHistory();
 int isKiller(SearchInfo* info, int side, U16 move, int depth);
-void movePick(int moveNumber, U16* moves, int height);
+void movePick(int moveNumber, int height);
 
 #endif

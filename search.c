@@ -191,7 +191,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     while(*curMove) {
         int nextDepth = depth - 1;
 
-        movePick(pseudoMovesCount, moves[height], height);
+        movePick(pseudoMovesCount, height);
 
         ++pseudoMovesCount;
 
@@ -349,7 +349,7 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
         }
 
 
-        movePick(pseudoMovesCount, moves[height], height);
+        movePick(pseudoMovesCount, height);
 
         if(movePrice[height][pseudoMovesCount] < 0) {
             break;
@@ -494,20 +494,20 @@ void moveOrdering(Board* board, U16* mvs, SearchInfo* searchInfo, int height, in
     }
 }
 
-void movePick(int moveNumber, U16* moves, int height) {
+void movePick(int moveNumber, int height) {
     int bestPrice = movePrice[height][moveNumber];
     int bestNumber = moveNumber;
 
-    for(int i = moveNumber + 1; moves[i]; ++i) {
+    for(int i = moveNumber + 1; moves[height][i]; ++i) {
         if(movePrice[height][i] > bestPrice) {
             bestNumber = i;
             bestPrice = movePrice[height][i];
         }
     }
 
-    U16 tmpMove = moves[moveNumber];
-    moves[moveNumber] = moves[bestNumber];
-    moves[bestNumber] = tmpMove;
+    U16 tmpMove = moves[height][moveNumber];
+    moves[height][moveNumber] = moves[height][bestNumber];
+    moves[height][bestNumber] = tmpMove;
 
     int tmpPrice = movePrice[height][moveNumber];
     movePrice[height][moveNumber] = movePrice[height][bestNumber];
