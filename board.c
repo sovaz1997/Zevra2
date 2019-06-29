@@ -13,8 +13,6 @@ void setFen(Board* board, char* fen) {
     char* ruleNumber_str = strtok(NULL, " ");
     char* moveNumber_str = strtok(NULL, " ");
 
-    //Установка фигур
-
     int f = 0, r = 7;
 
     while(*pieces_str) {
@@ -34,8 +32,6 @@ void setFen(Board* board, char* fen) {
 
     board->color = (*color_str == 'w' ? WHITE : BLACK);
 
-    //Установка рокировки
-
     while(*castlings_str) {
         if(*castlings_str == 'K')
             board->castling |= shortCastlingBitboard[WHITE];
@@ -49,14 +45,10 @@ void setFen(Board* board, char* fen) {
         ++castlings_str;
     }
 
-    //Установка поля взятия на проходе
     board->enpassantSquare = (*enpassantSquare_str == '-' ? 0 : stringToSquare(enpassantSquare_str));
-    
-    //Установка номера ходв без взятий и проведений пешек
     board->ruleNumber = atoi(ruleNumber_str);
-    
-    //Установка номера хода
     board->moveNumber = atoi(moveNumber_str);
+    
     free(str);
 
     if(board->color == BLACK)
