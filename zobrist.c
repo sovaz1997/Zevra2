@@ -2,8 +2,7 @@
 
 U64 nextSeed = 0x8a432df075f3;
 
-U64 rand64() {
-	//U64 x = state;	
+U64 rand64() {	
 	nextSeed ^= nextSeed >> 12;
 	nextSeed ^= nextSeed << 25;
 	nextSeed ^= nextSeed >> 27;
