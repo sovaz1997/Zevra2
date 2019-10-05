@@ -320,7 +320,8 @@ int isDraw(Board* board) {
     if(board->ruleNumber >= 100)
         return 1;
 
-    U64 piecesCount = popcount(board->colours[0] | board->colours[1]);
+    U64 pieces = board->colours[0] | board->colours[1];
+    U64 piecesCount = popcount(pieces);
 
     if(piecesCount <= 3) {
         if(piecesCount <= 2)
@@ -329,7 +330,7 @@ int isDraw(Board* board) {
             return popcount(board->pieces[KNIGHT]) == 1 || popcount(board->pieces[BISHOP]) == 1;
     }
 
-    return 0;
+    return (~board->pieces[BISHOP] & pieces) == board->pieces[KING];
 }
 
 int repeatCount(Board* board) {
