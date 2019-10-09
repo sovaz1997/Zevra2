@@ -33,13 +33,13 @@ int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score)
     int beta = min(MATE_SCORE, score + delta);
 
     if(depth <= 5)
-        return search(board, searchInfo, -MATE_SCORE, MATE_SCORE, depth, 0);
+        return search(board, searchInfo, -MATE_SCORE, MATE_SCORE, depth, 0, 0);
 
     char bestMove[6];
 
     int f = score;
     while(abs(f) < MATE_SCORE - 1) {
-        f = search(board, searchInfo, alpha, beta, depth, 0);
+        f = search(board, searchInfo, alpha, beta, depth, 0, 0);
         
         moveToString(searchInfo->bestMove, bestMove);
 
@@ -73,7 +73,7 @@ int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score)
     return f;
 }
 
-int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth, int height) {
+int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth, int height, U16 prevMove) {
     searchInfo->selDepth = max(searchInfo->selDepth, height);
     ++searchInfo->nodesCount;
     
@@ -139,13 +139,14 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         makeNullMove(board);
         searchInfo->nullMoveSearch = 1;
 
-        int eval = -search(board, searchInfo, -beta, -beta + 1, depth - 1 - R, height + 1);
+        int eval = -search(board, searchInfo, -beta, -beta + 1, depth - 1 - R, height + 1, 0);
 
         searchInfo->nullMoveSearch = 0;
         unmakeNullMove(board);
 
-        if(eval >= beta)
+        if(eval >= beta) {
             return beta;
+        }
     }
 
     //Reverse futility pruning
@@ -158,10 +159,10 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
     //IID
     if(IIDAllow && pvNode && !ttEntry->move && depth >= 3)
-        search(board, searchInfo, alpha, beta, depth - 2, height);
+        search(board, searchInfo, alpha, beta, depth - 2, height, 0);
 
     movegen(board, moves[height]);
-    moveOrdering(board, moves[height], searchInfo, height, depth);
+    moveOrdering(board, moves[height], searchInfo, height, depth, prevMove);
 
     U16* curMove = moves[height];
     int movesCount = 0, pseudoMovesCount = 0, playedMovesCount = 0;
@@ -220,24 +221,24 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
         int eval;
         if(movesCount == 1) {
-            eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
+            eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1, *curMove);
         } else {
             if(LmrPruningAllow && playedMovesCount >= 3 && quiteMove) {
-                eval = -search(board, searchInfo, -alpha - 1, -alpha, nextDepth + extensions - reductions, height + 1);
+                eval = -search(board, searchInfo, -alpha - 1, -alpha, nextDepth + extensions - reductions, height + 1, *curMove);
                 if(eval > alpha)
-                    eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
+                    eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1, *curMove);
             } else {
-                eval = -search(board, searchInfo, -alpha - 1, -alpha, nextDepth + extensions, height + 1);
+                eval = -search(board, searchInfo, -alpha - 1, -alpha, nextDepth + extensions, height + 1, *curMove);
     
                 if(eval > alpha && eval < beta)
-                    eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
+                    eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1, *curMove);
             }
         }
         
 
         if(HistoryPruningAllow && historyReduced && eval >= beta) {
             ++nextDepth;
-            eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
+            eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1, *curMove);
         }
 
         unmakeMove(board, *curMove, &undo);
@@ -258,6 +259,8 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
                 
                 searchInfo->killer[board->color][depth] = *curMove;
                 history[board->color][MoveFrom(*curMove)][MoveTo(*curMove)] += (depth * depth);
+
+                counterMove[MoveFrom(prevMove)][MoveTo(prevMove)] = *curMove;
             }
 
             hashType = lowerbound;
@@ -307,7 +310,7 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
         alpha = val;
 
     attackgen(board, moves[height]);
-    moveOrdering(board, moves[height], searchInfo, height, 0);
+    moveOrdering(board, moves[height], searchInfo, height, 0, 0);
     U16* curMove = moves[height];
     Undo undo;
     int pseudoMovesCount = 0;
@@ -396,7 +399,7 @@ void perft(Board* board, int depth) {
     }
 }
 
-void moveOrdering(Board* board, U16* mvs, SearchInfo* searchInfo, int height, int depth) {
+void moveOrdering(Board* board, U16* mvs, SearchInfo* searchInfo, int height, int depth, U16 prevMove) {
     if(depth > MAX_PLY - 1)
         depth = MAX_PLY - 1;
 
@@ -413,15 +416,20 @@ void moveOrdering(Board* board, U16* mvs, SearchInfo* searchInfo, int height, in
         else if(toPiece)
             movePrice[height][i] = mvvLvaScores[pieceType(board->squares[MoveFrom(*ptr)])][toPiece] * 1000000;
         else if(depth < MAX_PLY && searchInfo->killer[board->color][depth] == *ptr)
-            movePrice[height][i] = 100000;
+            movePrice[height][i] = 1000000;
         else if(depth >= 2 && depth < MAX_PLY && searchInfo->killer[board->color][depth-2] == *ptr)
             movePrice[height][i] = 99999;
         else if(depth < MAX_PLY && searchInfo->secondKiller[board->color][depth] == *ptr)
             movePrice[height][i] = 99998;
         else if(depth >= 2 && depth < MAX_PLY && searchInfo->secondKiller[board->color][depth-2] == *ptr)
             movePrice[height][i] = 99997;
-        else if(!toPiece)
+        else if(!toPiece) {
             movePrice[height][i] = history[board->color][MoveFrom(*ptr)][MoveTo(*ptr)];
+
+            if(counterMove[MoveFrom(prevMove)][MoveTo(prevMove)] == *ptr )
+                movePrice[height][i] = 99996;
+        }
+        
 
         if(MoveType(*ptr) == ENPASSANT_MOVE)
             movePrice[height][i] = mvvLvaScores[PAWN][PAWN] * 1000000;
@@ -511,6 +519,7 @@ void setAbort(int val) {
 
 void clearHistory() {
     memset(history, 0, 2*64*64 * sizeof(int));
+    memset(counterMove, 0, 64*64 * sizeof(int));
 }
 void compressHistory() {
     for(int i = 0; i < 64; ++i) {

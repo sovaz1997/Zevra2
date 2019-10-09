@@ -21,6 +21,7 @@ struct SearchArgs {
 };
 
 int history[2][64][64];
+int counterMove[64][64];
 
 struct SearchInfo {
     U64 nodesCount;
@@ -62,13 +63,13 @@ static const int IIDAllow = 0;
 
 void* go(void* thread_data);
 void iterativeDeeping(Board* board, TimeManager tm);
-int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth, int height);
+int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth, int height, U16 prevMove);
 int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score);
 int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int height);
 U64 perftTest(Board* board, int depth, int height);
 void perft(Board* board, int depth);
 void* perftThreads(void* perftArgs);
-void moveOrdering(Board* board, U16* mvs, SearchInfo* searchInfo, int height, int depth);
+void moveOrdering(Board* board, U16* mvs, SearchInfo* searchInfo, int height, int depth, U16 prevMove);
 void initSearch();
 void resetSearchInfo(SearchInfo* info, TimeManager tm);
 void replaceTransposition(Transposition* tr, Transposition new_tr, int height);
