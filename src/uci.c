@@ -3,14 +3,18 @@
 char startpos[] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 Option option;
 
-int main() {
+int bench(Board* board, int time);
+
+int main(int argc, char **argv) {
     initOption();
     initEngine();
 
     Board* board = (Board*) malloc(sizeof(Board)); 
 
+
     printEngineInfo();
     setFen(board, startpos);
+
 
     char buff[65536];
 
@@ -20,6 +24,12 @@ int main() {
     SEARCH_COMPLETE = 1;
 
     TimeManager tm;
+
+    if(argc > 1 && !strcmp(argv[1], "bench")) {
+        bench(board, 5000);
+        free(board);
+        return 0;
+    }
 
     while(1) {
         int makeSearch = 0;
@@ -265,4 +275,12 @@ void initOption() {
     option.defaultHashSize = 256;
     option.minHashSize = 1;
     option.maxHashSize = 65536;
+}
+
+int bench(Board* board, int time) {
+    TimeManager tm = createFixTimeTm(time);
+    SearchInfo si = iterativeDeeping(board, tm);
+    printf("Time  : %dms\n", time);
+    printf("Nodes : %d\n", si.nodesCount);
+    printf("NPS   : %d\n", (int)((double)si.nodesCount / ((double)time / 1000.)));
 }

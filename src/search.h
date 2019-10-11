@@ -61,7 +61,7 @@ static const int RazoringPruningAllow = 1;
 static const int IIDAllow = 0;
 
 void* go(void* thread_data);
-void iterativeDeeping(Board* board, TimeManager tm);
+SearchInfo iterativeDeeping(Board* board, TimeManager tm);
 int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth, int height);
 int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score);
 int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int height);

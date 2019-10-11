@@ -7,7 +7,7 @@ void* go(void* thread_data) {
     return 0;
 }
 
-void iterativeDeeping(Board* board, TimeManager tm) {
+SearchInfo iterativeDeeping(Board* board, TimeManager tm) {
     ++ttAge;
     SearchInfo searchInfo;
     char bestMove[6];
@@ -25,6 +25,8 @@ void iterativeDeeping(Board* board, TimeManager tm) {
     printf("info nodes %lu time %lu\n", searchInfo.nodesCount, getTime(&searchInfo.timer));
     printf("bestmove %s\n", bestMove);
     fflush(stdout);
+
+    return searchInfo;
 }
 
 int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score) {
