@@ -3,8 +3,6 @@
 char startpos[] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 Option option;
 
-int bench(Board* board, int time);
-
 int main(int argc, char **argv) {
     initOption();
     initEngine();
