@@ -23,8 +23,17 @@ int main(int argc, char **argv) {
 
     TimeManager tm;
 
+    //Ethereal bench settings (for for compatibility with OpenBench)
+    int depth     = argc > 2 ? atoi(argv[2]) : 13;
+    int nthreads  = argc > 3 ? atoi(argv[3]) : 1;
+    int megabytes = argc > 4 ? atoi(argv[4]) : 16;
+
     if(argc > 1 && !strcmp(argv[1], "bench")) {
-        bench(board, 5000);
+        if(megabytes >= option.minHashSize && megabytes <= option.maxHashSize) {
+            reallocTT(megabytes);
+        }
+
+        bench(board, depth);
         free(board);
         return 0;
     }
@@ -275,10 +284,11 @@ void initOption() {
     option.maxHashSize = 65536;
 }
 
-int bench(Board* board, int time) {
-    TimeManager tm = createFixTimeTm(time);
+int bench(Board* board, int depth) {
+    TimeManager tm = createFixDepthTm(depth);
     SearchInfo si = iterativeDeeping(board, tm);
-    printf("Time  : %dms\n", time);
+    double time = getTime(&si.timer);
+    printf("Time  : %dms\n", (int)time);
     printf("Nodes : %d\n", si.nodesCount);
-    printf("NPS   : %d\n", (int)((double)si.nodesCount / ((double)time / 1000.)));
+    printf("NPS   : %d\n", (int)((double)si.nodesCount / (time / 1000.)));
 }
