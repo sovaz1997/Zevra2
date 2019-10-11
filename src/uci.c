@@ -290,5 +290,5 @@ int bench(Board* board, int depth) {
     double time = getTime(&si.timer);
     printf("Time  : %dms\n", (int)time);
     printf("Nodes : %d\n", si.nodesCount);
-    printf("NPS   : %d\n", (int)((double)si.nodesCount / (time / 1000.)));
+    printf("NPS   : %d\n\n", (int)((double)si.nodesCount / (time / 1000.)));
 }
