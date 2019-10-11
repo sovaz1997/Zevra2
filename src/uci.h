@@ -16,6 +16,7 @@ extern char startpos[];
 pthread_mutex_t mutex;
 
 int main();
+int bench(Board* board, int time);
 void makeCommand();
 void printPV(Board* board, int depth, U16 bestMove);
 void printEngineInfo();
