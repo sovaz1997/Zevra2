@@ -25,7 +25,7 @@ SearchInfo iterativeDeeping(Board* board, TimeManager tm) {
     printf("info nodes %lu time %lu\n", searchInfo.nodesCount, getTime(&searchInfo.timer));
     printf("bestmove %s\n", bestMove);
     fflush(stdout);
-
+    
     return searchInfo;
 }
 

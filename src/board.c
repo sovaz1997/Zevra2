@@ -161,13 +161,17 @@ void makeMove(Board* board, U16 move, Undo* undo) {
     if(MoveType(move) == CASTLE_MOVE) {
         U8 king = makePiece(KING, board->color);
         int castlingRank = (board->color == WHITE ? 0 : 7);
-        if(board->squares[square(castlingRank, 6)] == king)
+        if(board->squares[square(castlingRank, 6)] == king) {
+            board->key ^= zobristCastlingKeys[board->color * 2];
             movePiece(board, square(castlingRank, 7), square(castlingRank, 5));
-        else if(board->squares[square(castlingRank, 2)] == king)
+        } else if(board->squares[square(castlingRank, 2)] == king) {
+            board->key ^= zobristCastlingKeys[board->color * 2 + 1];
             movePiece(board, square(castlingRank, 0), square(castlingRank, 3));
+        }
     } else if(MoveType(move) == PROMOTION_MOVE) {
         setPiece(board, MovePromotionPiece(move), board->color, MoveTo(move));
     } else if(MoveType(move) == ENPASSANT_MOVE) {
+        board->key ^= zobristEnpassantKeys[board->enpassantSquare];
         if(board->color == WHITE)
             clearPiece(board, board->enpassantSquare - 8);
         else
@@ -205,11 +209,15 @@ void unmakeMove(Board* board, U16 move, Undo* undo) {
         int castlingRank = (!board->color == WHITE ? 0 : 7);
         U8 king = makePiece(KING, !board->color);        
 
-        if(board->squares[square(castlingRank, 6)] == king)
+        if(board->squares[square(castlingRank, 6)] == king) {
+            board->key ^= zobristCastlingKeys[!board->color * 2];
             movePiece(board, square(castlingRank, 5), square(castlingRank, 7));
-        else if(board->squares[square(castlingRank, 2)] == king)
+        } else if(board->squares[square(castlingRank, 2)] == king) {
+            board->key ^= zobristCastlingKeys[!board->color * 2 + 1];
             movePiece(board, square(castlingRank, 3), square(castlingRank, 0));
+        }
     } else if(MoveType(move) == ENPASSANT_MOVE) {
+        board->key ^= zobristEnpassantKeys[board->enpassantSquare];
         if(!board->color == WHITE)
             setPiece(board, PAWN, board->color, undo->enpassantSquare - 8);
         else
