@@ -289,6 +289,6 @@ int bench(Board* board, int depth) {
     SearchInfo si = iterativeDeeping(board, tm);
     double time = getTime(&si.timer);
     printf("Time  : %dms\n", (int)time);
-    printf("Nodes : %d\n", si.nodesCount);
+    printf("Nodes : %ld\n", si.nodesCount);
     printf("NPS   : %d\n\n", (int)((double)si.nodesCount / (time / 1000.)));
 }
