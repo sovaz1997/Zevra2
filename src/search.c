@@ -188,9 +188,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
         int extensions = inCheck(board, board->color) || MovePromotionPiece(*curMove) == QUEEN;
 
-
-        int goodMove = isKiller(searchInfo, board->color, *curMove, depth);
-        int quiteMove = (!goodMove && !undo.capturedPiece && MoveType(*curMove) != ENPASSANT_MOVE) && MoveType(*curMove) != PROMOTION_MOVE;
+        int quiteMove = (!undo.capturedPiece && MoveType(*curMove) != ENPASSANT_MOVE) && MoveType(*curMove) != PROMOTION_MOVE;
 
         if(root && depth > 12) {
             char moveStr[6];
@@ -200,7 +198,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         }
 
         //Fulility pruning
-        if(depth < 7 && !goodMove && !extensions && !root && FutilityPruningAllow) {
+        if(depth < 7 && !extensions && !root && FutilityPruningAllow) {
             if(staticEval + FutilityStep * depth + pVal[pieceType(undo.capturedPiece)] <= alpha) {
                 unmakeMove(board, *curMove, &undo);
                 ++curMove;
@@ -215,7 +213,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         int historyReduced = 0;
 
         //History pruning
-        if(HistoryPruningAllow && !pvNode && !extensions && !goodMove && depth >= 7 && movePrice[height][pseudoMovesCount - 1] >= 0 && movePrice[height][pseudoMovesCount - 1] <= 20000) {
+        if(HistoryPruningAllow && !pvNode && !extensions && depth >= 7 && movePrice[height][pseudoMovesCount - 1] >= 0 && movePrice[height][pseudoMovesCount - 1] <= 20000) {
             --nextDepth;
             historyReduced = 1;
         }
