@@ -158,10 +158,6 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     if(!pvNode && !havePromotionPawn(board) && !weInCheck && depth <= 4 && staticEval + RazorMargin * depth < alpha && RazoringPruningAllow)
         return quiesceSearch(board, searchInfo, alpha, beta, height);
 
-    //IID
-    if(IIDAllow && pvNode && !ttEntry->move && depth >= 3)
-        search(board, searchInfo, alpha, beta, depth - 2, height);
-
     movegen(board, moves[height]);
     moveOrdering(board, moves[height], searchInfo, height, depth);
 
@@ -209,14 +205,6 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         ++playedMovesCount;
 
         int reductions = lmr[min(depth, MAX_PLY - 1)][min(63, playedMovesCount)];
-        
-        int historyReduced = 0;
-
-        //History pruning
-        if(HistoryPruningAllow && !pvNode && !extensions && depth >= 7 && movePrice[height][pseudoMovesCount - 1] >= 0 && movePrice[height][pseudoMovesCount - 1] <= 20000) {
-            --nextDepth;
-            historyReduced = 1;
-        }
 
         int eval;
         if(movesCount == 1) {
@@ -233,13 +221,6 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
                     eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
             }
         }
-        
-
-        if(HistoryPruningAllow && historyReduced && eval >= beta) {
-            ++nextDepth;
-            eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
-        }
-
         unmakeMove(board, *curMove, &undo);
         
         if(eval > alpha) {

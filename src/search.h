@@ -55,10 +55,8 @@ int lmr[MAX_PLY][64];
 static const int FutilityPruningAllow = 1;
 static const int NullMovePruningAllow = 1;
 static const int LmrPruningAllow = 1;
-static const int HistoryPruningAllow = 1;
 static const int ReverseFutilityPruningAllow = 1;
 static const int RazoringPruningAllow = 1;
-static const int IIDAllow = 0;
 
 void* go(void* thread_data);
 SearchInfo iterativeDeeping(Board* board, TimeManager tm);
