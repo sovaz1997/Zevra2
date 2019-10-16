@@ -1,5 +1,11 @@
-Move ordering with sort algorithm ->  move ordering with move pick (sort of necessity)
+Name: don't make futility pruning in pv nodes
+tc: 5+0.05
+Score of Zevra Dev vs Zevra Master: 1084 - 962 - 1120  [0.519] 3166
+Elo difference: 13.4 +/- 9.7, LOS: 99.7 %, DrawRatio: 35.4 %
+SPRT: llr 2.21 (100.7%), lbound -2.2, ubound 2.2 - H1 was accepted
 
-Score of Zevra v2.1.2 r248 vs Zevra v2.1.2 r248: 1439 - 1307 - 1373  [0.516] 4119
+Name: Move ordering with sort algorithm -> move ordering with move pick (sort of necessity)
+tc: 5+0.05
+Score of Zevra Dev vs Zevra Master: 1439 - 1307 - 1373  [0.516] 4119
 Elo difference: 11.14 +/- 8.65
 SPRT: llr 2.21, lbound -2.2, ubound 2.2 - H1 was accepted
