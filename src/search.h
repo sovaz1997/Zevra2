@@ -27,8 +27,7 @@ struct SearchInfo {
     U16 bestMove;
     Timer timer;
     TimeManager tm;
-    U16 killer[2][MAX_PLY + 1];
-    U16 secondKiller[2][MAX_PLY + 1];
+    U16 killer[MAX_PLY + 1][2];
     int nullMoveSearch;
     int searchTime;
     int selDepth;
@@ -73,7 +72,6 @@ void replaceTransposition(Transposition* tr, Transposition new_tr, int height);
 void setAbort(int val);
 void clearHistory();
 void compressHistory();
-int isKiller(SearchInfo* info, int side, U16 move, int depth);
 void movePick(int moveNumber, int height);
 
 #endif

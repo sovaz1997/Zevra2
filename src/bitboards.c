@@ -120,7 +120,7 @@ void attacksGen() {
             setBit(&pawnMoves[WHITE][i], i + 16);
         } else {
             setBit(&pawnMoves[WHITE][i], i + 8);
-        }        
+        }      
     }
     for(unsigned int i = square(6, 7); i >= square(1, 0); --i) {
         if(rankOf(i) == 6) {

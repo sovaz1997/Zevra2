@@ -170,6 +170,9 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     int hashType = upperbound;
     U16 curBestMove = 0;
 
+    searchInfo->killer[height + 1][0] = 0;
+    searchInfo->killer[height + 1][1] = 0;
+
     while(*curMove) {
         int nextDepth = depth - 1;
         movePick(pseudoMovesCount, height);
@@ -235,10 +238,10 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         }
         if(alpha >= beta) {
             if(!undo.capturedPiece) {
-                if(searchInfo->killer[board->color][depth])
-                    searchInfo->secondKiller[board->color][depth] = searchInfo->killer[board->color][depth];
+                if(searchInfo->killer[height][0])
+                    searchInfo->killer[height][1] = searchInfo->killer[height][0];
                 
-                searchInfo->killer[board->color][depth] = *curMove;
+                searchInfo->killer[height][0] = *curMove;
                 history[board->color][MoveFrom(*curMove)][MoveTo(*curMove)] += (depth * depth);
             }
 
@@ -394,13 +397,13 @@ void moveOrdering(Board* board, U16* mvs, SearchInfo* searchInfo, int height, in
             movePrice[height][i] = 1000000000;
         else if(toPiece)
             movePrice[height][i] = mvvLvaScores[pieceType(board->squares[MoveFrom(*ptr)])][toPiece] * 1000000;
-        else if(depth < MAX_PLY && searchInfo->killer[board->color][depth] == *ptr)
+        else if(depth < MAX_PLY && searchInfo->killer[height][0] == *ptr)
             movePrice[height][i] = 100000;
-        else if(depth >= 2 && depth < MAX_PLY && searchInfo->killer[board->color][depth-2] == *ptr)
+        else if(depth >= 2 && depth < MAX_PLY && searchInfo->killer[height - 2][0] == *ptr)
             movePrice[height][i] = 99999;
-        else if(depth < MAX_PLY && searchInfo->secondKiller[board->color][depth] == *ptr)
+        else if(depth < MAX_PLY && searchInfo->killer[height][1] == *ptr)
             movePrice[height][i] = 99998;
-        else if(depth >= 2 && depth < MAX_PLY && searchInfo->secondKiller[board->color][depth-2] == *ptr)
+        else if(depth >= 2 && depth < MAX_PLY && searchInfo->killer[height - 2][1] == *ptr)
             movePrice[height][i] = 99997;
         else if(!toPiece)
             movePrice[height][i] = history[board->color][MoveFrom(*ptr)][MoveTo(*ptr)];
@@ -499,16 +502,4 @@ void compressHistory() {
             history[BLACK][i][j] /= 100;
         }   
     }
-}
-
-int isKiller(SearchInfo* info, int side, U16 move, int depth) {
-    if(info->killer[side][depth] == move || info->secondKiller[side][depth] == move)
-        return 1;
-
-    if(depth >= 2) {
-        if(info->killer[side][depth - 2] == move || info->secondKiller[side][depth - 2] == move)
-            return 1;
-    }
-
-    return 0;
 }
