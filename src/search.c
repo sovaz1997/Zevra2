@@ -40,6 +40,7 @@ int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score)
     char bestMove[6];
 
     int f = score;
+    
     while(abs(f) < MATE_SCORE - 1) {
         f = search(board, searchInfo, alpha, beta, depth, 0);
         
@@ -117,11 +118,12 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     Transposition* ttEntry = &tt[keyPosition & ttIndex];
 
     //TT analysis
+    int ttEval = evalFromTT(ttEntry->eval, height);
     if(ttEntry->evalType && ttEntry->depth >= depth && !root && ttEntry->key == keyPosition) {
-        if(ttEntry->evalType == lowerbound && ttEntry->eval >= beta && !mateScore(ttEntry->eval) ||
-           ttEntry->evalType == upperbound && ttEntry->eval <= alpha && !mateScore(ttEntry->eval) ||
+        if(ttEntry->evalType == lowerbound && ttEval >= beta && !mateScore(ttEntry->eval) ||
+           ttEntry->evalType == upperbound && ttEval <= alpha && !mateScore(ttEntry->eval) ||
            ttEntry->evalType == exact) {
-               return evalFromTT(ttEntry->eval, height);
+               return ttEval;
         }
     }
 
@@ -202,9 +204,8 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
             }
         }
 
+        int reductions = lmr[min(depth, 63)][min(playedMovesCount, 63)];
         ++playedMovesCount;
-
-        int reductions = lmr[min(depth, MAX_PLY - 1)][min(63, playedMovesCount)];
 
         int eval;
         if(movesCount == 1) {
