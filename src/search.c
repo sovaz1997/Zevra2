@@ -235,8 +235,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
                 searchInfo->bestMove = *curMove;
 
             hashType = exact;
-        }
-        if(alpha >= beta) {
+
             if(!undo.capturedPiece) {
                 if(searchInfo->killer[height][0])
                     searchInfo->killer[height][1] = searchInfo->killer[height][0];
@@ -244,9 +243,9 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
                 searchInfo->killer[height][0] = *curMove;
                 history[board->color][MoveFrom(*curMove)][MoveTo(*curMove)] += (depth * depth);
             }
-
+        }
+        if(alpha >= beta) {
             hashType = lowerbound;
-
             break;
         }
         ++curMove;
