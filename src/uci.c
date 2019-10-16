@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
     int nthreads  = argc > 3 ? atoi(argv[3]) : 1;
     int megabytes = argc > 4 ? atoi(argv[4]) : 16;
 
-    if(argc > 1 && !strcmp(argv[1], "bench")) {
+    if(argc > 1 && strEquals(argv[1], "bench")) {
         if(megabytes >= option.minHashSize && megabytes <= option.maxHashSize) {
             reallocTT(megabytes);
         }
@@ -58,7 +58,7 @@ int main(int argc, char **argv) {
         if(!cmd)
             continue;
 
-        if(!strcmp(cmd, "go") && SEARCH_COMPLETE) {
+        if(strStartsWith(cmd, "go") && SEARCH_COMPLETE) {
             char* go_param = strtok(NULL, " ");
             
             if(!go_param) {
@@ -71,15 +71,15 @@ int main(int argc, char **argv) {
                 }
                 perft(board, atoi(depth_str));
             } else {
-                if(!strcmp(go_param, "depth")) {
+                if(strEquals(go_param, "depth")) {
                     char* depth_str = strtok(NULL, " ");
                     tm = createFixDepthTm(atoi(depth_str));
-                } else if(!strcmp(go_param, "movetime")) {
+                } else if(strEquals(go_param, "movetime")) {
                     char* time_str = strtok(NULL, " ");
                     tm = createFixTimeTm(atoll(time_str));
-                } else if(!strcmp(go_param, "infinite")) {
+                } else if(strEquals(go_param, "infinite")) {
                     tm = createFixDepthTm(MAX_PLY - 1);
-                } else if(!strcmp(go_param, "nodes")) {
+                } else if(strEquals(go_param, "nodes")) {
                     char* nodes_str = strtok(NULL, " ");
                     tm = createFixedNodesTm(atoi(nodes_str));
                 } else {
@@ -87,19 +87,19 @@ int main(int argc, char **argv) {
                     
                     while(go_param) {
 
-                        if(!strcmp(go_param, "wtime")) {
+                        if(strEquals(go_param, "wtime")) {
                             char* tm_str = strtok(NULL, " ");
                             wtime = atoi(tm_str);
-                        } else if(!strcmp(go_param, "btime")) {
+                        } else if(strEquals(go_param, "btime")) {
                             char* tm_str = strtok(NULL, " ");
                             btime = atoi(tm_str);
-                        } else if(!strcmp(go_param, "winc")) {
+                        } else if(strEquals(go_param, "winc")) {
                             char* inc = strtok(NULL, " ");
                             winc = atoi(inc);
                         } else if(!strcmp(go_param, "binc")) {
                             char* inc = strtok(NULL, " ");
                             binc = atoi(inc);
-                        } else if(!strcmp(go_param, "movestogo")) {
+                        } else if(strEquals(go_param, "movestogo")) {
                             char* mtg = strtok(NULL, " ");
                             movestogo = atoi(mtg);
                         }
@@ -111,7 +111,7 @@ int main(int argc, char **argv) {
                 }
                 makeSearch = 1;
             }
-        } else if(!strcmp(cmd, "position") && SEARCH_COMPLETE) {
+        } else if(strEquals(cmd, "position") && SEARCH_COMPLETE) {
             gameInfo.moveCount = 0;
             cmd = strtok(NULL, " ");
             int cmd_success_input = 0;
@@ -126,35 +126,35 @@ int main(int argc, char **argv) {
             if(cmd_success_input)
                 setMovesRange(board, mvs);
 
-        } else if(!strcmp(cmd, "d") && SEARCH_COMPLETE) {
+        } else if(strEquals(cmd, "d") && SEARCH_COMPLETE) {
             printBoard(board);
-        } else if(!strcmp(cmd, "quit")) {
+        } else if(strEquals(cmd, "quit")) {
             free(str);
             free(tt);
             break;
-        } else if(!strcmp(cmd, "uci") && SEARCH_COMPLETE) {
+        } else if(strEquals(cmd, "uci") && SEARCH_COMPLETE) {
             printEngineInfo();
             printf("option name Hash type spin default %d min %d max %d\n", option.defaultHashSize, option.minHashSize, option.maxHashSize);
             printf("option name Clear Hash type button\n");
             printf("uciok\n");
-        } else if(!strcmp(cmd, "eval") && SEARCH_COMPLETE) {
+        } else if(strEquals(cmd, "eval") && SEARCH_COMPLETE) {
             printf("Eval: %d\n", fullEval(board));
-        } else if(!strcmp(cmd, "isready")) {
+        } else if(strEquals(cmd, "isready")) {
             readyok();
-        } else if(!strcmp(cmd, "stop") && !SEARCH_COMPLETE) {
+        } else if(strEquals(cmd, "stop") && !SEARCH_COMPLETE) {
             SEARCH_COMPLETE = 1;
             setAbort(1);
-        } else if(!strcmp(cmd, "ucinewgame") && SEARCH_COMPLETE) {
+        } else if(strEquals(cmd, "ucinewgame") && SEARCH_COMPLETE) {
             clearTT();
-        } else if(!strcmp(cmd, "setoption") && SEARCH_COMPLETE) {
+        } else if(strEquals(cmd, "setoption") && SEARCH_COMPLETE) {
             if(name && value) {
-                if(!strncmp(name, "Hash", 4)) {
+                if(strStartsWith(name, "Hash")) {
                     int hashSize = atoi(value);
                     if(hashSize >= option.minHashSize && hashSize <= option.maxHashSize) {
                         reallocTT(hashSize);
                     }
                     printf("info string hash size changed to %d mb\n", hashSize);
-                } else if(!strncmp(name, "Clear Hash", 10)) {
+                } else if(strStartsWith(name, "Clear Hash")) {
                     clearTT();
                     printf("info string hash cleared\n");
                 }
@@ -291,4 +291,12 @@ int bench(Board* board, int depth) {
     printf("Time  : %dms\n", (int)time);
     printf("Nodes : %ld\n", si.nodesCount);
     printf("NPS   : %d\n\n", (int)((double)si.nodesCount / (time / 1000.)));
+}
+
+int strEquals(char* str1, char* str2) {
+    return !strcmp(str1, str2);
+}
+
+int strStartsWith(char* str, char* key) {
+    return strstr(str, key) == str;
 }

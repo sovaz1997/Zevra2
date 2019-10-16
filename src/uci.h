@@ -28,4 +28,7 @@ void readyok();
 void initOption();
 void initEngine();
 
+int strEquals(char* str1, char* str2);
+int strStartsWith(char* str, char* key);
+
 #endif

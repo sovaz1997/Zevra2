@@ -29,31 +29,22 @@ void initBitboards() {
     }
 
     for(int sq = 0; sq < 64; ++sq) {
-        for(int r = rankOf(sq) + 1, f = fileOf(sq) + 1; r < 8 && f < 8; ++r, ++f) {
+        for(int r = rankOf(sq) + 1, f = fileOf(sq) + 1; r < 8 && f < 8; ++r, ++f)
             setBit(&plus9[sq], square(r, f));
-        }
-        for(int r = rankOf(sq) + 1, f = fileOf(sq) - 1; r < 8 && f >= 0; ++r, --f) {
+        for(int r = rankOf(sq) + 1, f = fileOf(sq) - 1; r < 8 && f >= 0; ++r, --f)
             setBit(&plus7[sq], square(r, f));
-        }
-        for(int r = rankOf(sq) - 1, f = fileOf(sq) - 1; r >= 0 && f >= 0; --r, --f) {
+        for(int r = rankOf(sq) - 1, f = fileOf(sq) - 1; r >= 0 && f >= 0; --r, --f)
             setBit(&minus9[sq], square(r, f));
-        }
-        for(int r = rankOf(sq) - 1, f = fileOf(sq) + 1; r >= 0 && f < 8; --r, ++f) {
+        for(int r = rankOf(sq) - 1, f = fileOf(sq) + 1; r >= 0 && f < 8; --r, ++f)
             setBit(&minus7[sq], square(r, f));
-        }
-
-        for(int r = rankOf(sq) + 1; r < 8; ++r) {
+        for(int r = rankOf(sq) + 1; r < 8; ++r) 
             setBit(&plus8[sq], square(r, fileOf(sq)));
-        }
-        for(int r = rankOf(sq) - 1; r >= 0; --r) {
+        for(int r = rankOf(sq) - 1; r >= 0; --r)
             setBit(&minus8[sq], square(r, fileOf(sq)));
-        }
-        for(int f = fileOf(sq) + 1; f < 8; ++f) {
+        for(int f = fileOf(sq) + 1; f < 8; ++f)
             setBit(&plus1[sq], square(rankOf(sq), f));
-        }
-        for(int f = fileOf(sq) - 1; f >= 0; --f) {
+        for(int f = fileOf(sq) - 1; f >= 0; --f)
             setBit(&minus1[sq], square(rankOf(sq), f));
-        }
     }
 
     attacksGen();

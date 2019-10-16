@@ -266,9 +266,6 @@ void getUndo(Board* board, Undo* undo) {
 }
 
 int attackedSquare(Board* board, int sq, int color) {
-    assert(sq >= 0);
-    assert(sq <= 63);
-    
     U64 our = board->colours[color];
     U64 enemy = board->colours[!color];
     U64 occu = our | enemy;
@@ -331,12 +328,11 @@ int isDraw(Board* board) {
     U64 pieces = board->colours[0] | board->colours[1];
     U64 piecesCount = popcount(pieces);
 
-    if(piecesCount <= 3) {
-        if(piecesCount <= 2)
+    if(piecesCount <= 2)
             return 1;
-        else
-            return popcount(board->pieces[KNIGHT]) == 1 || popcount(board->pieces[BISHOP]) == 1;
-    }
+
+    if(piecesCount <= 3)
+        return popcount(board->pieces[KNIGHT]) == 1 || popcount(board->pieces[BISHOP]) == 1;
 
     return (~board->pieces[BISHOP] & pieces) == board->pieces[KING];
 }

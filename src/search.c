@@ -236,7 +236,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         if(alpha >= beta) {
             if(!undo.capturedPiece) {
                 if(searchInfo->killer[board->color][depth])
-                    searchInfo->secondKiller[board->color][height] = searchInfo->killer[board->color][depth];
+                    searchInfo->secondKiller[board->color][depth] = searchInfo->killer[board->color][depth];
                 
                 searchInfo->killer[board->color][depth] = *curMove;
                 history[board->color][MoveFrom(*curMove)][MoveTo(*curMove)] += (depth * depth);
@@ -447,8 +447,6 @@ void movePick(int moveNumber, int height) {
     int tmpPrice = movePrice[height][moveNumber];
     movePrice[height][moveNumber] = movePrice[height][bestNumber];
     movePrice[height][bestNumber] = tmpPrice;
-
-
 }
 
 void initSearch() {
