@@ -207,7 +207,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
             }
         }
 
-        int reductions = lmr[min(depth, 63)][min(playedMovesCount, 63)];
+        int reductions = lmr[min(depth, MAX_PLY-1)][min(playedMovesCount, 63)];
         ++playedMovesCount;
 
         int eval;
