@@ -3,7 +3,7 @@
 char startpos[] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 Option option;
 
-int main(int argc, char **argv) {
+int main() {
     initOption();
     initEngine();
 
@@ -21,22 +21,7 @@ int main(int argc, char **argv) {
     board->gameInfo = &gameInfo;
     SEARCH_COMPLETE = 1;
 
-    TimeManager tm;
-
-    //Ethereal bench settings (for for compatibility with OpenBench)
-    int depth     = argc > 2 ? atoi(argv[2]) : 13;
-    int nthreads  = argc > 3 ? atoi(argv[3]) : 1;
-    int megabytes = argc > 4 ? atoi(argv[4]) : 16;
-
-    if(argc > 1 && strEquals(argv[1], "bench")) {
-        if(megabytes >= option.minHashSize && megabytes <= option.maxHashSize) {
-            reallocTT(megabytes);
-        }
-
-        bench(board, depth);
-        free(board);
-        return 0;
-    }
+    TimeManager tm = initTM();
 
     while(1) {
         int makeSearch = 0;
@@ -64,7 +49,7 @@ int main(int argc, char **argv) {
             if(!go_param) {
                 tm = createFixDepthTm(MAX_PLY - 1);
                 makeSearch = 1;
-            } else if(!strcmp(go_param, "perft")) {
+            } else if(strEquals(go_param, "perft")) {
                 char* depth_str = strtok(NULL, " ");
                 if(!depth_str) {
                     continue;
@@ -86,7 +71,6 @@ int main(int argc, char **argv) {
                     int wtime = 0, btime = 0, winc = 0, binc = 0, movestogo = 0;
                     
                     while(go_param) {
-
                         if(strEquals(go_param, "wtime")) {
                             char* tm_str = strtok(NULL, " ");
                             wtime = atoi(tm_str);
@@ -96,7 +80,7 @@ int main(int argc, char **argv) {
                         } else if(strEquals(go_param, "winc")) {
                             char* inc = strtok(NULL, " ");
                             winc = atoi(inc);
-                        } else if(!strcmp(go_param, "binc")) {
+                        } else if(strEquals(go_param, "binc")) {
                             char* inc = strtok(NULL, " ");
                             binc = atoi(inc);
                         } else if(strEquals(go_param, "movestogo")) {
@@ -261,7 +245,7 @@ int findMove(char* move, Board* board) {
     while(*curMove) {
         char mv[6];
         moveToString(*curMove, mv);
-        if(!strcmp(move, mv))
+        if(strEquals(move, mv))
             return 1;
         ++curMove;
     }
@@ -282,15 +266,6 @@ void initOption() {
     option.defaultHashSize = 256;
     option.minHashSize = 1;
     option.maxHashSize = 65536;
-}
-
-int bench(Board* board, int depth) {
-    TimeManager tm = createFixDepthTm(depth);
-    SearchInfo si = iterativeDeeping(board, tm);
-    double time = getTime(&si.timer);
-    printf("Time  : %dms\n", (int)time);
-    printf("Nodes : %ld\n", si.nodesCount);
-    printf("NPS   : %d\n\n", (int)((double)si.nodesCount / (time / 1000.)));
 }
 
 int strEquals(char* str1, char* str2) {

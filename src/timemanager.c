@@ -9,7 +9,7 @@ U64 getTime(Timer* timer) {
 }
 
 TimeManager createFixTimeTm(U64 millis) {
-    TimeManager tm;
+    TimeManager tm = initTM();
     tm.time = millis;
     tm.depth = MAX_PLY;
     tm.searchType = FixedTime;
@@ -17,14 +17,20 @@ TimeManager createFixTimeTm(U64 millis) {
 }
 
 TimeManager createFixDepthTm(int depth) {
-    TimeManager tm;
+    TimeManager tm = initTM();
     tm.depth = depth;
     tm.searchType = FixedDepth;
     return tm;
 }
 
-TimeManager createFixedNodesTm(int nodes) {
+TimeManager initTM() {
     TimeManager tm;
+    memset(&tm, 0, sizeof(TimeManager));
+    return tm;
+}
+
+TimeManager createFixedNodesTm(int nodes) {
+    TimeManager tm = initTM();
     tm.depth = MAX_PLY;
     tm.nodes = nodes;
     tm.searchType = FixedNodes;
@@ -32,7 +38,7 @@ TimeManager createFixedNodesTm(int nodes) {
 }
 
 TimeManager createTournamentTm(Board* board, int wtime, int btime, int winc, int binc, int movesToGo) {
-    TimeManager tm;
+    TimeManager tm = initTM();
     tm.tournamentTime[WHITE] = wtime;
     tm.tournamentTime[BLACK] = btime;
     tm.tournamentInc[WHITE] = winc;
