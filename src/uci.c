@@ -130,6 +130,7 @@ int main() {
             setAbort(1);
         } else if(strEquals(cmd, "ucinewgame") && SEARCH_COMPLETE) {
             clearTT();
+            clearHistory();
         } else if(strEquals(cmd, "setoption") && SEARCH_COMPLETE) {
             if(name && value) {
                 if(strStartsWith(name, "Hash")) {
