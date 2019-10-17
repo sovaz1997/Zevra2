@@ -270,6 +270,20 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
 int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int height) {
     searchInfo->selDepth = max(searchInfo->selDepth, height);
+
+    U64 keyPosition = board->key;
+    Transposition* ttEntry = &tt[keyPosition & ttIndex];
+
+    //TT analysis
+    int ttEval = evalFromTT(ttEntry->eval, height);
+    if(ttEntry->evalType && ttEntry->key == keyPosition) {
+        if((ttEntry->evalType == lowerbound && ttEval >= beta && !mateScore(ttEntry->eval)) ||
+           (ttEntry->evalType == upperbound && ttEval <= alpha && !mateScore(ttEntry->eval)) ||
+           ttEntry->evalType == exact) {
+               return ttEval;
+        }
+    }
+
     if(height >= MAX_PLY - 1)
         return fullEval(board);
 
