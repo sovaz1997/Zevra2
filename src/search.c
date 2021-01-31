@@ -3,7 +3,6 @@
 void* go(void* thread_data) {
     SearchArgs* args = (SearchArgs*)thread_data;
     iterativeDeeping(args->board, args->tm);
-    SEARCH_COMPLETE = 1;
     return 0;
 }
 
@@ -23,6 +22,8 @@ SearchInfo iterativeDeeping(Board* board, TimeManager tm) {
     }
 
     printf("info nodes %lu time %lu\n", searchInfo.nodesCount, getTime(&searchInfo.timer));
+    SEARCH_COMPLETE = 1;
+    __sync_synchronize();
     printf("bestmove %s\n", bestMove);
     fflush(stdout);
     

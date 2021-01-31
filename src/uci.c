@@ -42,6 +42,7 @@ int main() {
 
         if(!cmd)
             continue;
+        __sync_synchronize();
 
         if(strStartsWith(cmd, "go") && SEARCH_COMPLETE) {
             char* go_param = strtok(NULL, " ");

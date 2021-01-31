@@ -12,8 +12,8 @@
 #include "timemanager.h"
 #include "transposition.h"
 
-int ABORT;
-int SEARCH_COMPLETE;
+volatile int ABORT;
+volatile int SEARCH_COMPLETE;
 
 struct SearchArgs {
     Board* board;
