@@ -488,7 +488,7 @@ void resetSearchInfo(SearchInfo* info, TimeManager tm) {
 }
 
 void replaceTransposition(Transposition* tr, Transposition new_tr) {
-    if(tr->age + 5 < ttAge || !tr->evalType) {
+    if(tr->age + 10 < ttAge || !tr->evalType) {
         replaceTranspositionEntry(tr, &new_tr);
         return;
     }
