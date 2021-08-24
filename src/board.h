@@ -28,6 +28,7 @@ struct Board {
     U8 squares[64];
     U64 key;
     GameInfo* gameInfo;
+    int eval;
 };
 
 struct Undo {

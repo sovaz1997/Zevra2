@@ -1,12 +1,13 @@
 #include "eval.h"
 
 int fullEval(Board* board) {
-    int eval = 0;
+    int eval = board->eval;
     stage = stageGame(board);
 
-    //Base eval (Material + PSQT)
-    eval += materialEval(board);
-    eval += psqtEval(board);
+    // eval += materialEval(board);
+    // eval += psqtEval(board);
+
+    eval += kingPsqtEval(board);
 
     //Mobility eval
     eval += (mobilityEval(board, WHITE) - mobilityEval(board, BLACK));
@@ -36,13 +37,22 @@ int materialEval(Board* board) {
     int wqCount = popcount(board->pieces[QUEEN] & board->colours[WHITE]);
     int bqCount = popcount(board->pieces[QUEEN] & board->colours[BLACK]);
 
-    eval += getScore(PAWN_EV, stage) * (wpCount - bpCount);
+    // eval += getScore(PAWN_EV, stage) * (wpCount - bpCount);
+    eval += PAWN_EV * (wpCount - bpCount);
+    eval += KNIGHT_EV * (wnCount - bnCount);
     eval += KNIGHT_EV * (wnCount - bnCount);
     eval += BISHOP_EV * (wbCount - bbCount);
     eval += ROOK_EV * (wrCount - brCount);
     eval += QUEEN_EV * (wqCount - bqCount);
 
     return eval;
+}
+
+int kingPsqtEval(Board* board) {
+    int eval = 0;
+    U64 mask = board->pieces[KING];
+    eval += (psqtPieceEval(board, mask, kingPST) * stage / 98. + psqtPieceEval(board, mask, egKingPST) * (98. - stage) / 98.);
+    return  eval;
 }
 
 int psqtEval(Board* board) {
@@ -63,8 +73,7 @@ int psqtEval(Board* board) {
     mask = board->pieces[QUEEN];
     eval += psqtPieceEval(board, mask, queenPST);
 
-    mask = board->pieces[KING];
-    eval += (psqtPieceEval(board, mask, kingPST) * stage / 98. + psqtPieceEval(board, mask, egKingPST) * (98. - stage) / 98.);
+    eval += kingPsqtEval(board);
     
     return eval;
 }
@@ -217,6 +226,8 @@ int closeToMateScore(int eval) {
 }
 
 void initEval() {
+    initPSQT();
+
     for(int i = 0; i < 64; ++i) {
         for(int j = 0; j < 64; ++j)
             distanceBonus[i][j] = 14 - (abs(rankOf(i) - rankOf(j)) + abs(fileOf(i) - fileOf(j))); 

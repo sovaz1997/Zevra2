@@ -7,14 +7,14 @@
 
 //Piece weights
 enum {
-    PAWN_EV = S(100, 120),
+    PAWN_EV = 100,
     KNIGHT_EV = 300,
     BISHOP_EV = 330,
     ROOK_EV = 550,
     QUEEN_EV = 1000
 };
 
-static const int pVal[7] = {0, MG(PAWN_EV), KNIGHT_EV, BISHOP_EV, ROOK_EV, QUEEN_EV, 0};
+static const int pVal[7] = {0, PAWN_EV, KNIGHT_EV, BISHOP_EV, ROOK_EV, QUEEN_EV, 0};
 
 //Mobility bonuses
 static const int QueenMobility[28] = {
@@ -55,5 +55,7 @@ int closeToMateScore(int eval);
 void initEval();
 int stageGame(Board* board);
 U8 horizontalScan(U64 bitboard);
+int kingPsqtEval();
+int baseEval(Board* board);
 
 #endif

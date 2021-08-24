@@ -71,6 +71,7 @@ void clearBoard(Board* board) {
     memset(board, 0, sizeof(*board));
     board->gameInfo = gameInfo;
     board->enpassantSquare = 0;
+    board->eval = 0;
 }
 
 void printBoard(Board* board) {
@@ -102,24 +103,54 @@ void printBoardSplitter() {
     printf("\n");
 }
 
-void setPiece(Board* board, int piece, int color, int square) {
-    clearPiece(board, square);
-    setBit(&board->pieces[piece], square);
-    setBit(&board->colours[color], square);
-    board->squares[square] = makePiece(piece, color);
-    board->key ^= zobristKeys[board->squares[square]][square];
+void setPiece(Board* board, int piece, int color, int sq) {
+    clearPiece(board, sq);
+
+    if (piece) {
+        if (color == WHITE) {
+            if (piece != KING) {
+                board->eval += pVal[piece];
+                board->eval += allPST[piece][square(7 - rankOf(sq), fileOf(sq))];
+            }
+        } else {
+            if (piece != KING) {
+                board->eval -= pVal[piece];
+                board->eval -= allPST[piece][sq];
+            }
+        }
+    }
+
+    setBit(&board->pieces[piece], sq);
+    setBit(&board->colours[color], sq);
+    board->squares[sq] = makePiece(piece, color);
+    board->key ^= zobristKeys[board->squares[sq]][sq];
 }
 
-void clearPiece(Board* board, int square) {
-    if(!board->squares[square])
+void clearPiece(Board* board, int sq) {
+    if(!board->squares[sq])
         return;
     
-    U8 piece = board->squares[square];
-    board->key ^= zobristKeys[board->squares[square]][square];
+    U8 piece = board->squares[sq];
+    board->key ^= zobristKeys[board->squares[sq]][sq];
 
-    clearBit(&board->pieces[pieceType(piece)], square);
-    clearBit(&board->colours[pieceColor(piece)], square);
-    board->squares[square] = 0;
+    if (pieceType(piece)) {
+        if (pieceColor(piece) == WHITE) {
+            if (pieceType(piece) != KING) {
+                board->eval -= pVal[pieceType(piece)];
+                board->eval -= allPST[pieceType(piece)][square(7 - rankOf(sq), fileOf(sq))];
+            }
+        } else {
+
+            if (pieceType(piece) != KING) {
+                board->eval += pVal[pieceType(piece)];
+                board->eval += allPST[pieceType(piece)][sq];
+            }
+        }
+    }
+
+    clearBit(&board->pieces[pieceType(piece)], sq);
+    clearBit(&board->colours[pieceColor(piece)], sq);
+    board->squares[sq] = 0;
 }
 
 void movePiece(Board* board, int sq1, int sq2) {
@@ -155,7 +186,7 @@ void makeMove(Board* board, U16 move, Undo* undo) {
         ++board->ruleNumber;
     else
         board->ruleNumber = 0;
-    
+
     movePiece(board, MoveFrom(move), MoveTo(move));
     int epClear = 1;
     if(MoveType(move) == CASTLE_MOVE) {
@@ -207,7 +238,7 @@ void unmakeMove(Board* board, U16 move, Undo* undo) {
 
     if(MoveType(move) == CASTLE_MOVE) {
         int castlingRank = (!board->color == WHITE ? 0 : 7);
-        U8 king = makePiece(KING, !board->color);        
+        U8 king = makePiece(KING, !board->color);
 
         if(board->squares[square(castlingRank, 6)] == king) {
             board->key ^= zobristCastlingKeys[!board->color * 2];

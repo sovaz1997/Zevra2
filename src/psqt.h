@@ -80,4 +80,7 @@ static const int egKingPST[64] = {
     -10, -10, -10, -10, -10, -10, -10, -10
 };
 
+int allPST[6][64];
+int initPSQT();
+
 #endif
