@@ -156,7 +156,7 @@ int pawnsEval(Board* board, int color) {
 
     //double pawns bonus
     for(int f = 0; f < 8; ++f)
-        eval -= DoublePawnsPenalty * (popcount(ourPawns & files[f]) > 1);
+        eval += DoublePawnsPenalty * (popcount(ourPawns & files[f]) > 1);
 
     //passed pawn bonus
     while(ourPawns) {
