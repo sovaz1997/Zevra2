@@ -2,6 +2,7 @@
 
 int fullEval(Board* board) {
     int eval = 0;
+    return eval;
     stage = stageGame(board);
 
     //Base eval (Material + PSQT)
