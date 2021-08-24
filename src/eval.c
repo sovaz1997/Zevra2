@@ -154,10 +154,6 @@ int pawnsEval(Board* board, int color) {
     //isolated pawn bonus
     eval += (IsolatedPawnsHash[horizontalScan(ourPawns)]);
 
-    //double pawns bonus
-    for(int f = 0; f < 8; ++f)
-        eval -= DoublePawnsPenalty * (popcount(ourPawns & files[f]) > 1);
-
     //passed pawn bonus
     while(ourPawns) {
         int sq = firstOne(ourPawns);
@@ -171,72 +167,11 @@ int pawnsEval(Board* board, int color) {
         clearBit(&ourPawns, sq);
     }
 
-    U64 whitePawns = board->colours[WHITE] & board->pieces[PAWN];
-    U64 blackPawns = board->colours[BLACK] & board->pieces[PAWN];
+    //double pawns bonus
+    for(int f = 0; f < 8; ++f)
+        eval -= DoublePawnsPenalty * (popcount(ourPawns & files[f]) > 1);
 
-    U64 whitePawnsCopy = whitePawns;
-
-    int strongPawnsEval = 0;
-    while(whitePawnsCopy) {
-        int advantage = 0;
-        int sq = firstOne(whitePawnsCopy);
-
-        if (fileOf(sq) > 0) {
-            if (!(plus8[sq - 1] & blackPawns)) {
-                advantage++;
-            }
-        } else {
-            advantage++;
-        }
-
-        if (fileOf(sq) < 7) {
-            if (!(plus8[sq + 1] & blackPawns)) {
-                advantage++;
-            }
-        } else {
-            advantage++;
-        }
-        clearBit(&whitePawnsCopy, sq);
-
-        if (advantage == 2) {
-            strongPawnsEval += 8;
-        }
-    }
-
-
-    U64 blackPawnsCopy = blackPawns;
-
-    while(blackPawnsCopy) {
-        int advantage = 0;
-        int sq = firstOne(blackPawnsCopy);
-
-        if (fileOf(sq) > 0) {
-            if (!(minus8[sq - 1] & whitePawns)) {
-                advantage++;
-            }
-        } else {
-            advantage++;
-        }
-
-        if (fileOf(sq) < 7) {
-            if (!(minus8[sq + 1] & whitePawns)) {
-                advantage++;
-            }
-        } else {
-            advantage++;
-        }
-        clearBit(&blackPawnsCopy, sq);
-
-        if (advantage == 2) {
-            strongPawnsEval -= 8;
-        }
-    }
-
-    if (color == BLACK) {
-        strongPawnsEval = -strongPawnsEval;
-    }
-
-    return eval + strongPawnsEval;
+    return eval;
 }
 
 int bishopsEval(Board* board) {
