@@ -206,8 +206,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
 
         // TODO: enable check+promotion extensions
-        //int extensions = inCheck(board, board->color) || MovePromotionPiece(*curMove) == QUEEN;
-        int extensions = 0;
+        int extensions = inCheck(board, board->color) || MovePromotionPiece(*curMove) == QUEEN;
 
         int quiteMove = (!undo.capturedPiece && MoveType(*curMove) != ENPASSANT_MOVE) && MoveType(*curMove) != PROMOTION_MOVE;
 
@@ -234,19 +233,18 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
         int eval;
         if(movesCount == 1) {
-            eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
+            eval = -search(board, searchInfo, -beta, -alpha, nextDepth, height + 1);
         } else {
             // TODO: enable zero-search window
             if(LmrPruningAllow && playedMovesCount >= 3 && quiteMove) {
-                /*eval = -search(board, searchInfo, -alpha - 1, -alpha, nextDepth + extensions - reductions, height + 1);
-                if(eval > alpha)*/
-                eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
+                eval = -search(board, searchInfo, -alpha - 1, -alpha, nextDepth - reductions, height + 1);
+                if(eval > alpha)
+                    eval = -search(board, searchInfo, -beta, -alpha, nextDepth, height + 1);
             } else {
-                /*eval = -search(board, searchInfo, -alpha - 1, -alpha, nextDepth + extensions, height + 1);
+                eval = -search(board, searchInfo, -alpha - 1, -alpha, nextDepth, height + 1);
     
                 if(eval > alpha && eval < beta)
-                    eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);*/
-                eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
+                    eval = -search(board, searchInfo, -beta, -alpha, nextDepth, height + 1);
 
             }
         }
