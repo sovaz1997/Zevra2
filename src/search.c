@@ -323,13 +323,12 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
     if(val >= beta)
         return beta;
 
-    // TODO: enable delta pruning
-    /*int delta = QUEEN_EV;
+    int delta = QUEEN_EV;
     if(havePromotionPawn(board))
         delta += (QUEEN_EV - 200);
 
     if(val < alpha - delta)
-        return val;*/
+        return val;
 
     if(alpha < val)
         alpha = val;
