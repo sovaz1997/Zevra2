@@ -303,15 +303,14 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
     Transposition* ttEntry = &tt[keyPosition & ttIndex];
 
     //TT analysis
-    // TODO: return TT eval in quies
-    /*int ttEval = evalFromTT(ttEntry->eval, height);
+    int ttEval = evalFromTT(ttEntry->eval, height);
     if(ttEntry->evalType && ttEntry->key == keyPosition) {
         if((ttEntry->evalType == lowerbound && ttEval >= beta && !mateScore(ttEntry->eval)) ||
            (ttEntry->evalType == upperbound && ttEval <= alpha && !mateScore(ttEntry->eval)) ||
            ttEntry->evalType == exact) {
                return ttEval;
         }
-    }*/
+    }
 
     if(height >= MAX_PLY - 1)
         return fullEval(board);
