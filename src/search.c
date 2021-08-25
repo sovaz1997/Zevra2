@@ -269,7 +269,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
                 
                 searchInfo->killer[height][0] = *curMove;*/
                 // TODO: enable history
-                // history[board->color][MoveFrom(*curMove)][MoveTo(*curMove)] += (depth * depth);
+                history[board->color][MoveFrom(*curMove)][MoveTo(*curMove)] += (depth * depth);
             }
         }
         if(alpha >= beta) {
