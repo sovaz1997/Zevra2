@@ -205,9 +205,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         ++movesCount;
 
 
-        // TODO: enable check+promotion extensions
-        //int extensions = inCheck(board, board->color) || MovePromotionPiece(*curMove) == QUEEN;
-        int extensions = 0;
+        int extensions = inCheck(board, board->color) || MovePromotionPiece(*curMove) == QUEEN;
 
         int quiteMove = (!undo.capturedPiece && MoveType(*curMove) != ENPASSANT_MOVE) && MoveType(*curMove) != PROMOTION_MOVE;
 
