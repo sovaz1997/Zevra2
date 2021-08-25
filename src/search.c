@@ -219,14 +219,13 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         }
 
         //Fulility pruning
-        // TODO: enable futility pruning
-        /*if(!pvNode && depth < 7 && !extensions && !root && FutilityPruningAllow) {
+        if(!pvNode && depth < 7 && !extensions && !root && FutilityPruningAllow) {
             if(staticEval + FutilityStep * depth + pVal[pieceType(undo.capturedPiece)] <= alpha) {
                 unmakeMove(board, *curMove, &undo);
                 ++curMove;
                 continue;
             }
-        }*/
+        }
 
         // TODO: enable LMR reductions
         // int reductions = lmr[min(depth, MAX_PLY-1)][min(playedMovesCount, 63)];
