@@ -129,15 +129,14 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     Transposition* ttEntry = &tt[keyPosition & ttIndex];
 
     //TT analysis
-    // TODO: enable TT
-    /*int ttEval = evalFromTT(ttEntry->eval, height);
+    int ttEval = evalFromTT(ttEntry->eval, height);
     if(ttEntry->evalType && ttEntry->depth >= depth && !root && ttEntry->key == keyPosition) {
         if((ttEntry->evalType == lowerbound && ttEval >= beta && !mateScore(ttEntry->eval)) ||
            (ttEntry->evalType == upperbound && ttEval <= alpha && !mateScore(ttEntry->eval)) ||
            ttEntry->evalType == exact) {
                return ttEval;
         }
-    }*/
+    }
 
     //go to quiescence search in leaf nodes
     if((depth <= 0 && !weInCheck) || height >= MAX_PLY - 1)
