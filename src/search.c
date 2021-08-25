@@ -146,11 +146,9 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     //calculate static eval
     int staticEval = fullEval(board);
 
-    // TODO: enable Null move pruning
     //Null Move pruning
-    /*
     int R = 2 + depth / 4;
-    
+
     int pieceCount = popcount(board->colours[WHITE] | board->colours[BLACK]);
 
     if(NullMovePruningAllow && pieceCount > 7 && !pvNode && haveNoPawnMaterial(board) && !weInCheck && !root && !searchInfo->nullMoveSearch && depth > R && (staticEval >= beta || depth <= 4)) {
@@ -164,7 +162,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
         if(eval >= beta)
             return beta;
-    }*/
+    }
 
     //Reverse futility pruning
     // TODO: enable reverse futility pruning
