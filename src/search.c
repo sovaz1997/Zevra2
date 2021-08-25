@@ -209,6 +209,11 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         }
 
         int reductions = lmr[min(depth, MAX_PLY-1)][min(playedMovesCount, 63)];
+
+        if (movePrice[height][movesCount - 1] < 0) {
+            reductions++;
+        }
+
         ++playedMovesCount;
 
         int eval;
