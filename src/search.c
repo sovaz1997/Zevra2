@@ -35,10 +35,20 @@ int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score)
     int alpha = max(-MATE_SCORE, score - delta);
     int beta = min(MATE_SCORE, score + delta);
 
-    if(depth <= 5)
-        return search(board, searchInfo, -MATE_SCORE, MATE_SCORE, depth, 0);
+
+    // TODO: enable aspiration window
+    /*if(depth <= 5)
+        return search(board, searchInfo, -MATE_SCORE, MATE_SCORE, depth, 0);*/
 
     char bestMove[6];
+    // TODO: remove from
+    int eval = search(board, searchInfo, -MATE_SCORE, MATE_SCORE, depth, 0);
+    moveToString(searchInfo->bestMove, bestMove);
+    printSearchInfo(searchInfo, board, depth, eval, exact);
+    return eval;
+    // TODO: remove to
+
+
 
     int f = score;
     
@@ -119,14 +129,15 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     Transposition* ttEntry = &tt[keyPosition & ttIndex];
 
     //TT analysis
-    int ttEval = evalFromTT(ttEntry->eval, height);
+    // TODO: enable TT
+    /*int ttEval = evalFromTT(ttEntry->eval, height);
     if(ttEntry->evalType && ttEntry->depth >= depth && !root && ttEntry->key == keyPosition) {
         if((ttEntry->evalType == lowerbound && ttEval >= beta && !mateScore(ttEntry->eval)) ||
            (ttEntry->evalType == upperbound && ttEval <= alpha && !mateScore(ttEntry->eval)) ||
            ttEntry->evalType == exact) {
                return ttEval;
         }
-    }
+    }*/
 
     //go to quiescence search in leaf nodes
     if((depth <= 0 && !weInCheck) || height >= MAX_PLY - 1)
@@ -135,11 +146,13 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     //calculate static eval
     int staticEval = fullEval(board);
 
+    // TODO: enable Null move pruning
     //Null Move pruning
-    
+    /*
     int R = 2 + depth / 4;
     
     int pieceCount = popcount(board->colours[WHITE] | board->colours[BLACK]);
+
     if(NullMovePruningAllow && pieceCount > 7 && !pvNode && haveNoPawnMaterial(board) && !weInCheck && !root && !searchInfo->nullMoveSearch && depth > R && (staticEval >= beta || depth <= 4)) {
         makeNullMove(board);
         searchInfo->nullMoveSearch = 1;
@@ -151,17 +164,20 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
         if(eval >= beta)
             return beta;
-    }
+    }*/
 
     //Reverse futility pruning
-    if(!pvNode && !havePromotionPawn(board) && !weInCheck && depth <= 7 && staticEval - ReverseFutilityStep * depth > beta && ReverseFutilityPruningAllow)
-        return staticEval;
+    // TODO: enable reverse futility pruning
+    /*if(!pvNode && !havePromotionPawn(board) && !weInCheck && depth <= 7 && staticEval - ReverseFutilityStep * depth > beta && ReverseFutilityPruningAllow)
+        return staticEval;*/
 
     //Razoring
-    if(!pvNode && !havePromotionPawn(board) && !weInCheck && depth <= 4 && staticEval + RazorMargin * depth < alpha && RazoringPruningAllow)
-        return quiesceSearch(board, searchInfo, alpha, beta, height);
+    // TODO: enable razoring
+    /*if(!pvNode && !havePromotionPawn(board) && !weInCheck && depth <= 4 && staticEval + RazorMargin * depth < alpha && RazoringPruningAllow)
+        return quiesceSearch(board, searchInfo, alpha, beta, height);*/
 
     movegen(board, moves[height]);
+
     moveOrdering(board, moves[height], searchInfo, height, depth);
 
     U16* curMove = moves[height];
@@ -188,7 +204,10 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         
         ++movesCount;
 
-        int extensions = inCheck(board, board->color) || MovePromotionPiece(*curMove) == QUEEN;
+
+        // TODO: enable check+promotion extensions
+        //int extensions = inCheck(board, board->color) || MovePromotionPiece(*curMove) == QUEEN;
+        int extensions = 0;
 
         int quiteMove = (!undo.capturedPiece && MoveType(*curMove) != ENPASSANT_MOVE) && MoveType(*curMove) != PROMOTION_MOVE;
 
@@ -200,30 +219,36 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         }
 
         //Fulility pruning
-        if(!pvNode && depth < 7 && !extensions && !root && FutilityPruningAllow) {
+        // TODO: enable futility pruning
+        /*if(!pvNode && depth < 7 && !extensions && !root && FutilityPruningAllow) {
             if(staticEval + FutilityStep * depth + pVal[pieceType(undo.capturedPiece)] <= alpha) {
                 unmakeMove(board, *curMove, &undo);
                 ++curMove;
                 continue;
             }
-        }
+        }*/
 
-        int reductions = lmr[min(depth, MAX_PLY-1)][min(playedMovesCount, 63)];
+        // TODO: enable LMR reductions
+        // int reductions = lmr[min(depth, MAX_PLY-1)][min(playedMovesCount, 63)];
+        int reductions = 0;
         ++playedMovesCount;
 
         int eval;
         if(movesCount == 1) {
             eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
         } else {
+            // TODO: enable zero-search window
             if(LmrPruningAllow && playedMovesCount >= 3 && quiteMove) {
-                eval = -search(board, searchInfo, -alpha - 1, -alpha, nextDepth + extensions - reductions, height + 1);
-                if(eval > alpha)
-                    eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
+                /*eval = -search(board, searchInfo, -alpha - 1, -alpha, nextDepth + extensions - reductions, height + 1);
+                if(eval > alpha)*/
+                eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
             } else {
-                eval = -search(board, searchInfo, -alpha - 1, -alpha, nextDepth + extensions, height + 1);
+                /*eval = -search(board, searchInfo, -alpha - 1, -alpha, nextDepth + extensions, height + 1);
     
                 if(eval > alpha && eval < beta)
-                    eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
+                    eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);*/
+                eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
+
             }
         }
         unmakeMove(board, *curMove, &undo);
@@ -238,11 +263,13 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
             hashType = exact;
 
             if(!undo.capturedPiece) {
-                if(searchInfo->killer[height][0])
+                // TODO: enable killers
+                /*if(searchInfo->killer[height][0])
                     searchInfo->killer[height][1] = searchInfo->killer[height][0];
                 
-                searchInfo->killer[height][0] = *curMove;
-                history[board->color][MoveFrom(*curMove)][MoveTo(*curMove)] += (depth * depth);
+                searchInfo->killer[height][0] = *curMove;*/
+                // TODO: enable history
+                // history[board->color][MoveFrom(*curMove)][MoveTo(*curMove)] += (depth * depth);
             }
         }
         if(alpha >= beta) {
@@ -276,14 +303,15 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
     Transposition* ttEntry = &tt[keyPosition & ttIndex];
 
     //TT analysis
-    int ttEval = evalFromTT(ttEntry->eval, height);
+    // TODO: return TT eval in quies
+    /*int ttEval = evalFromTT(ttEntry->eval, height);
     if(ttEntry->evalType && ttEntry->key == keyPosition) {
         if((ttEntry->evalType == lowerbound && ttEval >= beta && !mateScore(ttEntry->eval)) ||
            (ttEntry->evalType == upperbound && ttEval <= alpha && !mateScore(ttEntry->eval)) ||
            ttEntry->evalType == exact) {
                return ttEval;
         }
-    }
+    }*/
 
     if(height >= MAX_PLY - 1)
         return fullEval(board);
@@ -295,12 +323,13 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
     if(val >= beta)
         return beta;
 
-    int delta = QUEEN_EV;
+    // TODO: enable delta pruning
+    /*int delta = QUEEN_EV;
     if(havePromotionPawn(board))
         delta += (QUEEN_EV - 200);
 
     if(val < alpha - delta)
-        return val;
+        return val;*/
 
     if(alpha < val)
         alpha = val;
