@@ -263,11 +263,10 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
             hashType = exact;
 
             if(!undo.capturedPiece) {
-                // TODO: enable killers
-                /*if(searchInfo->killer[height][0])
+                if(searchInfo->killer[height][0])
                     searchInfo->killer[height][1] = searchInfo->killer[height][0];
                 
-                searchInfo->killer[height][0] = *curMove;*/
+                searchInfo->killer[height][0] = *curMove;
                 // TODO: enable history
                 // history[board->color][MoveFrom(*curMove)][MoveTo(*curMove)] += (depth * depth);
             }
