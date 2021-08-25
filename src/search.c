@@ -35,20 +35,10 @@ int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score)
     int alpha = max(-MATE_SCORE, score - delta);
     int beta = min(MATE_SCORE, score + delta);
 
-
-    // TODO: enable aspiration window
-    /*if(depth <= 5)
-        return search(board, searchInfo, -MATE_SCORE, MATE_SCORE, depth, 0);*/
+    if(depth <= 5)
+        return search(board, searchInfo, -MATE_SCORE, MATE_SCORE, depth, 0);
 
     char bestMove[6];
-    // TODO: remove from
-    int eval = search(board, searchInfo, -MATE_SCORE, MATE_SCORE, depth, 0);
-    moveToString(searchInfo->bestMove, bestMove);
-    printSearchInfo(searchInfo, board, depth, eval, exact);
-    return eval;
-    // TODO: remove to
-
-
 
     int f = score;
     
