@@ -190,6 +190,10 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
         int extensions = inCheck(board, board->color) || MovePromotionPiece(*curMove) == QUEEN;
 
+        if (history[board->color][MoveFrom(*curMove)][MoveTo(*curMove)] > 100) {
+            extensions++;
+        }
+
         int quiteMove = (!undo.capturedPiece && MoveType(*curMove) != ENPASSANT_MOVE) && MoveType(*curMove) != PROMOTION_MOVE;
 
         if(root && depth > 12) {
@@ -209,6 +213,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         }
 
         int reductions = lmr[min(depth, MAX_PLY-1)][min(playedMovesCount, 63)];
+
         ++playedMovesCount;
 
         int eval;
@@ -369,8 +374,6 @@ U64 perftTest(Board* board, int depth, int height) {
                 moveToString(*curMove, mv);
                 for(int i = 0; i < height; ++i)
                     printf(" ");
-
-                printf("%s: %lu\n", mv, count);
             }
         }
 
@@ -419,8 +422,9 @@ void moveOrdering(Board* board, U16* mvs, SearchInfo* searchInfo, int height, in
             movePrice[height][i] = 99998;
         else if(depth >= 2 && depth < MAX_PLY && searchInfo->killer[height - 2][1] == *ptr)
             movePrice[height][i] = 99997;
-        else if(!toPiece)
+        else if(!toPiece) {
             movePrice[height][i] = history[board->color][MoveFrom(*ptr)][MoveTo(*ptr)];
+        }
 
         if(MoveType(*ptr) == ENPASSANT_MOVE)
             movePrice[height][i] = mvvLvaScores[PAWN][PAWN] * 1000000;
@@ -473,8 +477,9 @@ void initSearch() {
     }
 
     for(int i = 0; i < MAX_PLY; ++i) {
-        for(int j = 0; j < 64; ++j)
-            lmr[i][j]  = 0.75 + log(i) * log(j) / 2.25;
+        for(int j = 0; j < 64; ++j) {
+            lmr[i][j] = 0.75 + log(i) * log(j) / 2.25;
+        }
     }
 
     clearHistory();
