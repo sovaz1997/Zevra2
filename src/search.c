@@ -228,9 +228,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
             }
         }*/
 
-        // TODO: enable LMR reductions
-        // int reductions = lmr[min(depth, MAX_PLY-1)][min(playedMovesCount, 63)];
-        int reductions = 0;
+        int reductions = lmr[min(depth, MAX_PLY-1)][min(playedMovesCount, 63)];
         ++playedMovesCount;
 
         int eval;
@@ -239,14 +237,14 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         } else {
             // TODO: enable zero-search window
             if(LmrPruningAllow && playedMovesCount >= 3 && quiteMove) {
-                /*eval = -search(board, searchInfo, -alpha - 1, -alpha, nextDepth + extensions - reductions, height + 1);
-                if(eval > alpha)*/
+                eval = -search(board, searchInfo, -alpha - 1, -alpha, nextDepth + extensions - reductions, height + 1);
+                if(eval > alpha)
                 eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
             } else {
-                /*eval = -search(board, searchInfo, -alpha - 1, -alpha, nextDepth + extensions, height + 1);
+                eval = -search(board, searchInfo, -alpha - 1, -alpha, nextDepth + extensions, height + 1);
     
                 if(eval > alpha && eval < beta)
-                    eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);*/
+                    eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
                 eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
 
             }
