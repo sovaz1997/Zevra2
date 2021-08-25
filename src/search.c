@@ -190,7 +190,8 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
         int extensions = inCheck(board, board->color) || MovePromotionPiece(*curMove) == QUEEN;
 
-        if (history[board->color][MoveFrom(*curMove)][MoveTo(*curMove)] > 100) {
+        // extensions based on history
+        if (!searchInfo->nullMoveSearch && history[board->color][MoveFrom(*curMove)][MoveTo(*curMove)] >= 50) {
             extensions++;
         }
 
