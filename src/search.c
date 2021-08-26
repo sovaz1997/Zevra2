@@ -334,8 +334,8 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
         ++searchInfo->nodesCount;
 
         int score;
-        if (inCheck(board, board->color)) {
-            score = -search(board, searchInfo, -beta, -alpha, 2, height + 1);
+        if (inCheck(board, board->color) || !undo.capturedPiece) {
+            score = -search(board, searchInfo, -beta, -alpha, 1, height + 1);
         } else {
             score = -quiesceSearch(board, searchInfo, -beta, -alpha, height + 1);
         }
