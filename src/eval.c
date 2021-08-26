@@ -174,6 +174,9 @@ int pawnsEval(Board* board, int color) {
                 eval += getPassedPawnBonus(sq, color);
         }
         clearBit(&ourPawns, sq);
+
+        //connected pawns bonus
+        eval += ConnectedPawnBonus[color == WHITE ? rankOf(sq) : rankOf(7 - sq)] * popcount(pawnAttacks[color][sq] & ourPawns);
     }
 
     //double pawns bonus
