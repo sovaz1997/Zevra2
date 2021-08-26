@@ -158,7 +158,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         return staticEval;
 
     //Razoring
-    if(!pvNode && !havePromotionPawn(board) && !weInCheck && depth <= 4 && staticEval + RazorMargin * depth < alpha && RazoringPruningAllow)
+    if(!pvNode && !havePromotionPawn(board) && !weInCheck && depth <= 7 && staticEval + RazorMargin * depth < alpha && RazoringPruningAllow)
         return quiesceSearch(board, searchInfo, alpha, beta, height);
 
     movegen(board, moves[height]);
