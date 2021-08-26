@@ -280,7 +280,7 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
     if(ttEntry->evalType && ttEntry->key == keyPosition) {
         if((ttEntry->evalType == lowerbound && ttEval >= beta && !mateScore(ttEntry->eval)) ||
            (ttEntry->evalType == upperbound && ttEval <= alpha && !mateScore(ttEntry->eval)) ||
-           ttEntry->evalType == exact) {
+           ttEntry->evalType == exact && ttEval >= alpha && ttEval <= beta) {
                return ttEval;
         }
     }
