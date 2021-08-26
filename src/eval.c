@@ -179,15 +179,6 @@ int pawnsEval(Board* board, int color) {
         int connectedEval = ConnectedPawnBonus[color == WHITE ? rankOf(sq) : rankOf(7 - sq)] * popcount(pawnAttacks[color][sq] & ourPawns);
 
         if (connectedEval > 0) {
-            printf(
-                    "Connected eval: %d; cell: %d %d\n",
-                    connectedEval,
-                    rankOf(sq),
-                    fileOf(sq)
-            );
-
-            printBoard(board);
-
             //connected pawns bonus
             eval += connectedEval;
         }
