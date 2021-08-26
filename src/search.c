@@ -133,7 +133,8 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         return quiesceSearch(board, searchInfo, alpha, beta, height);
 
     //calculate static eval
-    int staticEval = fullEval(board);
+    // int staticEval = fullEval(board);
+    int staticEval = board->color == WHITE ? board->eval : -board->eval;
 
     //Null Move pruning
     
