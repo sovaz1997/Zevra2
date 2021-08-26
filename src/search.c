@@ -200,7 +200,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         }
 
         //Fulility pruning
-        if(!pvNode && depth < 5 && !extensions && !root && FutilityPruningAllow) {
+        if(!pvNode && depth < 9 && !extensions && !root && FutilityPruningAllow) {
             if(staticEval + FutilityStep * depth + pVal[pieceType(undo.capturedPiece)] <= alpha) {
                 unmakeMove(board, *curMove, &undo);
                 ++curMove;
