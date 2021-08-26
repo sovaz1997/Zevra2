@@ -305,7 +305,7 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
     if(alpha < val)
         alpha = val;
 
-    attackgen(board, moves[height]);
+    movegen(board, moves[height]);
     moveOrdering(board, moves[height], searchInfo, height, 0);
     U16* curMove = moves[height];
     Undo undo;
@@ -322,15 +322,23 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
         ++pseudoMovesCount;
 
         makeMove(board, *curMove, &undo);
-    
-        if(inCheck(board, !board->color)) {
+
+        int quiteMove = (!undo.capturedPiece && MoveType(*curMove) != ENPASSANT_MOVE) && MoveType(*curMove) != PROMOTION_MOVE;
+
+        if(quiteMove || inCheck(board, !board->color)) {
             unmakeMove(board, *curMove, &undo);
             ++curMove;
             continue;
         }
 
         ++searchInfo->nodesCount;
-        int score = -quiesceSearch(board, searchInfo, -beta, -alpha, height + 1);
+
+        int score;
+        if (inCheck(board, board->color)) {
+            score = -search(board, searchInfo, -beta, -alpha, 2, height + 1);
+        } else {
+            score = -quiesceSearch(board, searchInfo, -beta, -alpha, height + 1);
+        }
 
         unmakeMove(board, *curMove, &undo);
         if(score >= beta)
