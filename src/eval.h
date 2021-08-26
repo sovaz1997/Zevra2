@@ -33,7 +33,7 @@ static const int IsolatedPawnPenalty = -5;
 static const int RookOnOpenFileBonus = S(5, 0);
 int distanceBonus[64][64];
 
-static const int ConnectedPawnBonus[8] = {0, 0, 10, 20, 30, 60, 70, 80};
+static const int ConnectedPawnBonus[8] = {0, 1, 2, 4, 5, 8, 12, 0};
 
 //Hash eval
 int IsolatedPawnsHash[256];

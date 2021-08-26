@@ -175,8 +175,22 @@ int pawnsEval(Board* board, int color) {
         }
         clearBit(&ourPawns, sq);
 
-        //connected pawns bonus
-        eval += ConnectedPawnBonus[color == WHITE ? rankOf(sq) : rankOf(7 - sq)] * popcount(pawnAttacks[color][sq] & ourPawns);
+
+        int connectedEval = ConnectedPawnBonus[color == WHITE ? rankOf(sq) : rankOf(7 - sq)] * popcount(pawnAttacks[color][sq] & ourPawns);
+
+        if (connectedEval > 0) {
+            printf(
+                    "Connected eval: %d; cell: %d %d\n",
+                    connectedEval,
+                    rankOf(sq),
+                    fileOf(sq)
+            );
+
+            printBoard(board);
+
+            //connected pawns bonus
+            eval += connectedEval;
+        }
     }
 
     //double pawns bonus
