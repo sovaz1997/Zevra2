@@ -435,6 +435,8 @@ void moveOrdering(Board* board, U16* mvs, SearchInfo* searchInfo, int height, in
                 price -= allPST[movedPiece][board->color == WHITE ? square(7 - rankOf(mvFrom), fileOf(mvFrom)) : mvFrom];
             }
 
+            price += 500;
+
             movePrice[height][i] = price;
         }
 
