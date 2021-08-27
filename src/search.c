@@ -212,7 +212,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         ++playedMovesCount;
 
         int eval;
-        if(movesCount == 1) {
+        if(playedMovesCount == 1) {
             eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
         } else {
             if(LmrPruningAllow && playedMovesCount >= 3 && quiteMove) {
