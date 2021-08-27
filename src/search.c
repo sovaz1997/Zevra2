@@ -422,7 +422,7 @@ void moveOrdering(Board* board, U16* mvs, SearchInfo* searchInfo, int height, in
         else if(depth >= 2 && depth < MAX_PLY && searchInfo->killer[height - 2][1] == *ptr)
             movePrice[height][i] = 9999997;
         else if(!toPiece && historyValue)
-            movePrice[height][i] = history[board->color][MoveFrom(*ptr)][MoveTo(*ptr)] * 100;
+            movePrice[height][i] = history[board->color][MoveFrom(*ptr)][MoveTo(*ptr)] * 1000;
         else {
             int price = 0;
             int mvFrom = MoveFrom(*ptr);
