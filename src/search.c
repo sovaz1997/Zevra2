@@ -77,6 +77,18 @@ int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score)
     return f;
 }
 
+void resetKillers(SearchInfo* searchInfo, int height) {
+    searchInfo->killer[height][0] = 0;
+    searchInfo->killer[height][1] = 0;
+    searchInfo->killer[height][2] = 0;
+}
+
+void pushKiller(SearchInfo* searchInfo, int height, U16 move) {searchInfo->killer[height + 1][0] = 0;
+    searchInfo->killer[height][2] = searchInfo->killer[height][1];
+    searchInfo->killer[height][1] = searchInfo->killer[height][0];
+    searchInfo->killer[height][0] = move;
+}
+
 int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth, int height) {
     searchInfo->selDepth = max(searchInfo->selDepth, height);
     ++searchInfo->nodesCount;
@@ -171,8 +183,9 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     int hashType = upperbound;
     U16 curBestMove = 0;
 
-    searchInfo->killer[height + 1][0] = 0;
-    searchInfo->killer[height + 1][1] = 0;
+    // searchInfo->killer[height + 1][0] = 0;
+    // searchInfo->killer[height + 1][1] = 0;
+    resetKillers(searchInfo,  + 1);
 
     while(*curMove) {
         int nextDepth = depth - 1;
@@ -238,10 +251,11 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
             hashType = exact;
 
             if(!undo.capturedPiece) {
-                if(searchInfo->killer[height][0])
+                /*if(searchInfo->killer[height][0])
                     searchInfo->killer[height][1] = searchInfo->killer[height][0];
                 
-                searchInfo->killer[height][0] = *curMove;
+                searchInfo->killer[height][0] = *curMove;*/
+                pushKiller(searchInfo, height, *curMove);
                 history[board->color][MoveFrom(*curMove)][MoveTo(*curMove)] += (depth * depth);
             }
         }
@@ -419,6 +433,10 @@ void moveOrdering(Board* board, U16* mvs, SearchInfo* searchInfo, int height, in
             movePrice[height][i] = 99998;
         else if(depth >= 2 && depth < MAX_PLY && searchInfo->killer[height - 2][1] == *ptr)
             movePrice[height][i] = 99997;
+        else if(depth < MAX_PLY && searchInfo->killer[height][2] == *ptr)
+            movePrice[height][i] = 99996;
+        else if(depth >= 2 && depth < MAX_PLY && searchInfo->killer[height - 2][2] == *ptr)
+            movePrice[height][i] = 99995;
         else if(!toPiece)
             movePrice[height][i] = history[board->color][MoveFrom(*ptr)][MoveTo(*ptr)];
 

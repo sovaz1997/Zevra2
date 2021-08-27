@@ -27,7 +27,7 @@ struct SearchInfo {
     U16 bestMove;
     Timer timer;
     TimeManager tm;
-    U16 killer[MAX_PLY + 1][2];
+    U16 killer[MAX_PLY + 1][3];
     int nullMoveSearch;
     int searchTime;
     int selDepth;
