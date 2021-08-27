@@ -42,6 +42,7 @@ void setFen(Board* board, char* fen);
 void setMovesRange(Board* board, char* moves);
 void clearBoard(Board* board);
 void printBoard(Board* board);
+void printMove(U16 move);
 void printBoardSplitter();
 void setPiece(Board* board, int piece, int color, int square);
 void clearPiece(Board* board, int square);

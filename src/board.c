@@ -1,4 +1,5 @@
 #include "board.h"
+#include "move.h"
 
 void setFen(Board* board, char* fen) {
     clearBoard(board);
@@ -472,4 +473,10 @@ U64 considerXrays(Board* board, U64 occu, U64 attackdef, int sq) {
         return squareBitboard[firstOne(occu & plus8[sq])] & rookQueens;
 
     return 0;
+}
+
+void printMove(U16 mv) {
+    char cmp_str[6];
+    moveToString(mv, cmp_str);
+    printf("Move: %s\n", cmp_str);
 }

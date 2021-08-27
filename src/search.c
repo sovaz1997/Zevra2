@@ -179,6 +179,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         movePick(pseudoMovesCount, height);
         ++pseudoMovesCount;
         makeMove(board, *curMove, &undo);
+        searchInfo->prevMove[height + 1] = *curMove;
 
         if(inCheck(board, !board->color)) {
             unmakeMove(board, *curMove, &undo);
@@ -243,10 +244,23 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
                 
                 searchInfo->killer[height][0] = *curMove;
                 history[board->color][MoveFrom(*curMove)][MoveTo(*curMove)] += (depth * depth);
+
+                if (!undo.capturedPiece) {
+//                    printf("Start\n");
+//                    printMove(searchInfo->prevMove[height]);
+//                    printMove(curBestMove);
+//                    printBoard(board);
+//                    printf("a: %d; b: %d\n", alpha, beta);
+//                    printf("End\n");
+
+                    U16 mv = searchInfo->prevMove[height];
+                    countermove[MoveFrom(mv)][MoveTo(mv)] = curBestMove;
+                }
             }
         }
         if(alpha >= beta) {
             hashType = lowerbound;
+
             break;
         }
         ++curMove;
@@ -406,7 +420,11 @@ void moveOrdering(Board* board, U16* mvs, SearchInfo* searchInfo, int height, in
     for(i = 0; *ptr; ++i) {
         movePrice[height][i] = 0;
         U16 toPiece = pieceType(board->squares[MoveTo(*ptr)]);
-        
+
+        /*if (countermove[MoveFrom(*ptr)][MoveTo(*ptr)] == *ptr) {
+            printf("Countermove\n");
+        }*/
+
         if(hashMove == *ptr)
             movePrice[height][i] = 1000000000;
         else if(toPiece)
@@ -419,6 +437,9 @@ void moveOrdering(Board* board, U16* mvs, SearchInfo* searchInfo, int height, in
             movePrice[height][i] = 99998;
         else if(depth >= 2 && depth < MAX_PLY && searchInfo->killer[height - 2][1] == *ptr)
             movePrice[height][i] = 99997;
+        else if (countermove[MoveFrom(*ptr)][MoveTo(*ptr)] == *ptr) {
+            movePrice[height][i] = 99996;
+        }
         else if(!toPiece)
             movePrice[height][i] = history[board->color][MoveFrom(*ptr)][MoveTo(*ptr)];
 

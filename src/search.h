@@ -21,10 +21,12 @@ struct SearchArgs {
 };
 
 int history[2][64][64];
+int countermove[64][64];
 
 struct SearchInfo {
     U64 nodesCount;
     U16 bestMove;
+    U16 prevMove[MAX_PLY + 2];
     Timer timer;
     TimeManager tm;
     U16 killer[MAX_PLY + 1][2];
