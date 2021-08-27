@@ -120,7 +120,7 @@ int mobilityAndKingDangerEval(Board* board, int color) {
 
 
     int enemyKingPos = firstOne(enemy & board->pieces[KING]);
-    U64 enemyKingDangerCells = kingAttacks[enemyKingPos] & enemy;
+    U64 enemyKingDangerCells = kingAttacks[enemyKingPos] & ~enemy;
 
     int kingDanger = 0;
 
