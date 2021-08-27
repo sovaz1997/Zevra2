@@ -1,4 +1,5 @@
 #include "eval.h"
+#include <math.h>
 
 int fullEval(Board* board) {
     int eval = board->eval;
@@ -10,7 +11,7 @@ int fullEval(Board* board) {
     eval += kingPsqtEval(board);
 
     //Mobility eval
-    eval += (mobilityEval(board, WHITE) - mobilityEval(board, BLACK));
+    eval += (mobilityAndKingDangerEval(board, WHITE) - mobilityAndKingDangerEval(board, BLACK));
 
     //Pieces eval
     eval += (pawnsEval(board, WHITE) - pawnsEval(board, BLACK));
@@ -94,7 +95,13 @@ int psqtPieceEval(Board* board, U64 mask, const int* pstTable) {
     return eval;
 }
 
-int mobilityEval(Board* board, int color) {
+int kingDanger(int attacksCount) {
+    double normalized = (attacksCount / 100. * 10.) - 5;
+
+    return 600 * (1. / (1. + exp(-normalized))) - 4;
+}
+
+int mobilityAndKingDangerEval(Board* board, int color) {
     int eval = 0;
 
     U64 our = board->colours[color]; //our pieces
@@ -111,6 +118,12 @@ int mobilityEval(Board* board, int color) {
 
     U64 possibleSq = ~pAttacks;
 
+
+    int enemyKingPos = firstOne(enemy & board->pieces[KING]);
+    U64 enemyKingDangerCells = kingAttacks[enemyKingPos] & enemy;
+
+    int kingDanger = 0;
+
     //Rooks mobility
     mask = board->pieces[ROOK] & our;
 
@@ -118,6 +131,9 @@ int mobilityEval(Board* board, int color) {
         int from = firstOne(mask);
         U64 possibleMoves = rookPossibleMoves[from][getMagicIndex(occu & rookMagicMask[from] & unSquareBitboard[from], rookMagic[from], rookPossibleMovesSize[from])];
         eval += RookMobility[popcount(possibleMoves & possibleSq)];
+
+        kingDanger += 3 * popcount(possibleMoves & enemyKingDangerCells);
+
         clearBit(&mask, from);
     }
 
@@ -128,6 +144,9 @@ int mobilityEval(Board* board, int color) {
         int from = firstOne(mask);
         U64 possibleMoves = bishopPossibleMoves[from][getMagicIndex(occu & bishopMagicMask[from] & unSquareBitboard[from], bishopMagic[from], bishopPossibleMovesSize[from])];
         eval += BishopMobility[popcount(possibleMoves & possibleSq)];
+
+        kingDanger += 2 * popcount(possibleMoves & enemyKingDangerCells);
+
         clearBit(&mask, from);
     }
 
@@ -138,6 +157,9 @@ int mobilityEval(Board* board, int color) {
         int from = firstOne(mask);
         U64 possibleMoves = rookPossibleMoves[from][getMagicIndex(occu & rookMagicMask[from] & unSquareBitboard[from], rookMagic[from], rookPossibleMovesSize[from])];
         eval += QueenMobility[popcount(possibleMoves & possibleSq)];
+
+        kingDanger += 5 * popcount(possibleMoves & enemyKingDangerCells);
+
         clearBit(&mask, from);
     }
 
@@ -148,10 +170,13 @@ int mobilityEval(Board* board, int color) {
         int from = firstOne(mask);
         U64 possibleMoves = knightAttacks[from];
         eval += KnightMobility[popcount(possibleMoves & possibleSq)];
+
+        kingDanger += 2 * popcount(possibleMoves & enemyKingDangerCells);
+
         clearBit(&mask, from);
     }
 
-    return eval;
+    return eval + KingDanger[kingDanger];
 }
 
 int pawnsEval(Board* board, int color) {
@@ -214,6 +239,7 @@ int kingEval(Board* board, int color) {
         eval -= 2 * distanceBonus[sq][kingPos] * (pieceType(board->squares[sq]) == BISHOP);
         clearBit(&enemy, sq);
     }
+
     return eval;
 }
 
