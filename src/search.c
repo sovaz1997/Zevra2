@@ -406,21 +406,37 @@ void moveOrdering(Board* board, U16* mvs, SearchInfo* searchInfo, int height, in
     for(i = 0; *ptr; ++i) {
         movePrice[height][i] = 0;
         U16 toPiece = pieceType(board->squares[MoveTo(*ptr)]);
-        
+
+        int historyValue = history[board->color][MoveFrom(*ptr)][MoveTo(*ptr)];
+
         if(hashMove == *ptr)
             movePrice[height][i] = 1000000000;
         else if(toPiece)
             movePrice[height][i] = mvvLvaScores[pieceType(board->squares[MoveFrom(*ptr)])][toPiece] * 1000000;
         else if(depth < MAX_PLY && searchInfo->killer[height][0] == *ptr)
-            movePrice[height][i] = 100000;
+            movePrice[height][i] = 10000000;
         else if(depth >= 2 && depth < MAX_PLY && searchInfo->killer[height - 2][0] == *ptr)
-            movePrice[height][i] = 99999;
+            movePrice[height][i] = 9999999;
         else if(depth < MAX_PLY && searchInfo->killer[height][1] == *ptr)
-            movePrice[height][i] = 99998;
+            movePrice[height][i] = 9999998;
         else if(depth >= 2 && depth < MAX_PLY && searchInfo->killer[height - 2][1] == *ptr)
-            movePrice[height][i] = 99997;
-        else if(!toPiece)
-            movePrice[height][i] = history[board->color][MoveFrom(*ptr)][MoveTo(*ptr)];
+            movePrice[height][i] = 9999997;
+        else if(!toPiece && historyValue)
+            movePrice[height][i] = history[board->color][MoveFrom(*ptr)][MoveTo(*ptr)] * 100;
+        else {
+            int price = 0;
+            int mvFrom = MoveFrom(*ptr);
+            int mvTo = MoveTo(*ptr);
+
+            U16 movedPiece = pieceType(board->squares[mvFrom]);
+
+            if (toPiece != KING) {
+                price += allPST[movedPiece][board->color == WHITE ? square(7 - rankOf(mvTo), fileOf(mvTo)) : mvTo];
+                price -= allPST[movedPiece][board->color == WHITE ? square(7 - rankOf(mvFrom), fileOf(mvFrom)) : mvFrom];
+            }
+
+            movePrice[height][i] = price;
+        }
 
         if(MoveType(*ptr) == ENPASSANT_MOVE)
             movePrice[height][i] = mvvLvaScores[PAWN][PAWN] * 1000000;
@@ -430,6 +446,12 @@ void moveOrdering(Board* board, U16* mvs, SearchInfo* searchInfo, int height, in
             if(seeScore < 0 && hashMove != *ptr)
                 movePrice[height][i] = seeScore;
         }
+
+//        if (history[board->color][MoveFrom(*ptr)][MoveTo(*ptr)] > 0) {
+//            printf("Has history\n");
+//        } else {
+//            printf("No history\n");
+//        }
 
         
         if(MoveType(*ptr) == PROMOTION_MOVE) {
