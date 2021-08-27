@@ -33,6 +33,8 @@ static const int IsolatedPawnPenalty = -5;
 static const int RookOnOpenFileBonus = S(5, 0);
 int distanceBonus[64][64];
 
+static const int MAX_STAGE_GAME = 98;
+
 //Hash eval
 int IsolatedPawnsHash[256];
 

@@ -7,6 +7,14 @@ int fullEval(Board* board) {
     // eval += materialEval(board);
     // eval += psqtEval(board);
 
+
+
+    //pawns material bonus
+    int bonus = (98 - stageGame(board)) / 98. * 20;
+    int whitePawnsCount = popcount(board->colours[WHITE] & popcount(board->pieces[PAWN]));
+    int blackPawnsCount = popcount(board->colours[BLACK] & popcount(board->pieces[PAWN]));
+    eval += bonus * (whitePawnsCount - blackPawnsCount);
+
     eval += kingPsqtEval(board);
 
     //Mobility eval
