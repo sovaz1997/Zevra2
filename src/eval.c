@@ -5,9 +5,6 @@ int fullEval(Board* board) {
     int eval = board->eval;
     stage = stageGame(board);
 
-    // eval += materialEval(board);
-    // eval += psqtEval(board);
-
     eval += kingPsqtEval(board);
 
     //Mobility eval
@@ -24,59 +21,11 @@ int fullEval(Board* board) {
     return (board->color == WHITE ? eval : -eval);
 }
 
-int materialEval(Board* board) {
-    int eval = 0;
-    
-    int wpCount = popcount(board->pieces[PAWN] & board->colours[WHITE]);
-    int bpCount = popcount(board->pieces[PAWN] & board->colours[BLACK]);
-    int wnCount = popcount(board->pieces[KNIGHT] & board->colours[WHITE]);
-    int bnCount = popcount(board->pieces[KNIGHT] & board->colours[BLACK]);
-    int wbCount = popcount(board->pieces[BISHOP] & board->colours[WHITE]);
-    int bbCount = popcount(board->pieces[BISHOP] & board->colours[BLACK]);
-    int wrCount = popcount(board->pieces[ROOK] & board->colours[WHITE]);
-    int brCount = popcount(board->pieces[ROOK] & board->colours[BLACK]);
-    int wqCount = popcount(board->pieces[QUEEN] & board->colours[WHITE]);
-    int bqCount = popcount(board->pieces[QUEEN] & board->colours[BLACK]);
-
-    // eval += getScore(PAWN_EV, stage) * (wpCount - bpCount);
-    eval += PAWN_EV * (wpCount - bpCount);
-    eval += KNIGHT_EV * (wnCount - bnCount);
-    eval += KNIGHT_EV * (wnCount - bnCount);
-    eval += BISHOP_EV * (wbCount - bbCount);
-    eval += ROOK_EV * (wrCount - brCount);
-    eval += QUEEN_EV * (wqCount - bqCount);
-
-    return eval;
-}
-
 int kingPsqtEval(Board* board) {
     int eval = 0;
     U64 mask = board->pieces[KING];
     eval += (psqtPieceEval(board, mask, kingPST) * stage / 98. + psqtPieceEval(board, mask, egKingPST) * (98. - stage) / 98.);
     return  eval;
-}
-
-int psqtEval(Board* board) {
-    int eval = 0;
-
-    U64 mask = board->pieces[PAWN];
-    eval += psqtPieceEval(board, mask, pawnPST);
-    
-    mask = board->pieces[KNIGHT];
-    eval += psqtPieceEval(board, mask, knightPST);
-
-    mask = board->pieces[BISHOP];
-    eval += psqtPieceEval(board, mask, bishopPST);
-
-    mask = board->pieces[ROOK];
-    eval += psqtPieceEval(board, mask, rookPST);
-
-    mask = board->pieces[QUEEN];
-    eval += psqtPieceEval(board, mask, queenPST);
-
-    eval += kingPsqtEval(board);
-    
-    return eval;
 }
 
 int psqtPieceEval(Board* board, U64 mask, const int* pstTable) {
@@ -122,7 +71,7 @@ int mobilityAndKingDangerEval(Board* board, int color) {
     int enemyKingPos = firstOne(enemy & board->pieces[KING]);
     U64 enemyKingDangerCells = kingAttacks[enemyKingPos] & ~enemy;
 
-    int kingDanger = 0;
+    int kingDangerValue = 0;
 
     //Rooks mobility
     mask = board->pieces[ROOK] & our;
@@ -132,7 +81,7 @@ int mobilityAndKingDangerEval(Board* board, int color) {
         U64 possibleMoves = rookPossibleMoves[from][getMagicIndex(occu & rookMagicMask[from] & unSquareBitboard[from], rookMagic[from], rookPossibleMovesSize[from])];
         eval += RookMobility[popcount(possibleMoves & possibleSq)];
 
-        kingDanger += 3 * popcount(possibleMoves & enemyKingDangerCells);
+        kingDangerValue += 3 * popcount(possibleMoves & enemyKingDangerCells);
 
         clearBit(&mask, from);
     }
@@ -145,7 +94,7 @@ int mobilityAndKingDangerEval(Board* board, int color) {
         U64 possibleMoves = bishopPossibleMoves[from][getMagicIndex(occu & bishopMagicMask[from] & unSquareBitboard[from], bishopMagic[from], bishopPossibleMovesSize[from])];
         eval += BishopMobility[popcount(possibleMoves & possibleSq)];
 
-        kingDanger += 2 * popcount(possibleMoves & enemyKingDangerCells);
+        kingDangerValue += 2 * popcount(possibleMoves & enemyKingDangerCells);
 
         clearBit(&mask, from);
     }
@@ -161,7 +110,7 @@ int mobilityAndKingDangerEval(Board* board, int color) {
         );
         eval += QueenMobility[popcount(possibleMoves & possibleSq)];
 
-        kingDanger += 5 * popcount(possibleMoves & enemyKingDangerCells);
+        kingDangerValue += 5 * popcount(possibleMoves & enemyKingDangerCells);
 
         clearBit(&mask, from);
     }
@@ -174,12 +123,12 @@ int mobilityAndKingDangerEval(Board* board, int color) {
         U64 possibleMoves = knightAttacks[from];
         eval += KnightMobility[popcount(possibleMoves & possibleSq)];
 
-        kingDanger += 2 * popcount(possibleMoves & enemyKingDangerCells);
+        kingDangerValue += 2 * popcount(possibleMoves & enemyKingDangerCells);
 
         clearBit(&mask, from);
     }
 
-    return eval + KingDanger[kingDanger];
+    return eval + KingDanger[kingDangerValue];
 }
 
 int pawnsEval(Board* board, int color) {
@@ -248,10 +197,6 @@ int kingEval(Board* board, int color) {
 
 int mateScore(int eval) {
     return (eval >= MATE_SCORE - 100 || eval <= -MATE_SCORE + 100);
-}
-
-int closeToMateScore(int eval) {
-    return (eval >= MATE_SCORE / 2 || eval <= -MATE_SCORE / 2);
 }
 
 void initEval() {

@@ -192,7 +192,7 @@ void printSearchInfo(SearchInfo* info, Board* board, int depth, int eval, int ev
     int speed = (searchTime < 1 ? 0 : (info->nodesCount / (searchTime / 1000.)));
     int hashfull = (double)ttFilledSize  / (double)ttSize * 1000;
     
-    printf("info depth %d seldepth %d nodes %lu time %lu nps %d hashfull %d ", depth, info->selDepth, info->nodesCount, searchTime, speed, hashfull);
+    printf("info depth %d seldepth %d nodes %llu time %llu nps %d hashfull %d ", depth, info->selDepth, info->nodesCount, searchTime, speed, hashfull);
     printScore(eval);
     printf(evalType == lowerbound ? " lowerbound pv " : evalType == upperbound ? " upperbound pv " : " pv ");
     printPV(board, depth, info->bestMove);

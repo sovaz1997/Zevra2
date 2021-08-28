@@ -67,9 +67,6 @@ void unmakeNullMove(Board* board);
 int isDraw(Board* board);
 int repeatCount(Board* board);
 
-U8 firstAttacker(Board* board, U64 bitboard);
-U8 lastAttacker(Board* board, U64 bitboard);
-
 #define pieceType(piece) ((piece) >> 1)
 #define pieceColor(piece) ((piece) & 1)
 
