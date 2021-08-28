@@ -19,7 +19,7 @@ int fullEval(Board* board) {
     eval += (rooksEval(board, WHITE) - rooksEval(board, BLACK));
 
     //King safety
-    eval += (kingEval(board, WHITE) - kingEval(board, BLACK));
+    // eval += (kingEval(board, WHITE) - kingEval(board, BLACK));
 
     return (board->color == WHITE ? eval : -eval);
 }
