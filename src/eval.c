@@ -275,6 +275,10 @@ void initEval() {
             IsolatedPawnsHash[i] += IsolatedPawnPenalty * (leftEmpty && rightEmpty && getBit(i, f));
         }
     }
+
+    for (int i = 0; i < 100; i++) {
+        KingDanger[i] = kingDanger(i);
+    }
 }
 
 int stageGame(Board* board) {
