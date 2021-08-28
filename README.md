@@ -27,4 +27,4 @@ Zevra 2 is free and open-source UCI chess engine.
 ## Thanks
 Guardian, Graham Banks (the creator of many tournaments with
 different engines), Ratosh (Pirarucu dev.), Daniel Anulliero(Isa dev.),
-Evgeny Kotlov (Hedhehog dev.), Sergey Kudryavtsev (sdchess.ru creator).
+Evgeny Kotlov (Hedhehog dev.), Sergey Kudryavtsev (sdchess.ru creator), Rasmus Althoff (CT800 author).
