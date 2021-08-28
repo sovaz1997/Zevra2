@@ -39,11 +39,13 @@ int IsolatedPawnsHash[256];
 //global (using for speed-up)
 int stage;
 
+int KingDanger[100];
+
 int fullEval(Board* board);
 int materialEval(Board* board);
 int psqtEval(Board* board);
 int psqtPieceEval(Board* board, U64 mask, const int* pstTable);
-int mobilityEval(Board* board, int color);
+int mobilityAndKingDangerEval(Board* board, int color);
 int pawnsEval(Board* board, int color);
 int bishopsEval(Board* board);
 int rooksEval(Board* board, int color);
@@ -57,5 +59,6 @@ int stageGame(Board* board);
 U8 horizontalScan(U64 bitboard);
 int kingPsqtEval();
 int baseEval(Board* board);
+int kingDanger(int attacksCount);
 
 #endif
