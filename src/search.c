@@ -178,7 +178,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     int multiCutMovesCount = 0;
 
     if (!pvNode && depth > MultiCutSearchDepth && !root && !weInCheck) {
-        while(*curMove && movesCount < 4) {
+        while(*curMove && movesCount < 7) {
             makeMove(board, *curMove, &undo);
             if(inCheck(board, !board->color)) {
                 unmakeMove(board, *curMove, &undo);
@@ -194,7 +194,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
             unmakeMove(board, *curMove, &undo);
 
-            if (cuts > 3) {
+            if (cuts > 2) {
                 return beta;
             }
             curMove++;
