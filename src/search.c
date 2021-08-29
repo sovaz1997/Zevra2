@@ -174,6 +174,36 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     searchInfo->killer[height + 1][0] = 0;
     searchInfo->killer[height + 1][1] = 0;
 
+    int cuts = 0;
+    int multiCutMovesCount = 0;
+
+    if (!pvNode && depth > MultiCutSearchDepth && !root && !weInCheck) {
+        while(*curMove && movesCount < 4) {
+            makeMove(board, *curMove, &undo);
+            if(inCheck(board, !board->color)) {
+                unmakeMove(board, *curMove, &undo);
+                ++curMove;
+                continue;
+            }
+
+            int e = -search(board, searchInfo, -beta, -alpha, depth - MultiCutSearchDepth, height + 1);
+
+            if (e >= beta) {
+                ++cuts;
+            }
+
+            unmakeMove(board, *curMove, &undo);
+
+            if (cuts > 3) {
+                return beta;
+            }
+            curMove++;
+            multiCutMovesCount++;
+        }
+    }
+
+    curMove = moves[height];
+
     while(*curMove) {
         int nextDepth = depth - 1;
         movePick(pseudoMovesCount, height);
@@ -236,17 +266,18 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
                 searchInfo->bestMove = *curMove;
 
             hashType = exact;
+        }
+        if(alpha >= beta) {
+            hashType = lowerbound;
 
             if(!undo.capturedPiece) {
                 if(searchInfo->killer[height][0])
                     searchInfo->killer[height][1] = searchInfo->killer[height][0];
-                
+
                 searchInfo->killer[height][0] = *curMove;
                 history[board->color][MoveFrom(*curMove)][MoveTo(*curMove)] += (depth * depth);
             }
-        }
-        if(alpha >= beta) {
-            hashType = lowerbound;
+
             break;
         }
         ++curMove;

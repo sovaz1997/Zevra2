@@ -44,6 +44,7 @@ enum {
 static const int FutilityStep = 50;
 static const int ReverseFutilityStep = 90;
 static const int RazorMargin = 300;
+static const int MultiCutSearchDepth = 10;
 
 U16 moves[MAX_PLY][256];
 int movePrice[MAX_PLY][256];
