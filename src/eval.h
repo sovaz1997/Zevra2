@@ -28,7 +28,7 @@ static const int KnightMobility[14] = {-50, -25, -10, -2, 5, 10, 15, 25};
 //additional bonuses and penalties
 static const int PassedPawnBonus[8] = {0, 0, 10, 20, 40, 80, 120, 0};
 static const int DoubleBishopsBonus = S(30, 20);
-static const int DoublePawnsPenalty = -15;
+static const int DoublePawnsPenalty = -6;
 static const int IsolatedPawnPenalty = -5;
 static const int RookOnOpenFileBonus = S(5, 0);
 int distanceBonus[64][64];

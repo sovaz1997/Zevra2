@@ -140,6 +140,12 @@ int pawnsEval(Board* board, int color) {
     //isolated pawn bonus
     eval += (IsolatedPawnsHash[horizontalScan(ourPawns)]);
 
+    //double pawns penalty
+    for(int f = 0; f < 8; ++f) {
+        int penalty = DoublePawnsPenalty * (popcount(ourPawns & files[f]) > 1);
+        eval += penalty;
+    }
+
     //passed pawn bonus
     while(ourPawns) {
         int sq = firstOne(ourPawns);
@@ -152,10 +158,6 @@ int pawnsEval(Board* board, int color) {
         }
         clearBit(&ourPawns, sq);
     }
-
-    //double pawns bonus
-    for(int f = 0; f < 8; ++f)
-        eval -= DoublePawnsPenalty * (popcount(ourPawns & files[f]) > 1);
 
     return eval;
 }
