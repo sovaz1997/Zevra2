@@ -6,6 +6,17 @@ void initBitboards() {
         files[i] = (72340172838076673ull << i);
     }
 
+    for (int sq = 0; sq < 64; sq++) {
+        rankOfTable[sq] = sq / 8;
+        fileOfTable[sq] = sq % 8;
+    }
+
+    for (int r = 0; r < 8; r++) {
+        for (int f = 0; f < 8; f++) {
+            squareTable[r][f] = 8 * r + f;
+        }
+    }
+
     shortCastlingBitboard[WHITE] = bitboardCell(square(0, 4)) | bitboardCell(square(0, 7));
     longCastlingBitboard[WHITE] = bitboardCell(square(0, 4)) | bitboardCell(square(0, 0));
     shortCastlingBitboard[BLACK] = bitboardCell(square(7, 4)) | bitboardCell(square(7, 7));
@@ -150,8 +161,8 @@ void printBitboard(U64 bitboard) {
     }
 }
 
-unsigned int square(unsigned int r, unsigned int f) {
-    return 8 * r + f;
+unsigned inline int square(unsigned int r, unsigned int f) {
+    return squareTable[r][f];
 }
 
 unsigned int popcount(U64 bitboard) {
@@ -192,10 +203,10 @@ void clearBit(uint64_t* bitboard, int sq) {
     (*bitboard) &= unSquareBitboard[sq];
 }
 
-int rankOf(int sq) {
-    return sq / 8;
+int inline rankOf(int sq) {
+    return rankOfTable[sq];
 }
 
-int fileOf(int sq) {
-    return sq % 8;
+int inline fileOf(int sq) {
+    return fileOfTable[sq];
 }
