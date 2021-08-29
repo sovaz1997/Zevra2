@@ -43,7 +43,6 @@ int KingDanger[100];
 
 int fullEval(Board* board);
 int materialEval(Board* board);
-int psqtEval(Board* board);
 int psqtPieceEval(Board* board, U64 mask, const int* pstTable);
 int mobilityAndKingDangerEval(Board* board, int color);
 int pawnsEval(Board* board, int color);
@@ -53,7 +52,6 @@ int kingEval(Board* board, int color);
 int attackCount(Board* board, int sq, int color);
 int getPassedPawnBonus(int sq, int color);
 int mateScore(int eval);
-int closeToMateScore(int eval);
 void initEval();
 int stageGame(Board* board);
 U8 horizontalScan(U64 bitboard);

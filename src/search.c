@@ -21,7 +21,7 @@ SearchInfo iterativeDeeping(Board* board, TimeManager tm) {
             break;
     }
 
-    printf("info nodes %lu time %lu\n", searchInfo.nodesCount, getTime(&searchInfo.timer));
+    printf("info nodes %llu time %llu\n", searchInfo.nodesCount, getTime(&searchInfo.timer));
     SEARCH_COMPLETE = 1;
     __sync_synchronize();
     printf("bestmove %s\n", bestMove);
@@ -370,7 +370,7 @@ U64 perftTest(Board* board, int depth, int height) {
                 for(int i = 0; i < height; ++i)
                     printf(" ");
 
-                printf("%s: %lu\n", mv, count);
+                printf("%s: %llu\n", mv, count);
             }
         }
 
@@ -391,7 +391,7 @@ void perft(Board* board, int depth) {
         if(!(end - start))
             end = start + 1;
         
-        printf("Perft %d: %lu; speed: %lu; time: %.3fs\n", i, nodes, nodes / (end - start), (end - start) / 1000.);
+        printf("Perft %d: %llu; speed: %llu; time: %.3fs\n", i, nodes, nodes / (end - start), (end - start) / 1000.);
     }
 }
 
@@ -472,9 +472,10 @@ void initSearch() {
             mvvLvaScores[attacker][victim] = 64 * victim - attacker;
     }
 
-    for(int i = 0; i < MAX_PLY; ++i) {
-        for(int j = 0; j < 64; ++j)
-            lmr[i][j]  = 0.75 + log(i) * log(j) / 2.25;
+    for(int i = 1; i < MAX_PLY; ++i) {
+        for(int j = 1; j < 64; ++j) {
+            lmr[i][j] = 0.75 + log(i) * log(j) / 2.25;
+        }
     }
 
     clearHistory();

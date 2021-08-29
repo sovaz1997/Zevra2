@@ -87,7 +87,7 @@ void printBoard(Board* board) {
         printBoardSplitter();
     }
 
-    printf("Key: %lx\n\n", board->key);
+    printf("Key: %llu\n\n", board->key);
     printf("White check: %d \n", inCheck(board, WHITE));
     printf("Black check: %d \n\n", inCheck(board, BLACK));
     printf("Have promotion: %d\n", havePromotionPawn(board));
@@ -325,20 +325,6 @@ int inCheck(Board* board, int color) {
 
     int kingPosition = firstOne(board->colours[color] & board->pieces[KING]);
     return attackedSquare(board, kingPosition, color);
-}
-
-U8 firstAttacker(Board* board, U64 bitboard) {
-    if(!bitboard)
-        return 0;
-
-    return board->squares[firstOne(bitboard)];
-}
-
-U8 lastAttacker(Board* board, U64 bitboard) {
-    if(!bitboard)
-        return 0;
-
-    return board->squares[lastOne(bitboard)];
 }
 
 void addMoveToHist(Board* board) {
