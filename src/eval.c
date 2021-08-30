@@ -237,8 +237,6 @@ int rooksEval(Board* board, int color) {
     U64 rookMask = board->pieces[ROOK] & our;
     
     //rook on open file bonus
-    int openFileBonus = getScore(RookOnOpenFileBonus, stage);
-    int partOpenFileBonus = getScore(RookOnOpenFileBonus, stage);
 
     while(rookMask) {
         int sq = firstOne(rookMask);
@@ -248,10 +246,12 @@ int rooksEval(Board* board, int color) {
         int ourPawnsOnFile = popcount(file & board->pieces[PAWN] & board->colours[color]) > 0;
         int enemyPawnsOnFile = popcount(file & board->pieces[PAWN] & board->colours[!color]) > 0;
 
-        if (!ourPawnsOnFile && !enemyPawnsOnFile) {
-            eval += openFileBonus;
-        } else if (!ourPawnsOnFile || !enemyPawnsOnFile) {
-            eval += partOpenFileBonus;
+        if (!ourPawnsOnFile) {
+            if (enemyPawnsOnFile) {
+                eval += RookOnPartOpenFileBonus;
+            } else {
+                eval += RookOnOpenFileBonus;
+            }
         }
 
         clearBit(&rookMask, sq);
