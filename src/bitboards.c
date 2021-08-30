@@ -1,11 +1,6 @@
 #include "bitboards.h"
 
 void initBitboards() {
-    for(int i = 0; i < 8; ++i) {
-        ranks[i] = (255ull << (i * 8));
-        files[i] = (72340172838076673ull << i);
-    }
-
     for (int sq = 0; sq < 64; sq++) {
         rankOfTable[sq] = sq / 8;
         fileOfTable[sq] = sq % 8;
@@ -15,6 +10,11 @@ void initBitboards() {
         for (int f = 0; f < 8; f++) {
             squareTable[r][f] = 8 * r + f;
         }
+    }
+
+    for(int i = 0; i < 8; ++i) {
+        ranks[i] = (255ull << (i * 8));
+        files[i] = (72340172838076673ull << i);
     }
 
     shortCastlingBitboard[WHITE] = bitboardCell(square(0, 4)) | bitboardCell(square(0, 7));
