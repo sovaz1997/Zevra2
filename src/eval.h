@@ -32,6 +32,7 @@ static const int DoublePawnsPenalty = -15;
 static const int IsolatedPawnPenalty = -5;
 static const int RookOnOpenFileBonus = 20;
 static const int RookOnPartOpenFileBonus = 10;
+static const int PawnsUpperPiecesBonus = 3;
 int distanceBonus[64][64];
 
 //Hash eval

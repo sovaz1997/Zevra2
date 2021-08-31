@@ -133,12 +133,14 @@ int mobilityAndKingDangerEval(Board* board, int color) {
 
 int pawnsEval(Board* board, int color) {
     int eval = 0;
-    
+
     U64 ourPawns = board->colours[color] & board->pieces[PAWN];
     U64 enemyPawns = board->colours[!color] & board->pieces[PAWN];
 
     //isolated pawn bonus
     eval += (IsolatedPawnsHash[horizontalScan(ourPawns)]);
+
+    U64 ourPiecesNoPawns = board->colours[color] & ~board->pieces[PAWN];
 
     //passed pawn bonus
     while(ourPawns) {
@@ -146,16 +148,17 @@ int pawnsEval(Board* board, int color) {
         if(color == WHITE) {
             if(!(plus8[sq] & enemyPawns))
                 eval += getPassedPawnBonus(sq, color);
+
+            eval += PawnsUpperPiecesBonus * popcount(minus8[sq] & ourPiecesNoPawns);
         } else {
             if(!(minus8[sq] & enemyPawns))
                 eval += getPassedPawnBonus(sq, color);
+
+            eval += PawnsUpperPiecesBonus * popcount(plus8[sq] & ourPiecesNoPawns);
         }
+
         clearBit(&ourPawns, sq);
     }
-
-    //double pawns bonus
-    for(int f = 0; f < 8; ++f)
-        eval -= DoublePawnsPenalty * (popcount(ourPawns & files[f]) > 1);
 
     return eval;
 }
