@@ -1,13 +1,18 @@
 #include "uci.h"
+#include "tuning.h"
 
 char startpos[] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 Option option;
 
 int main() {
+
     initOption();
     initEngine();
 
-    Board* board = (Board*) malloc(sizeof(Board)); 
+    Board* board = (Board*) malloc(sizeof(Board));
+
+    // tuning
+    makeTuning();
 
 
     printEngineInfo();
