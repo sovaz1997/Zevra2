@@ -33,7 +33,6 @@ const double K = 150;
 // }
 
 void makeTuning(Board* board) {
-    double E = fun(board);
 
     int* curValues = getValues();
 
@@ -42,12 +41,13 @@ void makeTuning(Board* board) {
     const int changeFactor = 1;
 
     while(1) {
+        double E = fun(board);
         for (int i = 0; i < 5; i++) {
             changeParam(i, curValues[i] + changeFactor);
 
             double newE = fun(board);
 
-            printf("NewE: %f\n", newE);
+            printf("NewE: %f; index: %d; value: %d\n", newE, i, curValues[i]);
 
             if (newE < E) {
                 improved = 1;
