@@ -40,8 +40,9 @@ void makeTuning(Board* board) {
 
     const int changeFactor = 1;
 
+    double E = fun(board);
+
     while(1) {
-        double E = fun(board);
         for (int i = 0; i < 5; i++) {
             changeParam(i, curValues[i] + changeFactor);
 
@@ -52,10 +53,12 @@ void makeTuning(Board* board) {
             if (newE < E) {
                 improved = 1;
                 curValues[i] += changeFactor;
+                E = newE;
             } else {
                 changeParam(i, curValues[i] -= changeFactor);
 
                 newE = fun(board);
+                E = newE;
 
                 if (newE < E) {
                     curValues[i] -= changeFactor;
