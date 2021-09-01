@@ -109,12 +109,12 @@ void setPiece(Board* board, int piece, int color, int sq) {
     if (piece) {
         if (color == WHITE) {
             if (piece != KING) {
-                board->eval += pVal[piece];
+                board->eval += pVal(piece);
                 board->eval += allPST[piece][square(7 - rankOf(sq), fileOf(sq))];
             }
         } else {
             if (piece != KING) {
-                board->eval -= pVal[piece];
+                board->eval -= pVal(piece);
                 board->eval -= allPST[piece][sq];
             }
         }
@@ -136,13 +136,13 @@ void clearPiece(Board* board, int sq) {
     if (pieceType(piece)) {
         if (pieceColor(piece) == WHITE) {
             if (pieceType(piece) != KING) {
-                board->eval -= pVal[pieceType(piece)];
+                board->eval -= pVal(pieceType(piece));
                 board->eval -= allPST[pieceType(piece)][square(7 - rankOf(sq), fileOf(sq))];
             }
         } else {
 
             if (pieceType(piece) != KING) {
-                board->eval += pVal[pieceType(piece)];
+                board->eval += pVal(pieceType(piece));
                 board->eval += allPST[pieceType(piece)][sq];
             }
         }
@@ -406,11 +406,11 @@ int see(Board* board, int toSq, U8 taget, int fromSq, U8 aPiece) {
     U64 fromSet = (1ull << fromSq);
     U64 occu = board->colours[WHITE] | board->colours[BLACK];
     U64 attadef = attacksTo(board, toSq);
-    gain[d] = pVal[pieceType(taget)];
+    gain[d] = pVal(pieceType(taget));
 
     do {
         d++;
-        gain[d] = pVal[pieceType(aPiece)] - gain[d - 1];
+        gain[d] = pVal(pieceType(aPiece)) - gain[d - 1];
         if(max(gain[d - 1], gain[d]) < 0)
             break;
         attadef ^= fromSet;

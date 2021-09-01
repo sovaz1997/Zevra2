@@ -12,7 +12,7 @@ int BISHOP_EV;
 int ROOK_EV;
 int QUEEN_EV;
 
-int pVal[7];
+int pVal();
 
 //Mobility bonuses
 static const int QueenMobility[28] = {

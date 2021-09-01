@@ -9,8 +9,69 @@
 
 const double K = 150;
 
-void makeTuning() {
-    readFens();
+// double dichotom(int n, Board* board) {
+
+
+//
+//    while((b - a) / 2 > eps) {
+//        c = (a + b) / 2;
+//        printf("[%f, %f] %f", a, b, c);
+//        changeParam(n, a);
+//        double fA = fun(board);
+//
+//        changeParam(n, a);
+//        double fC = fun(board);
+//
+//        if (fA * fC > 0) {
+//            a = c;
+//        } else {
+//            b = c;
+//        }
+//    }
+
+  //   return c;
+// }
+
+void makeTuning(Board* board) {
+    double E = fun(board);
+
+    int* curValues = getValues();
+
+    int improved = 0;
+
+    const int changeFactor = 1;
+
+    while(1) {
+        for (int i = 0; i < 5; i++) {
+            changeParam(i, curValues[i] + changeFactor);
+
+            double newE = fun(board);
+
+            printf("NewE: %f\n", newE);
+
+            if (newE < E) {
+                improved = 1;
+                curValues[i] += changeFactor;
+            } else {
+                changeParam(i, curValues[i] -= changeFactor);
+
+                newE = fun(board);
+
+                if (newE < E) {
+                    curValues[i] -= changeFactor;
+                    improved = 1;
+                }
+            }
+
+            if (!improved) {
+                break;
+            }
+        }
+    }
+
+    for (int i = 0; i < 5; i++) {
+        printf("%d ", curValues[i]);
+    }
 }
 
 char** str_split(char* a_str, const char a_delim)
@@ -65,7 +126,7 @@ double r(int eval) {
     return 1. / (1. + exp(-eval / K));
 }
 
-void readFens(Board* board) {
+double fun(Board* board) {
     char buf[4096];
     char *estr;
 
@@ -79,6 +140,7 @@ void readFens(Board* board) {
     const double fadingFactor = 40;
 
     double errorSums = 0;
+
     while(1) {
         resetSearchInfo(&searchInfo, tm);
 
@@ -107,9 +169,9 @@ void readFens(Board* board) {
         double error = pow(r(eval) - result, 2) * fading;
         errorSums += error;
 
-        if (posCount % 1000 == 0) {
+        /*if (posCount % 1000 == 0) {
             printf("Positions: %d; Eval: %d; Result: %f; R: %f Fading: %f error: %f\n", posCount, eval, result, r(eval), fading, error);
-        }
+        }*/
 
         free(res);
         ++posCount;
@@ -117,12 +179,18 @@ void readFens(Board* board) {
 
     errorSums /= posCount;
 
-    printf("Error: %f\n", errorSums);
-
     fclose(f);
+
+    return errorSums;
 }
 
 int setValues(int* values) {
+    PAWN_EV = values[0];
+    KNIGHT_EV = values[1];
+    BISHOP_EV = values[2];
+    ROOK_EV = values[3];
+    QUEEN_EV = values[4];
+
     return 7;
 }
 
@@ -136,4 +204,11 @@ int* getValues() {
     res[4] = QUEEN_EV;
 
     return res;
+}
+
+void changeParam(int n, int value) {
+    int* params = getValues();
+    *(params + n) = value;
+    setValues(params);
+    free(params);
 }

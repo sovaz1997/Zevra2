@@ -233,14 +233,25 @@ void initMaterial() {
     BISHOP_EV = 330;
     ROOK_EV = 550;
     QUEEN_EV = 1000;
+}
 
-    pVal[0] = 0;
-    pVal[1] = PAWN_EV;
-    pVal[2] = KNIGHT_EV;
-    pVal[3] = BISHOP_EV;
-    pVal[4] = ROOK_EV;
-    pVal[5] = QUEEN_EV;
-    pVal[6] = 0;
+int pVal(int n) {
+    switch(n) {
+        case 0:
+            return 0;
+        case 1:
+            return PAWN_EV;
+        case 2:
+            return KNIGHT_EV;
+        case 3:
+            return BISHOP_EV;
+        case 4:
+            return ROOK_EV;
+        case 5:
+            return QUEEN_EV;
+        case 6:
+            return 0;
+    }
 }
 
 int stageGame(Board* board) {
