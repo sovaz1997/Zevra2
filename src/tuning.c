@@ -66,9 +66,11 @@ void makeTuning(Board* board) {
                 }
             }
 
-            if (!improved) {
-                break;
-            }
+            printf("NewE: %f; index: %d; value: %d\n", E, i, curValues[i]);
+        }
+
+        if (!improved) {
+            break;
         }
     }
 
