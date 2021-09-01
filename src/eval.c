@@ -200,6 +200,7 @@ int mateScore(int eval) {
 }
 
 void initEval() {
+    initMaterial();
     initPSQT();
 
     for(int i = 0; i < 64; ++i) {
@@ -224,6 +225,22 @@ void initEval() {
     for (int i = 0; i < 100; i++) {
         KingDanger[i] = kingDanger(i);
     }
+}
+
+void initMaterial() {
+    PAWN_EV = 100;
+    KNIGHT_EV = 300;
+    BISHOP_EV = 330;
+    ROOK_EV = 550;
+    QUEEN_EV = 1000;
+
+    pVal[0] = 0;
+    pVal[1] = PAWN_EV;
+    pVal[2] = KNIGHT_EV;
+    pVal[3] = BISHOP_EV;
+    pVal[4] = ROOK_EV;
+    pVal[5] = QUEEN_EV;
+    pVal[6] = 0;
 }
 
 int stageGame(Board* board) {

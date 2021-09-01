@@ -104,10 +104,11 @@ void readFens(Board* board) {
             eval = -eval;
         }
 
-        errorSums += pow(r(eval) - result, 2) * fading;
+        double error = pow(r(eval) - result, 2) * fading;
+        errorSums += error;
 
         if (posCount % 1000 == 0) {
-            printf("Positions: %d; Eval: %d; Result: %f; R: %f Fading: %f\n", posCount, eval, result, r(eval), fading);
+            printf("Positions: %d; Eval: %d; Result: %f; R: %f Fading: %f error: %f\n", posCount, eval, result, r(eval), fading, error);
         }
 
         free(res);
@@ -119,4 +120,20 @@ void readFens(Board* board) {
     printf("Error: %f\n", errorSums);
 
     fclose(f);
+}
+
+int setValues(int* values) {
+    return 7;
+}
+
+int* getValues() {
+    int* res = malloc(sizeof(int) * 5);
+
+    res[0] = PAWN_EV;
+    res[1] = KNIGHT_EV;
+    res[2] = BISHOP_EV;
+    res[3] = ROOK_EV;
+    res[4] = QUEEN_EV;
+
+    return res;
 }
