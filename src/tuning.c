@@ -122,10 +122,6 @@ double fun(Board* board) {
     double errorSums = 0;
 
     while(1) {
-
-        if (posCount % 1000000 == 0) {
-            printf("%d\n", posCount);
-        }
         resetSearchInfo(&searchInfo, tm);
 
         estr = fgets(buf, sizeof(buf), f);
