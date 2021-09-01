@@ -47,7 +47,7 @@ int psqtPieceEval(Board* board, U64 mask, const int* pstTable) {
 int kingDanger(int attacksCount) {
     double normalized = (attacksCount / 100. * 10.) - 5;
 
-    return 800 * (1. / (1. + exp(-normalized))) - 4;
+    return 400 * (1. / (1. + exp(-normalized))) - 4;
 }
 
 int mobilityAndKingDangerEval(Board* board, int color) {
