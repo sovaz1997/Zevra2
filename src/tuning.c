@@ -7,6 +7,8 @@
 #include "tuning.h"
 #include "search.h"
 
+const double K = 150;
+
 void makeTuning() {
     readFens();
 }
@@ -59,6 +61,10 @@ char** str_split(char* a_str, const char a_delim)
     return result;
 }
 
+double r(int eval) {
+    return 1. / (1. + exp(-eval / K));
+}
+
 void readFens(Board* board) {
     char buf[4096];
     char *estr;
@@ -70,6 +76,9 @@ void readFens(Board* board) {
     resetSearchInfo(&searchInfo, tm);
 
     int posCount = 0;
+    const double fadingFactor = 40;
+
+    double errorSums = 0;
     while(1) {
         resetSearchInfo(&searchInfo, tm);
 
@@ -85,6 +94,7 @@ void readFens(Board* board) {
         int movesToEnd = atoi(*(res + 1));
         double result = atof(*(res + 2));
 
+        double fading = exp(-movesToEnd / fadingFactor);
 
         setFen(board, fen);
 
@@ -94,13 +104,19 @@ void readFens(Board* board) {
             eval = -eval;
         }
 
+        errorSums += pow(r(eval) - result, 2) * fading;
+
         if (posCount % 1000 == 0) {
-            printf("Positions: %d; Eval: %d; Result: %f\n", posCount, eval, result);
+            printf("Positions: %d; Eval: %d; Result: %f; R: %f Fading: %f\n", posCount, eval, result, r(eval), fading);
         }
 
         free(res);
         ++posCount;
     }
+
+    errorSums /= posCount;
+
+    printf("Error: %f\n", errorSums);
 
     fclose(f);
 }
