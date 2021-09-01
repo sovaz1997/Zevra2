@@ -9,29 +9,6 @@
 
 const double K = 150;
 
-// double dichotom(int n, Board* board) {
-
-
-//
-//    while((b - a) / 2 > eps) {
-//        c = (a + b) / 2;
-//        printf("[%f, %f] %f", a, b, c);
-//        changeParam(n, a);
-//        double fA = fun(board);
-//
-//        changeParam(n, a);
-//        double fC = fun(board);
-//
-//        if (fA * fC > 0) {
-//            a = c;
-//        } else {
-//            b = c;
-//        }
-//    }
-
-  //   return c;
-// }
-
 void makeTuning(Board* board) {
 
     int* curValues = getValues();
@@ -47,8 +24,6 @@ void makeTuning(Board* board) {
             changeParam(i, curValues[i] + changeFactor);
 
             double newE = fun(board);
-
-            printf("NewE: %f; index: %d; value: %d\n", newE, i, curValues[i]);
 
             if (newE < E) {
                 improved = 1;
@@ -147,6 +122,10 @@ double fun(Board* board) {
     double errorSums = 0;
 
     while(1) {
+
+        if (posCount % 1000000 == 0) {
+            printf("%d\n", posCount);
+        }
         resetSearchInfo(&searchInfo, tm);
 
         estr = fgets(buf, sizeof(buf), f);
@@ -173,10 +152,6 @@ double fun(Board* board) {
 
         double error = pow(r(eval) - result, 2) * fading;
         errorSums += error;
-
-        /*if (posCount % 1000 == 0) {
-            printf("Positions: %d; Eval: %d; Result: %f; R: %f Fading: %f error: %f\n", posCount, eval, result, r(eval), fading, error);
-        }*/
 
         free(res);
         ++posCount;

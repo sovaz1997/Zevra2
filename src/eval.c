@@ -228,11 +228,11 @@ void initEval() {
 }
 
 void initMaterial() {
-    PAWN_EV = 100;
-    KNIGHT_EV = 300;
-    BISHOP_EV = 330;
+    PAWN_EV = 102;
+    KNIGHT_EV = 302;
+    BISHOP_EV = 328;
     ROOK_EV = 550;
-    QUEEN_EV = 1000;
+    QUEEN_EV = 1001;
 }
 
 int pVal(int n) {
