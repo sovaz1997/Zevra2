@@ -11,9 +11,6 @@ int main() {
 
     Board* board = (Board*) malloc(sizeof(Board));
 
-    // tuning
-    makeTuning();
-
 
     printEngineInfo();
     setFen(board, startpos);
@@ -25,6 +22,9 @@ int main() {
     gameInfo.moveCount = 0;
     board->gameInfo = &gameInfo;
     SEARCH_COMPLETE = 1;
+
+    // tuning
+    makeTuning(board);
 
     TimeManager tm = initTM();
 

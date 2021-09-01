@@ -5,6 +5,7 @@
 #include <stdlib.h>
 
 #include "tuning.h"
+#include "search.h"
 
 void makeTuning() {
     readFens();
@@ -58,13 +59,20 @@ char** str_split(char* a_str, const char a_delim)
     return result;
 }
 
-void readFens() {
+void readFens(Board* board) {
     char buf[4096];
     char *estr;
 
     FILE* f = fopen("positions.txt","r");
 
+    SearchInfo searchInfo;
+    TimeManager tm = createFixDepthTm(MAX_PLY - 1);
+    resetSearchInfo(&searchInfo, tm);
+
+    int posCount = 0;
     while(1) {
+        resetSearchInfo(&searchInfo, tm);
+
         estr = fgets(buf, sizeof(buf), f);
 
         if (!estr) {
@@ -77,7 +85,21 @@ void readFens() {
         int movesToEnd = atoi(*(res + 1));
         double result = atof(*(res + 2));
 
+
+        setFen(board, fen);
+
+        int eval = quiesceSearch(board, &searchInfo, -MATE_SCORE, MATE_SCORE, 0);
+
+        if (board->color == BLACK) {
+            eval = -eval;
+        }
+
+        if (posCount % 1000 == 0) {
+            printf("Positions: %d; Eval: %d; Result: %f\n", posCount, eval, result);
+        }
+
         free(res);
+        ++posCount;
     }
 
     fclose(f);
