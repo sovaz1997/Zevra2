@@ -47,7 +47,7 @@ int psqtPieceEval(Board* board, U64 mask, const int* pstTable) {
 int kingDanger(int attacksCount) {
     double normalized = (attacksCount / 100. * 10.) - 5;
 
-    return 600 * (1. / (1. + exp(-normalized))) - 4;
+    return KingDangerFactor * (1. / (1. + exp(-normalized))) - 4;
 }
 
 int mobilityAndKingDangerEval(Board* board, int color) {
@@ -128,7 +128,7 @@ int mobilityAndKingDangerEval(Board* board, int color) {
         clearBit(&mask, from);
     }
 
-    return eval + KingDanger[kingDangerValue];
+    return eval + kingDanger(kingDangerValue);
 }
 
 int pawnsEval(Board* board, int color) {
@@ -201,6 +201,7 @@ int mateScore(int eval) {
 
 void initEval() {
     initMaterial();
+    initValues();
     initPSQT();
 
     for(int i = 0; i < 64; ++i) {
@@ -228,11 +229,17 @@ void initEval() {
 }
 
 void initMaterial() {
-    PAWN_EV = 103;
-    KNIGHT_EV = 315;
-    BISHOP_EV = 317;
-    ROOK_EV = 534;
-    QUEEN_EV = 1087;
+    PAWN_EV = 104;
+    KNIGHT_EV = 317;
+    BISHOP_EV = 318;
+    ROOK_EV = 531;
+    QUEEN_EV = 1084;
+}
+
+void initValues() {
+    KingDangerFactor = 600;
+    RookOnOpenFileBonus = 20;
+    RookOnPartOpenFileBonus = 11;
 }
 
 int pVal(int n) {

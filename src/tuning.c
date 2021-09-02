@@ -8,19 +8,19 @@
 #include "search.h"
 
 const double K = 150;
+const int PARAMS_COUNT = 8;
 
 void makeTuning(Board* board) {
 
     int* curValues = getValues();
-
-    int improved = 0;
 
     const int changeFactor = 1;
 
     double E = fun(board);
 
     while(1) {
-        for (int i = 0; i < 5; i++) {
+        int improved = 0;
+        for (int i = 0; i < PARAMS_COUNT; i++) {
             changeParam(i, curValues[i] + changeFactor);
 
             double newE = fun(board);
@@ -49,7 +49,7 @@ void makeTuning(Board* board) {
         }
     }
 
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < PARAMS_COUNT; i++) {
         printf("%d ", curValues[i]);
     }
 }
@@ -160,24 +160,30 @@ double fun(Board* board) {
     return errorSums;
 }
 
-int setValues(int* values) {
+void setValues(int* values) {
     PAWN_EV = values[0];
     KNIGHT_EV = values[1];
     BISHOP_EV = values[2];
     ROOK_EV = values[3];
     QUEEN_EV = values[4];
 
-    return 7;
+    KingDangerFactor = values[5];
+    RookOnOpenFileBonus = values[6];
+    RookOnPartOpenFileBonus = values[7];
 }
 
 int* getValues() {
-    int* res = malloc(sizeof(int) * 5);
+    int* res = malloc(sizeof(int) * PARAMS_COUNT);
 
     res[0] = PAWN_EV;
     res[1] = KNIGHT_EV;
     res[2] = BISHOP_EV;
     res[3] = ROOK_EV;
     res[4] = QUEEN_EV;
+
+    res[5] = KingDangerFactor;
+    res[6] = RookOnOpenFileBonus;
+    res[7] = RookOnPartOpenFileBonus;
 
     return res;
 }
