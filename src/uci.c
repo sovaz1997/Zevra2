@@ -24,7 +24,7 @@ int main() {
     SEARCH_COMPLETE = 1;
 
     // tuning
-    // makeTuning(board);
+    makeTuning(board);
 
     TimeManager tm = initTM();
 

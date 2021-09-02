@@ -33,11 +33,11 @@ void makeTuning(Board* board) {
                 changeParam(i, curValues[i] -= changeFactor);
 
                 newE = fun(board);
-                E = newE;
 
                 if (newE < E) {
                     curValues[i] -= changeFactor;
                     improved = 1;
+                    E = newE;
                 }
             }
 
