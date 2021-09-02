@@ -28,6 +28,7 @@ void makeTuning(Board* board) {
 
     while(1) {
         int improved = 0;
+        int iterations = 0;
         for (int i = 0; i < PARAMS_COUNT; i++) {
 
             int tmpParam = curValues[i];
@@ -39,6 +40,9 @@ void makeTuning(Board* board) {
                 improved = 1;
                 curValues[i] += changeFactor;
                 E = newE;
+                printParams();
+                iterations++;
+                printf("NewE: %.7f; index: %d; value: %d\n", E, i, curValues[i]);
             } else {
                 changeParam(i, curValues[i] - changeFactor);
 
@@ -48,14 +52,16 @@ void makeTuning(Board* board) {
                     curValues[i] -= changeFactor;
                     improved = 1;
                     E = newE;
+                    printParams();
+                    iterations++;
+                    printf("NewE: %.7f; index: %d; value: %d\n", E, i, curValues[i]);
                 } else {
                     changeParam(i, tmpParam);
                 }
             }
-
-            printParams();
-            printf("NewE: %.7f; index: %d; value: %d\n", E, i, curValues[i]);
         }
+
+        printf("Iterations: %d/%d\n", iterations, PARAMS_COUNT);
 
         if (!improved) {
             break;
@@ -356,13 +362,13 @@ void printParams() {
 }
 
 void printPST(char* name, int* pst, int* curIndex, FILE* f) {
-    printf("%s\n", name);
+    // printf("%s\n", name);
     fprintf(f, "%s\n", name);
     for (int i = 0; i < 64; ++i, (*curIndex)++) {
-        printf("%d, ", pst[i]);
+       //  printf("%d, ", pst[i]);
         fprintf(f, "%d, ", pst[i]);
         if (i > 0 && (i + 1) % 8 == 0) {
-            printf("\n");
+          //   printf("\n");
             fprintf(f, "\n");
         }
     }
@@ -370,18 +376,18 @@ void printPST(char* name, int* pst, int* curIndex, FILE* f) {
 
 void printArray(char* name, int* arr, int* curIndex, int length, FILE* f) {
     if (length == 1) {
-        printf("%s: %d\n", name, arr[0]);
+        // printf("%s: %d\n", name, arr[0]);
         fprintf(f, "%s: %d\n", name, arr[0]);
         (*curIndex)++;
         return;
     }
 
-    printf("%s\n", name);
+    // printf("%s\n", name);
     fprintf(f, "%s\n", name);
     for (int i = 0; i < length; ++i, (*curIndex)++) {
-        printf("%d, ", arr[i]);
+        // printf("%d, ", arr[i]);
         fprintf(f, "%d, ", arr[i]);
     }
-    printf("\n");
+    // printf("\n");
     fprintf(f, "\n");
 }
