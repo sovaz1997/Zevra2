@@ -1,4 +1,5 @@
 #include "search.h"
+#include "uci.h"
 
 void* go(void* thread_data) {
     SearchArgs* args = (SearchArgs*)thread_data;
@@ -277,7 +278,7 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
 
     //TT analysis
     int ttEval = evalFromTT(ttEntry->eval, height);
-    if(ttEntry->evalType && ttEntry->key == keyPosition) {
+    if(ttEntry->evalType && ttEntry->key == keyPosition && !TUNING_ENABLED) {
         if((ttEntry->evalType == lowerbound && ttEval >= beta && !mateScore(ttEntry->eval)) ||
            (ttEntry->evalType == upperbound && ttEval <= alpha && !mateScore(ttEntry->eval)) ||
            ttEntry->evalType == exact) {

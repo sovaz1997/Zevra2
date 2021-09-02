@@ -6,31 +6,30 @@
 #include "score.h"
 
 //Piece weights
-int PAWN_EV;
-int KNIGHT_EV;
-int BISHOP_EV;
-int ROOK_EV;
-int QUEEN_EV;
+extern int PAWN_EV;
+extern int KNIGHT_EV;
+extern int BISHOP_EV;
+extern int ROOK_EV;
+extern int QUEEN_EV;
 
 int pVal();
 
 //Mobility bonuses
-static const int QueenMobility[28] = {
-        -30, -20, -10, 0, 5, 10, 12, 15, 18, 20, 25, 30, 32, 35,
-        40, 45, 50, 55, 57, 60, 63, 65, 70, 75, 80, 85, 90, 95
-};
-static const int RookMobility[15] = {-30, -20, -10, 0, 10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80};
-static const int BishopMobility[14] = {-30, -10, 5, 15, 20, 25, 35, 40, 45, 50, 55, 60, 65, 70};
-static const int KnightMobility[14] = {-50, -25, -10, -2, 5, 10, 15, 25};
+extern int QueenMobility[28];
+extern int RookMobility[15];
+extern int BishopMobility[14];
+extern int KnightMobility[8];
 
 //additional bonuses and penalties
-static const int PassedPawnBonus[8] = {0, 0, 10, 20, 40, 80, 120, 0};
-static const int DoubleBishopsBonus = S(30, 20);
-static const int DoublePawnsPenalty = -15;
-static const int IsolatedPawnPenalty = -5;
-int RookOnOpenFileBonus;
-int RookOnPartOpenFileBonus;
+extern int PassedPawnBonus[8];
+extern int DoublePawnsPenalty;
+extern int IsolatedPawnPenalty;
+extern int RookOnOpenFileBonus;
+extern int RookOnPartOpenFileBonus;
 int distanceBonus[64][64];
+
+extern int DoubleBishopsBonusMG;
+extern int DoubleBishopsBonusEG;
 
 //Hash eval
 int IsolatedPawnsHash[256];
@@ -44,6 +43,7 @@ int KingDangerFactor;
 
 int fullEval(Board *board);
 
+int DoubleBishopsBonus();
 int materialEval(Board *board);
 
 int psqtPieceEval(Board *board, U64 mask, const int *pstTable);
@@ -66,8 +66,6 @@ int mateScore(int eval);
 
 void initEval();
 
-void initMaterial();
-
 void initValues();
 
 int stageGame(Board *board);
@@ -79,5 +77,7 @@ int kingPsqtEval();
 int baseEval(Board *board);
 
 int kingDanger(int attacksCount);
+
+void initDependencyEval();
 
 #endif

@@ -4,6 +4,8 @@
 char startpos[] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 Option option;
 
+const int TUNING_ENABLED = 0;
+
 int main() {
 
     initOption();
@@ -24,7 +26,9 @@ int main() {
     SEARCH_COMPLETE = 1;
 
     // tuning
-    // makeTuning(board);
+    if (TUNING_ENABLED) {
+        makeTuning(board);
+    }
 
     TimeManager tm = initTM();
 
