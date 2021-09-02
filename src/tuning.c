@@ -10,7 +10,16 @@
 const double K = 150;
 const int PARAMS_COUNT = 8 + 7 * 64 + 28 + 15 + 14 + 8 + 8 + 4;
 
+struct TuningPosition {
+    char fen[512];
+    int movesToEnd;
+    double result;
+
+};
+
 void makeTuning(Board* board) {
+    loadPositions();
+
     int* curValues = getValues();
 
     const int changeFactor = 1;
@@ -56,6 +65,56 @@ void makeTuning(Board* board) {
     for (int i = 0; i < PARAMS_COUNT; i++) {
         printf("%d ", curValues[i]);
     }
+}
+
+int positionsCount = 0;
+TuningPosition* positions;
+
+void loadPositions() {
+    FILE* f = fopen("positions.txt","r");
+
+    char buf[4096];
+    char *estr;
+
+    while(1) {
+        estr = fgets(buf, sizeof(buf), f);
+
+        if (!estr) {
+            break;
+        }
+
+        ++positionsCount;
+
+        char** res = str_split(estr, ',');
+
+        char* fen = *res;
+        int movesToEnd = atoi(*(res + 1));
+        double result = atof(*(res + 2));
+
+        if (positionsCount == 1) {
+            positions = malloc(sizeof(TuningPosition) * 120000000);
+        } else {
+            // positions = realloc(positions, sizeof(TuningPosition) * positionsCount);
+        }
+
+        strcpy(positions[positionsCount - 1].fen, fen);
+        if (positionsCount % 1000 == 0) {
+            printf("Pos count: %d\n", positionsCount);
+        }
+
+        positions[positionsCount - 1].result = result;
+        positions[positionsCount - 1].movesToEnd = movesToEnd;
+
+        for(int i = 0; i < 3; i++) {
+            free(res[i]);
+        }
+
+        free(res);
+    }
+    printf("Pos count: %d\n", positionsCount);
+
+    fclose(f);
+
 }
 
 char** str_split(char* a_str, const char a_delim)
@@ -111,11 +170,6 @@ double r(int eval) {
 }
 
 double fun(Board* board) {
-    char buf[4096];
-    char *estr;
-
-    FILE* f = fopen("positions.txt","r");
-
     SearchInfo searchInfo;
     TimeManager tm = createFixDepthTm(MAX_PLY - 1);
     resetSearchInfo(&searchInfo, tm);
@@ -125,20 +179,14 @@ double fun(Board* board) {
 
     double errorSums = 0;
 
-    while(1) {
+
+
+    for(int i = 0; i < positionsCount; i++) {
         resetSearchInfo(&searchInfo, tm);
 
-        estr = fgets(buf, sizeof(buf), f);
-
-        if (!estr) {
-            break;
-        }
-
-        char** res = str_split(estr, ',');
-
-        char* fen = *res;
-        int movesToEnd = atoi(*(res + 1));
-        double result = atof(*(res + 2));
+        char* fen = positions[i].fen;
+        int movesToEnd = positions[i].movesToEnd;
+        double result = positions[i].result;
 
         double fading = exp(-movesToEnd / fadingFactor);
 
@@ -153,17 +201,10 @@ double fun(Board* board) {
         double error = pow(r(eval) - result, 2) * fading;
         errorSums += error;
 
-        for(int i = 0; i < 3; i++) {
-            free(res[i]);
-        }
-
-        free(res);
         ++posCount;
     }
 
     errorSums /= posCount;
-
-    fclose(f);
 
     return errorSums;
 }
