@@ -3,29 +3,29 @@
 #include <math.h>
 
 //Material
-int PAWN_EV = 115;
+int PAWN_EV = 121;
 int KNIGHT_EV = 318;
 int BISHOP_EV = 318;
-int ROOK_EV = 502;
-int QUEEN_EV = 1055;
+int ROOK_EV = 466;
+int QUEEN_EV = 1019;
 
 //Mobility bonuses
 int QueenMobility[28] = {
-        -30, -20, -10, -26, -21, 23, -14, 16, 27, 19, 10, 19, 31, 35, 34, 36, 50, 29, 53, 44, 37, 53, 56, 49, 54, 59, 64, 69,
+        -30, -20, -10, -61, -56, 10, -26, 1, 11, 9, 1, 9, 19, 29, 31, 28, 39, 17, 45, 29, 16, 34, 26, 16, 45, 24, 29, 34,
 };
-int RookMobility[15] = {-56, -36, -30, -20, 12, 10, 18, 20, 25, 37, 41, 45, 54, 53, 54,};
-int BishopMobility[14] = {-7, -4, -17, -8, 5, 6, 19, 25, 28, 32, 41, 47, 39, 44,};
-int KnightMobility[8] = {-76, -29, -5, -4, -9, -8, -8, 0,};
+int RookMobility[15] = {-91, -23, -51, -20, 6, 6, 14, 14, 17, 29, 31, 35, 43, 42, 29, };
+int BishopMobility[14] = {-32, -39, -44, -31, -17, -15, -3, 3, 3, 8, 13, 21, 4, 9, };
+int KnightMobility[8] = {-111, -64, -30, -25, -32, -30, -31, -24,};
 
 //additional bonuses and penalties
-int PassedPawnBonus[8] = {0, -6, -11, -1, 27, 91, 141, 0,};
-int DoublePawnsPenalty = -32;
-int IsolatedPawnPenalty = -4;
-int RookOnOpenFileBonus = 17;
-int RookOnPartOpenFileBonus = 23;
+int PassedPawnBonus[8] = {0, -15, -23, -13, 17, 79, 167, 0, };
+int DoublePawnsPenalty = -39;
+int IsolatedPawnPenalty = -5;
+int RookOnOpenFileBonus = 24;
+int RookOnPartOpenFileBonus = 27;
 int KingDangerFactor = 602;
-int DoubleBishopsBonusMG = 42;
-int DoubleBishopsBonusEG = 28;
+int DoubleBishopsBonusMG = 44;
+int DoubleBishopsBonusEG = 30;
 
 int DoubleBishopsBonus() {
     return getScore2(DoubleBishopsBonusMG, DoubleBishopsBonusEG, stage);
