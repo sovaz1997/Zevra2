@@ -30,7 +30,7 @@ void makeTuning(Board* board) {
                 curValues[i] += changeFactor;
                 E = newE;
             } else {
-                changeParam(i, curValues[i] -= changeFactor);
+                changeParam(i, curValues[i] - changeFactor);
 
                 newE = fun(board);
 
@@ -110,7 +110,7 @@ double fun(Board* board) {
     char buf[4096];
     char *estr;
 
-    FILE* f = fopen("positions.txt","r");
+    FILE* f = fopen("positions_choose.txt","r");
 
     SearchInfo searchInfo;
     TimeManager tm = createFixDepthTm(MAX_PLY - 1);
