@@ -79,7 +79,7 @@ int mobilityAndKingDangerEval(Board* board, int color) {
     while(mask) {
         int from = firstOne(mask);
         U64 possibleMoves = rookPossibleMoves[from][getMagicIndex(occu & rookMagicMask[from] & unSquareBitboard[from], rookMagic[from], rookPossibleMovesSize[from])];
-        eval += RookMobility[popcount(possibleMoves & possibleSq)];
+        eval += RookMobility[popcount(possibleMoves & possibleSq & ~our)];
 
         kingDangerValue += 3 * popcount(possibleMoves & enemyKingDangerCells);
 
@@ -92,7 +92,7 @@ int mobilityAndKingDangerEval(Board* board, int color) {
     while(mask) {
         int from = firstOne(mask);
         U64 possibleMoves = bishopPossibleMoves[from][getMagicIndex(occu & bishopMagicMask[from] & unSquareBitboard[from], bishopMagic[from], bishopPossibleMovesSize[from])];
-        eval += BishopMobility[popcount(possibleMoves & possibleSq)];
+        eval += BishopMobility[popcount(possibleMoves & possibleSq & ~our)];
 
         kingDangerValue += 2 * popcount(possibleMoves & enemyKingDangerCells);
 
@@ -108,7 +108,7 @@ int mobilityAndKingDangerEval(Board* board, int color) {
                 (rookPossibleMoves[from][getMagicIndex(occu & rookMagicMask[from] & unSquareBitboard[from], rookMagic[from], rookPossibleMovesSize[from])])
                 | (bishopPossibleMoves[from][getMagicIndex(occu & bishopMagicMask[from] & unSquareBitboard[from], bishopMagic[from], bishopPossibleMovesSize[from])])
         );
-        eval += QueenMobility[popcount(possibleMoves & possibleSq)];
+        eval += QueenMobility[popcount(possibleMoves & possibleSq & ~our)];
 
         kingDangerValue += 5 * popcount(possibleMoves & enemyKingDangerCells);
 
@@ -121,7 +121,7 @@ int mobilityAndKingDangerEval(Board* board, int color) {
     while(mask) {
         int from = firstOne(mask);
         U64 possibleMoves = knightAttacks[from];
-        eval += KnightMobility[popcount(possibleMoves & possibleSq)];
+        eval += KnightMobility[popcount(possibleMoves & possibleSq & ~our)];
 
         kingDangerValue += 2 * popcount(possibleMoves & enemyKingDangerCells);
 
