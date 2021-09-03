@@ -37,26 +37,45 @@ void makeTuning(Board* board) {
             double newE = fun(board);
 
             if (newE < E) {
-                improved = 1;
-                curValues[i] += changeFactor;
-                E = newE;
-                printParams();
-                iterations++;
-                printf("NewE: %.7f; index: %d; value: %d\n", E, i, curValues[i]);
+                while(newE < E) {
+                    improved = 1;
+                    curValues[i] += changeFactor;
+                    E = newE;
+                    printParams();
+                    iterations++;
+                    printf("NewE: %.7f; index: %d; value: %d\n", E, i, curValues[i]);
+                    changeParam(i, curValues[i] + changeFactor);
+                    newE = fun(board);
+                }
+                changeParam(i, curValues[i] - changeFactor);
+                curValues[i] -= changeFactor;
             } else {
                 changeParam(i, curValues[i] - changeFactor);
 
                 newE = fun(board);
 
                 if (newE < E) {
-                    curValues[i] -= changeFactor;
-                    improved = 1;
-                    E = newE;
-                    printParams();
-                    iterations++;
-                    printf("NewE: %.7f; index: %d; value: %d\n", E, i, curValues[i]);
+                    while(newE < E) {
+                        improved = 1;
+                        curValues[i] -= changeFactor;
+                        E = newE;
+                        printParams();
+                        iterations++;
+                        printf("NewE: %.7f; index: %d; value: %d\n", E, i, curValues[i]);
+                        changeParam(i, curValues[i] - changeFactor);
+                        newE = fun(board);
+                    }
+                    changeParam(i, curValues[i] + changeFactor);
+                    curValues[i] += changeFactor;
+//                    curValues[i] -= changeFactor;
+//                    improved = 1;
+//                    E = newE;
+//                    printParams();
+//                    iterations++;
+//                    printf("NewE: %.7f; index: %d; value: %d\n", E, i, curValues[i]);
                 } else {
                     changeParam(i, tmpParam);
+                    curValues[i] = tmpParam;
                 }
             }
         }
@@ -198,7 +217,8 @@ double fun(Board* board) {
 
         setFen(board, fen);
 
-        int eval = quiesceSearch(board, &searchInfo, -MATE_SCORE, MATE_SCORE, 0);
+        int eval = fullEval(board);
+        // int eval = quiesceSearch(board, &searchInfo, -MATE_SCORE, MATE_SCORE, 0);
 
         if (board->color == BLACK) {
             eval = -eval;
