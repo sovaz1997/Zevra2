@@ -18,7 +18,7 @@ struct TuningPosition {
 };
 
 void makeTuning(Board* board) {
-    loadPositions();
+    loadPositions(board);
 
     int* curValues = getValues();
 
@@ -95,12 +95,19 @@ void makeTuning(Board* board) {
 int positionsCount = 0;
 TuningPosition* positions;
 
-void loadPositions() {
+void loadPositions(Board* board) {
     FILE* f = fopen("positions.txt","r");
+
+    SearchInfo searchInfo;
+    TimeManager tm = createFixDepthTm(MAX_PLY - 1);
+    resetSearchInfo(&searchInfo, tm);
 
     char buf[4096];
     char *estr;
 
+    int quiets = 0;
+
+    positions = malloc(sizeof(TuningPosition) * 120000000);
     while(1) {
         estr = fgets(buf, sizeof(buf), f);
 
@@ -108,27 +115,28 @@ void loadPositions() {
             break;
         }
 
-        ++positionsCount;
-
         char** res = str_split(estr, ',');
 
         char* fen = *res;
         int movesToEnd = atoi(*(res + 1));
         double result = atof(*(res + 2));
 
-        if (positionsCount == 1) {
-            positions = malloc(sizeof(TuningPosition) * 120000000);
-        } else {
-            // positions = realloc(positions, sizeof(TuningPosition) * positionsCount);
-        }
 
-        strcpy(positions[positionsCount - 1].fen, fen);
-        if (positionsCount % 1000 == 0) {
-            printf("Pos count: %d\n", positionsCount);
-        }
+        setFen(board, fen);
+        int eval = fullEval(board);
+        int qEval = quiesceSearch(board, &searchInfo, -MATE_SCORE, MATE_SCORE, 0);
+        if (abs(eval - qEval) < 50) {
+            ++positionsCount;
+            strcpy(positions[positionsCount - 1].fen, fen);
+            if (positionsCount % 1000 == 0) {
+                printf("Pos count: %d\n", positionsCount);
+            }
 
-        positions[positionsCount - 1].result = result;
-        positions[positionsCount - 1].movesToEnd = movesToEnd;
+            positions[positionsCount - 1].result = result;
+            positions[positionsCount - 1].movesToEnd = movesToEnd;
+
+            quiets++;
+        }
 
         for(int i = 0; i < 3; i++) {
             free(res[i]);
@@ -136,7 +144,7 @@ void loadPositions() {
 
         free(res);
     }
-    printf("Pos count: %d\n", positionsCount);
+    printf("Pos count: %d; quiets count: %d\n", positionsCount, quiets);
 
     fclose(f);
 
