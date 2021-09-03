@@ -3,29 +3,29 @@
 #include <math.h>
 
 //Material
-int PAWN_EV = 117;
-int KNIGHT_EV = 318;
-int BISHOP_EV = 318;
-int ROOK_EV = 432;
-int QUEEN_EV = 877;
+int PAWN_EV = 100;
+int KNIGHT_EV = 301;
+int BISHOP_EV = 329;
+int ROOK_EV = 549;
+int QUEEN_EV = 1003;
 
 //Mobility bonuses
 int QueenMobility[28] = {
-        -30, -20, -10, -79, -74, 5, -28, -3, 6, 4, -5, 4, 13, 24, 31, 23, 35, 10, 32, 24, 10, 22, 18, 9, 28, 6, 11, 16,
+        -30, -20, -10, 0, 5, 10, 10, 15, 17, 20, 25, 30, 32, 35, 40, 45, 50, 55, 56, 59, 63, 65, 72, 71, 79, 86, 87, 100,
 };
-int RookMobility[15] = {-109, -21, -61, -19, 6, 6, 14, 13, 16, 28, 30, 34, 42, 41, 29,  };
-int BishopMobility[14] = {-35, -42, -48, -35, -20, -18, -6, 0, 0, 4, 9, 16, -5, -5, };
-int KnightMobility[8] = {-129, -82, -37, -32, -35, -34, -35, -26, };
+int RookMobility[15] = {-30, -22, -8, 1, 10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80, };
+int BishopMobility[14] = {-30, -11, 7, 15, 20, 25, 35, 40, 45, 50, 55, 60, 65, 70, };
+int KnightMobility[8] = {-50, -25, -10, -2, 5, 9, 15, 25, };
 
 //additional bonuses and penalties
-int PassedPawnBonus[8] = {0, -15, -23, -12, 17, 78, 165, 0, };
-int DoublePawnsPenalty = -39;
+int PassedPawnBonus[8] = {0, 0, 10, 20, 40, 80, 121, 0, };
+int DoublePawnsPenalty = -15;
 int IsolatedPawnPenalty = -5;
-int RookOnOpenFileBonus = 25;
-int RookOnPartOpenFileBonus = 27;
-int KingDangerFactor = 602;
-int DoubleBishopsBonusMG = 44;
-int DoubleBishopsBonusEG = 30;
+int RookOnOpenFileBonus = 21;
+int RookOnPartOpenFileBonus = 9;
+int KingDangerFactor = 600;
+int DoubleBishopsBonusMG = 30;
+int DoubleBishopsBonusEG = 19;
 
 int DoubleBishopsBonus() {
     return getScore2(DoubleBishopsBonusMG, DoubleBishopsBonusEG, stage);
@@ -48,7 +48,9 @@ int fullEval(Board *board) {
     //King safety
     eval += (kingEval(board, WHITE) - kingEval(board, BLACK));
 
-    return (board->color == WHITE ? eval : -eval);
+    int normalizedEval = round((double)eval / (double)PAWN_EV * 100.);
+
+    return (board->color == WHITE ? normalizedEval : -normalizedEval);
 }
 
 int kingPsqtEval(Board *board) {

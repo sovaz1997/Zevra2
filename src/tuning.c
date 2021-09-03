@@ -29,7 +29,7 @@ void makeTuning(Board* board) {
     while(1) {
         int improved = 0;
         int iterations = 0;
-        for (int i = 0; i < PARAMS_COUNT; i++) {
+        for (int i = 1; i < PARAMS_COUNT; i++) {
 
             int tmpParam = curValues[i];
             changeParam(i, curValues[i] + changeFactor);
