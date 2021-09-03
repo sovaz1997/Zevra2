@@ -4,22 +4,22 @@
 
 //Material
 int PAWN_EV = 100;
-int KNIGHT_EV = 315;
-int BISHOP_EV = 315;
-int ROOK_EV = 497;
-int QUEEN_EV = 969;
+int KNIGHT_EV = 296;
+int BISHOP_EV = 294;
+int ROOK_EV = 443;
+int QUEEN_EV = 798;
 
 //Mobility bonuses
 int QueenMobility[28] = {
-        -30, -20, -10, -52, -47, 34, -3, 18, 28, 24, 15, 23, 34, 39, 40, 47, 59, 33, 68, 50, 35, 54, 44, 35, 50, 34, 35, 48,
+        -30, -20, -10, -52, -47, 34, -3, 18, 28, 24, 16, 29, 36, 39, 42, 50, 49, 42, 59, 45, 40, 59, 50, 30, 8, -11, -3, -42,
 };
-int RookMobility[15] = {-82, -43, -55, -24, 0, 0, 8, 9, 11, 23, 26, 30, 38, 37, 29, };
-int BishopMobility[14] = {-21, -17, -24, -11, 1, 4, 17, 21, 21, 25, 32, 37, 15, 19, };
-int KnightMobility[8] = {-101, -61, -26, -21, -22, -20, -19, -13, };
+int RookMobility[15] = {-402, -79, -57, -22, 0, 0, 8, 6, 11, 23, 25, 28, 35, 37, 25,  };
+int BishopMobility[14] = {-24, -17, -24, -9, 3, 4, 14, 18, 18, 24, 27, 33, 6, 11, };
+int KnightMobility[8] = {-101, -76, -24, -21, -22, -22, -23, -18, };
 
 //additional bonuses and penalties
-int PassedPawnBonus[8] = {0, 4, -4, 7, 36, 98, 172, 0, };
-int DoublePawnsPenalty = -30;
+int PassedPawnBonus[8] = {0, 1, -3, 6, 36, 87, 162, 0,  };
+int DoublePawnsPenalty = -29;
 int IsolatedPawnPenalty = -4;
 int RookOnOpenFileBonus = 20;
 int RookOnPartOpenFileBonus = 24;
