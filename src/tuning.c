@@ -229,28 +229,30 @@ void setValues(int* values) {
 
     int curIndex = 8;
 
-    // PST
-    transferPST(&values[curIndex], pawnPST, &curIndex);
-    transferPST(&values[curIndex], knightPST, &curIndex);
-    transferPST(&values[curIndex], bishopPST, &curIndex);
-    transferPST(&values[curIndex], rookPST, &curIndex);
-    transferPST(&values[curIndex], queenPST, &curIndex);
-    transferPST(&values[curIndex], kingPST, &curIndex);
-    transferPST(&values[curIndex], egKingPST, &curIndex);
+    if (PARAMS_COUNT > 8) {
+        // PST
+        transferPST(&values[curIndex], pawnPST, &curIndex);
+        transferPST(&values[curIndex], knightPST, &curIndex);
+        transferPST(&values[curIndex], bishopPST, &curIndex);
+        transferPST(&values[curIndex], rookPST, &curIndex);
+        transferPST(&values[curIndex], queenPST, &curIndex);
+        transferPST(&values[curIndex], kingPST, &curIndex);
+        transferPST(&values[curIndex], egKingPST, &curIndex);
 
-    // Mobility
-    transfer(&values[curIndex], QueenMobility, &curIndex, 28);
-    transfer(&values[curIndex], RookMobility, &curIndex, 15);
-    transfer(&values[curIndex], BishopMobility, &curIndex, 14);
-    transfer(&values[curIndex], KnightMobility, &curIndex, 8);
+        // Mobility
+        transfer(&values[curIndex], QueenMobility, &curIndex, 28);
+        transfer(&values[curIndex], RookMobility, &curIndex, 15);
+        transfer(&values[curIndex], BishopMobility, &curIndex, 14);
+        transfer(&values[curIndex], KnightMobility, &curIndex, 8);
 
 
-    transfer(&values[curIndex], PassedPawnBonus, &curIndex, 8);
+        transfer(&values[curIndex], PassedPawnBonus, &curIndex, 8);
 
-    transfer(&values[curIndex], &DoublePawnsPenalty, &curIndex, 1);
-    transfer(&values[curIndex], &IsolatedPawnPenalty, &curIndex, 1);
-    transfer(&values[curIndex], &DoubleBishopsBonusMG, &curIndex, 1);
-    transfer(&values[curIndex], &DoubleBishopsBonusEG, &curIndex, 1);
+        transfer(&values[curIndex], &DoublePawnsPenalty, &curIndex, 1);
+        transfer(&values[curIndex], &IsolatedPawnPenalty, &curIndex, 1);
+        transfer(&values[curIndex], &DoubleBishopsBonusMG, &curIndex, 1);
+        transfer(&values[curIndex], &DoubleBishopsBonusEG, &curIndex, 1);
+    }
 
 
     // re-init due to dependent eval
@@ -283,27 +285,29 @@ int* getValues() {
 
     int curIndex = 8;
 
-    // PST
-    transferPST(pawnPST, &res[curIndex], &curIndex);
-    transferPST(knightPST, &res[curIndex], &curIndex);
-    transferPST(bishopPST, &res[curIndex], &curIndex);
-    transferPST(rookPST, &res[curIndex], &curIndex);
-    transferPST(queenPST, &res[curIndex], &curIndex);
-    transferPST(kingPST, &res[curIndex], &curIndex);
-    transferPST(egKingPST, &res[curIndex], &curIndex);
+    if (PARAMS_COUNT > 8) {
+        // PST
+        transferPST(pawnPST, &res[curIndex], &curIndex);
+        transferPST(knightPST, &res[curIndex], &curIndex);
+        transferPST(bishopPST, &res[curIndex], &curIndex);
+        transferPST(rookPST, &res[curIndex], &curIndex);
+        transferPST(queenPST, &res[curIndex], &curIndex);
+        transferPST(kingPST, &res[curIndex], &curIndex);
+        transferPST(egKingPST, &res[curIndex], &curIndex);
 
-    // Mobility
-    transfer(QueenMobility, &res[curIndex], &curIndex, 28);
-    transfer(RookMobility, &res[curIndex], &curIndex, 15);
-    transfer(BishopMobility, &res[curIndex], &curIndex, 14);
-    transfer(KnightMobility, &res[curIndex], &curIndex, 8);
+        // Mobility
+        transfer(QueenMobility, &res[curIndex], &curIndex, 28);
+        transfer(RookMobility, &res[curIndex], &curIndex, 15);
+        transfer(BishopMobility, &res[curIndex], &curIndex, 14);
+        transfer(KnightMobility, &res[curIndex], &curIndex, 8);
 
-    transfer(PassedPawnBonus, &res[curIndex], &curIndex, 8);
+        transfer(PassedPawnBonus, &res[curIndex], &curIndex, 8);
 
-    transfer(&DoublePawnsPenalty, &res[curIndex], &curIndex, 1);
-    transfer(&IsolatedPawnPenalty, &res[curIndex], &curIndex, 1);
-    transfer(&DoubleBishopsBonusMG, &res[curIndex], &curIndex, 1);
-    transfer(&DoubleBishopsBonusEG, &res[curIndex], &curIndex, 1);
+        transfer(&DoublePawnsPenalty, &res[curIndex], &curIndex, 1);
+        transfer(&IsolatedPawnPenalty, &res[curIndex], &curIndex, 1);
+        transfer(&DoubleBishopsBonusMG, &res[curIndex], &curIndex, 1);
+        transfer(&DoubleBishopsBonusEG, &res[curIndex], &curIndex, 1);
+    }
 
     return res;
 }
@@ -337,26 +341,28 @@ void printParams() {
     printArray("RookOnOpenFileBonus", &params[curIndex], &curIndex, 1, f);
     printArray("RookOnPartOpenFileBonus", &params[curIndex], &curIndex, 1, f);
 
-    printPST("pawnPST", &params[curIndex], &curIndex, f);
-    printPST("knightPST", &params[curIndex], &curIndex, f);
-    printPST("bishopPST", &params[curIndex], &curIndex, f);
-    printPST("rookPST", &params[curIndex], &curIndex, f);
-    printPST("queenPST", &params[curIndex], &curIndex, f);
-    printPST("kingPST", &params[curIndex], &curIndex, f);
-    printPST("egKingPST", &params[curIndex], &curIndex, f);
+    if (PARAMS_COUNT > 8) {
+        printPST("pawnPST", &params[curIndex], &curIndex, f);
+        printPST("knightPST", &params[curIndex], &curIndex, f);
+        printPST("bishopPST", &params[curIndex], &curIndex, f);
+        printPST("rookPST", &params[curIndex], &curIndex, f);
+        printPST("queenPST", &params[curIndex], &curIndex, f);
+        printPST("kingPST", &params[curIndex], &curIndex, f);
+        printPST("egKingPST", &params[curIndex], &curIndex, f);
 
-    // Mobility
-    printArray("QueenMobility", &params[curIndex], &curIndex, 28, f);
-    printArray("RookMobility", &params[curIndex], &curIndex, 15, f);
-    printArray("BishopMobility", &params[curIndex], &curIndex, 14, f);
-    printArray("KnightMobility", &params[curIndex], &curIndex, 8, f);
+        // Mobility
+        printArray("QueenMobility", &params[curIndex], &curIndex, 28, f);
+        printArray("RookMobility", &params[curIndex], &curIndex, 15, f);
+        printArray("BishopMobility", &params[curIndex], &curIndex, 14, f);
+        printArray("KnightMobility", &params[curIndex], &curIndex, 8, f);
 
-    printArray("PassedPawnsBonus", &params[curIndex], &curIndex, 8, f);
+        printArray("PassedPawnsBonus", &params[curIndex], &curIndex, 8, f);
 
-    printArray("DoublePawnsPenalty", &params[curIndex], &curIndex, 1, f);
-    printArray("IsolatedPawnPenalty", &params[curIndex], &curIndex, 1, f);
-    printArray("DoubleBishopsBonusMG", &params[curIndex], &curIndex, 1, f);
-    printArray("DoubleBishopsBonusEG", &params[curIndex], &curIndex, 1, f);
+        printArray("DoublePawnsPenalty", &params[curIndex], &curIndex, 1, f);
+        printArray("IsolatedPawnPenalty", &params[curIndex], &curIndex, 1, f);
+        printArray("DoubleBishopsBonusMG", &params[curIndex], &curIndex, 1, f);
+        printArray("DoubleBishopsBonusEG", &params[curIndex], &curIndex, 1, f);
+    }
 
     fclose(f);
 }

@@ -3,11 +3,11 @@
 #include <math.h>
 
 //Material
-int PAWN_EV = 119;
+int PAWN_EV = 117;
 int KNIGHT_EV = 318;
 int BISHOP_EV = 318;
-int ROOK_EV = 452;
-int QUEEN_EV = 1000;
+int ROOK_EV = 432;
+int QUEEN_EV = 877;
 
 //Mobility bonuses
 int QueenMobility[28] = {
@@ -22,7 +22,7 @@ int PassedPawnBonus[8] = {0, -15, -23, -12, 17, 78, 165, 0, };
 int DoublePawnsPenalty = -39;
 int IsolatedPawnPenalty = -5;
 int RookOnOpenFileBonus = 25;
-int RookOnPartOpenFileBonus = 28;
+int RookOnPartOpenFileBonus = 27;
 int KingDangerFactor = 602;
 int DoubleBishopsBonusMG = 44;
 int DoubleBishopsBonusEG = 30;
