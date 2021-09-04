@@ -3,36 +3,36 @@
 #include <math.h>
 
 //Material
-int PAWN_EV = 100;
+int PAWN_EV = 96;
 int KNIGHT_EV = 322;
 int BISHOP_EV = 322;
 int ROOK_EV = 500;
 int QUEEN_EV = 923;
 
-int PAWN_EV_EG = 100;
-int KNIGHT_EV_EG = 322;
-int BISHOP_EV_EG = 322;
-int ROOK_EV_EG = 500;
-int QUEEN_EV_EG = 923;
+int PAWN_EV_EG = 92;
+int KNIGHT_EV_EG = 327;
+int BISHOP_EV_EG = 324;
+int ROOK_EV_EG = 503;
+int QUEEN_EV_EG = 926;
 
 //Mobility bonuses
 int QueenMobility[28] = { -30, -20, -10, -52, -47, 34, -3, 18, 23, 24, 18, 29, 36, 39, 42, 47, 50, 42, 48, 49, 52, 46, 55, 52, 37, 76, 45, 42, };
-int QueenMobilityEG[28] = { -30, -20, -10, -52, -47, 34, -3, 18, 23, 24, 18, 29, 36, 39, 42, 47, 50, 42, 48, 49, 52, 46, 55, 52, 37, 76, 45, 42, };
+int QueenMobilityEG[28] = { -30, -20, -10, -52, -47, 34, -3, 18, 23, 24, 18, 29, 36, 39, 42, 47, 50, 42, 48, 49, 52, 46, 55, 52, 37, 76, 45, 42,  };
 
-int RookMobility[15] = {-402, -51, -57, -22, 0, 0, 8, 8, 13, 21, 25, 29, 35, 34, 35, };
+int RookMobility[15] = {-402, -51, -57, -22, 0, 0, 8, 8, 13, 21, 25, 29, 35, 34, 35,  };
 int RookMobilityEG[15] = {-402, -51, -57, -22, 0, 0, 8, 8, 13, 21, 25, 29, 35, 34, 35, };
 
-int BishopMobility[14] = {-13, -39, -23, -9, 2, 6, 15, 19, 21, 25, 27, 39, 21, 38,};
-int BishopMobilityEG[14] = {-13, -39, -23, -9, 2, 6, 15, 19, 21, 25, 27, 39, 21, 38,};
+int BishopMobility[14] = {-13, -39, -23, -9, 2, 6, 15, 19, 21, 25, 27, 39, 21, 38, };
+int BishopMobilityEG[14] = {7, -39, -23, -9, 2, 6, 15, 19, 21, 25, 27, 38, 21, 38, };
 
-int KnightMobility[8] = {-101, -46, -24, -18, -19, -22, -21, -14, };
+int KnightMobility[8] = {-67, -46, -24, -18, -19, -22, -21, -14, };
 int KnightMobilityEG[8] = {-101, -46, -24, -18, -19, -22, -21, -14, };
 
 //additional bonuses and penalties
-int PassedPawnBonus[8] = {0, 0, -5, 5, 36, 92, 163, 0, };
-int PassedPawnBonusEG[8] = {0, 0, -5, 5, 36, 92, 163, 0, };
+int PassedPawnBonus[8] = {0, 0, -5, 2, 17, 78, 163, 0, };
+int PassedPawnBonusEG[8] = {0, 0, -5, 5, 36, 92, 130, 0, };
 
-int DoublePawnsPenalty = -30;
+int DoublePawnsPenalty = -25;
 int DoublePawnsPenaltyEG = -30;
 
 int IsolatedPawnPenalty = -4;
@@ -92,11 +92,11 @@ int materialEval(Board* board) {
     int wqCount = popcount(board->pieces[QUEEN] & board->colours[WHITE]);
     int bqCount = popcount(board->pieces[QUEEN] & board->colours[BLACK]);
 
-    eval += getScore2(PAWN_EV, PAWN_EV_EG, 2) * (wpCount - bpCount);
-    eval += getScore2(KNIGHT_EV, KNIGHT_EV_EG, 2) * (wnCount - bnCount);
-    eval += getScore2(BISHOP_EV, BISHOP_EV_EG, 2) * (wbCount - bbCount);
-    eval += getScore2(ROOK_EV, ROOK_EV_EG, 2) * (wrCount - brCount);
-    eval += getScore2(QUEEN_EV, QUEEN_EV_EG, 2) * (wqCount - bqCount);
+    eval += getScore2(PAWN_EV, PAWN_EV_EG, stage) * (wpCount - bpCount);
+    eval += getScore2(KNIGHT_EV, KNIGHT_EV_EG, stage) * (wnCount - bnCount);
+    eval += getScore2(BISHOP_EV, BISHOP_EV_EG, stage) * (wbCount - bbCount);
+    eval += getScore2(ROOK_EV, ROOK_EV_EG, stage) * (wrCount - brCount);
+    eval += getScore2(QUEEN_EV, QUEEN_EV_EG, stage) * (wqCount - bqCount);
 
     return eval;
 }
