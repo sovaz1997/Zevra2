@@ -92,11 +92,11 @@ int materialEval(Board* board) {
     int wqCount = popcount(board->pieces[QUEEN] & board->colours[WHITE]);
     int bqCount = popcount(board->pieces[QUEEN] & board->colours[BLACK]);
 
-    eval += PAWN_EV * (wpCount - bpCount);
-    eval += KNIGHT_EV * (wnCount - bnCount);
-    eval += BISHOP_EV * (wbCount - bbCount);
-    eval += ROOK_EV * (wrCount - brCount);
-    eval += QUEEN_EV * (wqCount - bqCount);
+    eval += getScore2(PAWN_EV, PAWN_EV_EG, 2) * (wpCount - bpCount);
+    eval += getScore2(KNIGHT_EV, KNIGHT_EV_EG, 2) * (wnCount - bnCount);
+    eval += getScore2(BISHOP_EV, BISHOP_EV_EG, 2) * (wbCount - bbCount);
+    eval += getScore2(ROOK_EV, ROOK_EV_EG, 2) * (wrCount - brCount);
+    eval += getScore2(QUEEN_EV, QUEEN_EV_EG, 2) * (wqCount - bqCount);
 
     return eval;
 }
