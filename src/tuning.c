@@ -96,7 +96,7 @@ int positionsCount = 0;
 TuningPosition* positions;
 
 void loadPositions(Board* board) {
-    FILE* f = fopen("positions.txt","r");
+    FILE* f = fopen("all-test-positions.txt","r");
 
     SearchInfo searchInfo;
     TimeManager tm = createFixDepthTm(MAX_PLY - 1);
@@ -125,7 +125,7 @@ void loadPositions(Board* board) {
         setFen(board, fen);
         int eval = fullEval(board);
         int qEval = quiesceSearch(board, &searchInfo, -MATE_SCORE, MATE_SCORE, 0);
-        if (abs(eval - qEval) < 50) {
+        if (abs(eval - qEval) < 50 && popcount(board->colours[WHITE] | board->colours[BLACK]) > 7) {
             ++positionsCount;
             strcpy(positions[positionsCount - 1].fen, fen);
             if (positionsCount % 1000 == 0) {
