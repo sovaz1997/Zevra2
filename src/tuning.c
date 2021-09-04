@@ -233,6 +233,17 @@ double fun(Board *board) {
 void setValues(int *values) {
     int curIndex = 0;
 
+    transfer(&values[curIndex], &PAWN_EV, &curIndex, 1);
+    transfer(&values[curIndex], &PAWN_EV_EG, &curIndex, 1);
+    transfer(&values[curIndex], &KNIGHT_EV, &curIndex, 1);
+    transfer(&values[curIndex], &KNIGHT_EV_EG, &curIndex, 1);
+    transfer(&values[curIndex], &BISHOP_EV, &curIndex, 1);
+    transfer(&values[curIndex], &BISHOP_EV_EG, &curIndex, 1);
+    transfer(&values[curIndex], &ROOK_EV, &curIndex, 1);
+    transfer(&values[curIndex], &ROOK_EV_EG, &curIndex, 1);
+    transfer(&values[curIndex], &QUEEN_EV, &curIndex, 1);
+    transfer(&values[curIndex], &QUEEN_EV_EG, &curIndex, 1);
+
     // PST
     transferPST(&values[curIndex], pawnPST, &curIndex);
     transferPST(&values[curIndex], knightPST, &curIndex);
@@ -266,17 +277,6 @@ void setValues(int *values) {
     transfer(&values[curIndex], &IsolatedPawnPenaltyEG, &curIndex, 1);
     transfer(&values[curIndex], &DoubleBishopsBonusMG, &curIndex, 1);
     transfer(&values[curIndex], &DoubleBishopsBonusEG, &curIndex, 1);
-
-    transfer(&values[curIndex], &PAWN_EV, &curIndex, 1);
-    transfer(&values[curIndex], &PAWN_EV_EG, &curIndex, 1);
-    transfer(&values[curIndex], &KNIGHT_EV, &curIndex, 1);
-    transfer(&values[curIndex], &KNIGHT_EV_EG, &curIndex, 1);
-    transfer(&values[curIndex], &BISHOP_EV, &curIndex, 1);
-    transfer(&values[curIndex], &BISHOP_EV_EG, &curIndex, 1);
-    transfer(&values[curIndex], &ROOK_EV, &curIndex, 1);
-    transfer(&values[curIndex], &ROOK_EV_EG, &curIndex, 1);
-    transfer(&values[curIndex], &QUEEN_EV, &curIndex, 1);
-    transfer(&values[curIndex], &QUEEN_EV_EG, &curIndex, 1);
     transfer(&values[curIndex], &KingDangerFactor, &curIndex, 1);
     transfer(&values[curIndex], &RookOnOpenFileBonus, &curIndex, 1);
     transfer(&values[curIndex], &RookOnOpenFileBonusEG, &curIndex, 1);
@@ -303,6 +303,17 @@ int *getValues() {
     int *res = (int *) malloc(sizeof(int) * PARAMS_COUNT * 2);
 
     int curIndex = 0;
+
+    transfer(&PAWN_EV, &res[curIndex], &curIndex, 1);
+    transfer(&PAWN_EV_EG, &res[curIndex], &curIndex, 1);
+    transfer(&KNIGHT_EV, &res[curIndex], &curIndex, 1);
+    transfer(&KNIGHT_EV_EG, &res[curIndex], &curIndex, 1);
+    transfer(&BISHOP_EV, &res[curIndex], &curIndex, 1);
+    transfer(&BISHOP_EV_EG, &res[curIndex], &curIndex, 1);
+    transfer(&ROOK_EV, &res[curIndex], &curIndex, 1);
+    transfer(&ROOK_EV_EG, &res[curIndex], &curIndex, 1);
+    transfer(&QUEEN_EV, &res[curIndex], &curIndex, 1);
+    transfer(&QUEEN_EV_EG, &res[curIndex], &curIndex, 1);
 
     // PST
     transferPST(pawnPST, &res[curIndex], &curIndex);
@@ -338,17 +349,6 @@ int *getValues() {
     transfer(&IsolatedPawnPenaltyEG, &res[curIndex], &curIndex, 1);
     transfer(&DoubleBishopsBonusMG, &res[curIndex], &curIndex, 1);
     transfer(&DoubleBishopsBonusEG, &res[curIndex], &curIndex, 1);
-
-    transfer(&PAWN_EV, &res[curIndex], &curIndex, 1);
-    transfer(&PAWN_EV_EG, &res[curIndex], &curIndex, 1);
-    transfer(&KNIGHT_EV, &res[curIndex], &curIndex, 1);
-    transfer(&KNIGHT_EV_EG, &res[curIndex], &curIndex, 1);
-    transfer(&BISHOP_EV, &res[curIndex], &curIndex, 1);
-    transfer(&BISHOP_EV_EG, &res[curIndex], &curIndex, 1);
-    transfer(&ROOK_EV, &res[curIndex], &curIndex, 1);
-    transfer(&ROOK_EV_EG, &res[curIndex], &curIndex, 1);
-    transfer(&QUEEN_EV, &res[curIndex], &curIndex, 1);
-    transfer(&QUEEN_EV_EG, &res[curIndex], &curIndex, 1);
     transfer(&KingDangerFactor, &res[curIndex], &curIndex, 1);
     transfer(&RookOnOpenFileBonus, &res[curIndex], &curIndex, 1);
     transfer(&RookOnOpenFileBonusEG,&res[curIndex], &curIndex, 1);
@@ -377,6 +377,17 @@ void printParams() {
         printf("Не удалось открыть файл");
         return;
     }
+
+    printArray("PAWN_EV", &params[curIndex], &curIndex, 1, f);
+    printArray("PAWN_EG", &params[curIndex], &curIndex, 1, f);
+    printArray("KNIGHT_EV", &params[curIndex], &curIndex, 1, f);
+    printArray("KNIGHT_EV_EG", &params[curIndex], &curIndex, 1, f);
+    printArray("BISHOP_EV", &params[curIndex], &curIndex, 1, f);
+    printArray("BISHOP_EV_EG", &params[curIndex], &curIndex, 1, f);
+    printArray("ROOK_EV", &params[curIndex], &curIndex, 1, f);
+    printArray("ROOK_EV_EG", &params[curIndex], &curIndex, 1, f);
+    printArray("QUEEN_EV", &params[curIndex], &curIndex, 1, f);
+    printArray("QUEEN_EV_EG", &params[curIndex], &curIndex, 1, f);
 
     printPST("pawnPST", &params[curIndex], &curIndex, f);
     printPST("knightPST", &params[curIndex], &curIndex, f);
@@ -411,16 +422,6 @@ void printParams() {
     printArray("DoubleBishopsBonusMG", &params[curIndex], &curIndex, 1, f);
     printArray("DoubleBishopsBonusEG", &params[curIndex], &curIndex, 1, f);
 
-    printArray("PAWN_EV", &params[curIndex], &curIndex, 1, f);
-    printArray("PAWN_EG", &params[curIndex], &curIndex, 1, f);
-    printArray("KNIGHT_EV", &params[curIndex], &curIndex, 1, f);
-    printArray("KNIGHT_EV_EG", &params[curIndex], &curIndex, 1, f);
-    printArray("BISHOP_EV", &params[curIndex], &curIndex, 1, f);
-    printArray("BISHOP_EV_EG", &params[curIndex], &curIndex, 1, f);
-    printArray("ROOK_EV", &params[curIndex], &curIndex, 1, f);
-    printArray("ROOK_EV_EG", &params[curIndex], &curIndex, 1, f);
-    printArray("QUEEN_EV", &params[curIndex], &curIndex, 1, f);
-    printArray("QUEEN_EV_EG", &params[curIndex], &curIndex, 1, f);
     printArray("KingDangerFactor", &params[curIndex], &curIndex, 1, f);
     printArray("RookOnOpenFileBonus", &params[curIndex], &curIndex, 1, f);
     printArray("RookOnOpenFileBonusEg", &params[curIndex], &curIndex, 1, f);
