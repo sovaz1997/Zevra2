@@ -179,7 +179,11 @@ int mobilityAndKingDangerEval(Board *board, int color) {
         int from = firstOne(mask);
         U64 possibleMoves = rookPossibleMoves[from][getMagicIndex(occu & rookMagicMask[from] & unSquareBitboard[from],
                                                                   rookMagic[from], rookPossibleMovesSize[from])];
-        eval += RookMobility[popcount(possibleMoves & possibleSq)];
+        eval += getScore2(
+                RookMobility[popcount(possibleMoves & possibleSq)],
+                RookMobilityEG[popcount(possibleMoves & possibleSq)],
+                stage
+        );
 
         kingDangerValue += 3 * popcount(possibleMoves & enemyKingDangerCells);
 
@@ -194,7 +198,11 @@ int mobilityAndKingDangerEval(Board *board, int color) {
         U64 possibleMoves = bishopPossibleMoves[from][getMagicIndex(
                 occu & bishopMagicMask[from] & unSquareBitboard[from], bishopMagic[from],
                 bishopPossibleMovesSize[from])];
-        eval += BishopMobility[popcount(possibleMoves & possibleSq)];
+        eval += getScore2(
+                BishopMobility[popcount(possibleMoves & possibleSq)],
+                BishopMobilityEG[popcount(possibleMoves & possibleSq)],
+                stage
+        );
 
         kingDangerValue += 2 * popcount(possibleMoves & enemyKingDangerCells);
 
@@ -212,7 +220,12 @@ int mobilityAndKingDangerEval(Board *board, int color) {
                 | (bishopPossibleMoves[from][getMagicIndex(occu & bishopMagicMask[from] & unSquareBitboard[from],
                                                            bishopMagic[from], bishopPossibleMovesSize[from])])
         );
-        eval += QueenMobility[popcount(possibleMoves & possibleSq)];
+
+        eval += getScore2(
+                QueenMobility[popcount(possibleMoves & possibleSq)],
+                QueenMobilityEG[popcount(possibleMoves & possibleSq)],
+                stage
+        );
 
         kingDangerValue += 5 * popcount(possibleMoves & enemyKingDangerCells);
 
@@ -225,7 +238,12 @@ int mobilityAndKingDangerEval(Board *board, int color) {
     while (mask) {
         int from = firstOne(mask);
         U64 possibleMoves = knightAttacks[from];
-        eval += KnightMobility[popcount(possibleMoves & possibleSq)];
+
+        eval += getScore2(
+                KnightMobility[popcount(possibleMoves & possibleSq)],
+                KnightMobilityEG[popcount(possibleMoves & possibleSq)],
+                stage
+        );
 
         kingDangerValue += 2 * popcount(possibleMoves & enemyKingDangerCells);
 
@@ -246,7 +264,7 @@ int pawnsEval(Board *board, int color) {
 
     //double pawns bonus
     for (int f = 0; f < 8; ++f)
-        eval += DoublePawnsPenalty * (popcount(ourPawns & files[f]) > 1);
+        eval += getScore2(DoublePawnsPenalty, DoublePawnsPenaltyEG, stage) * (popcount(ourPawns & files[f]) > 1);
 
     //passed pawn bonus
     while (ourPawns) {
@@ -277,9 +295,9 @@ int bishopsEval(Board *board) {
 
 int getPassedPawnBonus(int sq, int color) {
     if (color == WHITE)
-        return -pawnPST[square(7 - rankOf(sq), fileOf(sq))] + PassedPawnBonus[rankOf(sq)];
+        return getScore2(PassedPawnBonus[rankOf(sq)], PassedPawnBonusEG[rankOf(sq)], stage);
 
-    return -pawnPST[square(rankOf(sq), fileOf(sq))] + PassedPawnBonus[7 - rankOf(sq)];
+    return getScore2(PassedPawnBonus[7 - rankOf(sq)], PassedPawnBonusEG[7 - rankOf(sq)], stage);
 }
 
 int kingEval(Board *board, int color) {
@@ -328,7 +346,7 @@ void initDependencyEval() {
             if (f > 0)
                 leftEmpty = !getBit8(i, f - 1);
 
-            IsolatedPawnsHash[i] += IsolatedPawnPenalty * (leftEmpty && rightEmpty && getBit(i, f));
+            IsolatedPawnsHash[i] += getScore2(IsolatedPawnPenalty, IsolatedPawnPenaltyEG, stage) * (leftEmpty && rightEmpty && getBit(i, f));
         }
     }
 }
@@ -375,9 +393,9 @@ int rooksEval(Board *board, int color) {
 
         if (!ourPawnsOnFile) {
             if (enemyPawnsOnFile) {
-                eval += RookOnPartOpenFileBonus;
+                eval += getScore2(RookOnPartOpenFileBonus, RookOnPartOpenFileBonusEG, stage);
             } else {
-                eval += RookOnOpenFileBonus;
+                eval += getScore2(RookOnOpenFileBonus, RookOnOpenFileBonusEG, stage);
             }
         }
 
