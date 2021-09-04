@@ -296,9 +296,9 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
     if(val >= beta)
         return beta;
 
-    int delta = QUEEN_EV;
+    int delta = QUEEN_EV_MG;
     if(havePromotionPawn(board))
-        delta += (QUEEN_EV - 200);
+        delta += (QUEEN_EV_MG - 200);
 
     if(val < alpha - delta)
         return val;

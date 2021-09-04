@@ -6,11 +6,23 @@
 #include "score.h"
 
 //Piece weights
-extern int PAWN_EV;
-extern int KNIGHT_EV;
-extern int BISHOP_EV;
-extern int ROOK_EV;
-extern int QUEEN_EV;
+extern int PAWN_EV_MG;
+extern int KNIGHT_EV_MG;
+extern int BISHOP_EV_MG;
+extern int ROOK_EV_MG;
+extern int QUEEN_EV_MG;
+
+extern int PAWN_EV_EG;
+extern int KNIGHT_EV_EG;
+extern int BISHOP_EV_EG;
+extern int ROOK_EV_EG;
+extern int QUEEN_EV_EG;
+
+//extern int PAWN_EVAL[99];
+//extern int KNIGHT_EVAL[99];
+//extern int BISHOP_EVAL[99];
+//extern int ROOK_EVAL[99];
+//extern int QUEEN_EVAL[99];
 
 int pVal();
 
@@ -44,7 +56,7 @@ int KingDangerFactor;
 int fullEval(Board *board);
 
 int DoubleBishopsBonus();
-int materialEval(Board *board);
+int materialEval(Board* board)
 
 int psqtPieceEval(Board *board, U64 mask, const int *pstTable);
 

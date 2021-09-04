@@ -37,6 +37,8 @@ enum {
 //Piece chars
 static const char PieceName[2][7] = {" PNBRQK", " pnbrqk"};
 
+static const int STAGE_N = 99;
+
 //Types
 typedef uint64_t U64;
 typedef uint32_t U32;

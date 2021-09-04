@@ -109,12 +109,10 @@ void setPiece(Board* board, int piece, int color, int sq) {
     if (piece) {
         if (color == WHITE) {
             if (piece != KING) {
-                board->eval += pVal(piece);
                 board->eval += allPST[piece][square(7 - rankOf(sq), fileOf(sq))];
             }
         } else {
             if (piece != KING) {
-                board->eval -= pVal(piece);
                 board->eval -= allPST[piece][sq];
             }
         }
@@ -136,13 +134,11 @@ void clearPiece(Board* board, int sq) {
     if (pieceType(piece)) {
         if (pieceColor(piece) == WHITE) {
             if (pieceType(piece) != KING) {
-                board->eval -= pVal(pieceType(piece));
                 board->eval -= allPST[pieceType(piece)][square(7 - rankOf(sq), fileOf(sq))];
             }
         } else {
 
             if (pieceType(piece) != KING) {
-                board->eval += pVal(pieceType(piece));
                 board->eval += allPST[pieceType(piece)][sq];
             }
         }

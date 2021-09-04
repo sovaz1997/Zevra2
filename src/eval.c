@@ -3,11 +3,23 @@
 #include <math.h>
 
 //Material
-int PAWN_EV = 100;
-int KNIGHT_EV = 322;
-int BISHOP_EV = 322;
-int ROOK_EV = 500;
-int QUEEN_EV = 923;
+int PAWN_EV_MG = 100;
+int KNIGHT_EV_MG = 322;
+int BISHOP_EV_MG = 322;
+int ROOK_EV_MG = 500;
+int QUEEN_EV_MG = 923;
+
+int PAWN_EV_EG = 100;
+int KNIGHT_EV_EG = 322;
+int BISHOP_EV_EG = 322;
+int ROOK_EV_EG = 500;
+int QUEEN_EV_EG = 923;
+
+//int PAWN_EVAL[STAGE_N];
+//int KNIGHT_EVAL[STAGE_N];
+//int BISHOP_EVAL[STAGE_N];
+//int ROOK_EVAL[STAGE_N];
+//int QUEEN_EVAL[STAGE_N];
 
 //Mobility bonuses
 int QueenMobility[28] = {
@@ -37,6 +49,9 @@ int fullEval(Board *board) {
 
     eval += kingPsqtEval(board);
 
+    //Material Eval
+    eval += materialEval(board);
+
     //Mobility eval
     eval += (mobilityAndKingDangerEval(board, WHITE) - mobilityAndKingDangerEval(board, BLACK));
 
@@ -51,6 +66,30 @@ int fullEval(Board *board) {
     int normalizedEval = round((double)eval / (double)PAWN_EV * 100.);
 
     return (board->color == WHITE ? normalizedEval : -normalizedEval);
+}
+
+
+int materialEval(Board* board) {
+    int eval = 0;
+
+    int wpCount = popcount(board->pieces[PAWN] & board->colours[WHITE]);
+    int bpCount = popcount(board->pieces[PAWN] & board->colours[BLACK]);
+    int wnCount = popcount(board->pieces[KNIGHT] & board->colours[WHITE]);
+    int bnCount = popcount(board->pieces[KNIGHT] & board->colours[BLACK]);
+    int wbCount = popcount(board->pieces[BISHOP] & board->colours[WHITE]);
+    int bbCount = popcount(board->pieces[BISHOP] & board->colours[BLACK]);
+    int wrCount = popcount(board->pieces[ROOK] & board->colours[WHITE]);
+    int brCount = popcount(board->pieces[ROOK] & board->colours[BLACK]);
+    int wqCount = popcount(board->pieces[QUEEN] & board->colours[WHITE]);
+    int bqCount = popcount(board->pieces[QUEEN] & board->colours[BLACK]);
+
+    eval += PAWN_EVAL[stage] * (wpCount - bpCount);
+    eval += KNIGHT_EVAL[stage] * (wnCount - bnCount);
+    eval += BISHOP_EVAL[stage] * (wbCount - bbCount);
+    eval += ROOK_EVAL[stage] * (wrCount - brCount);
+    eval += QUEEN_EVAL[stage] * (wqCount - bqCount);
+
+    return eval;
 }
 
 int kingPsqtEval(Board *board) {
@@ -248,6 +287,10 @@ void initEval() {
 
 void initDependencyEval() {
     initPSQT();
+
+    for (int i = 0; i < STAGE_N; i++) {
+        PAWN_EVAL[i] = getScore2(PAWN_EV_MG, PAWN_EV_EG, i);
+    }
 
     for (int i = 0; i < 100; i++) {
         KingDanger[i] = kingDanger(i);

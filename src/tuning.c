@@ -7,7 +7,7 @@
 #include "tuning.h"
 #include "search.h"
 
-const double K = 150;
+const double K = 2.5;
 const int PARAMS_COUNT = 8 + 7 * 64 + 28 + 15 + 14 + 8 + 8 + 4;
 
 struct TuningPosition {
@@ -17,16 +17,16 @@ struct TuningPosition {
 
 };
 
-void makeTuning(Board* board) {
+void makeTuning(Board *board) {
     loadPositions(board);
 
-    int* curValues = getValues();
+    int *curValues = getValues();
 
     const int changeFactor = 1;
 
     double E = fun(board);
 
-    while(1) {
+    while (1) {
         int improved = 0;
         int iterations = 0;
         for (int i = 1; i < PARAMS_COUNT; i++) {
@@ -37,7 +37,7 @@ void makeTuning(Board* board) {
             double newE = fun(board);
 
             if (newE < E) {
-                while(newE < E) {
+                while (newE < E) {
                     improved = 1;
                     curValues[i] += changeFactor;
                     E = newE;
@@ -55,7 +55,7 @@ void makeTuning(Board* board) {
                 newE = fun(board);
 
                 if (newE < E) {
-                    while(newE < E) {
+                    while (newE < E) {
                         improved = 1;
                         curValues[i] -= changeFactor;
                         E = newE;
@@ -93,10 +93,10 @@ void makeTuning(Board* board) {
 }
 
 int positionsCount = 0;
-TuningPosition* positions;
+TuningPosition *positions;
 
-void loadPositions(Board* board) {
-    FILE* f = fopen("all-test-positions.txt","r");
+void loadPositions(Board *board) {
+    FILE *f = fopen("all-test-positions.txt", "r");
 
     SearchInfo searchInfo;
     TimeManager tm = createFixDepthTm(MAX_PLY - 1);
@@ -108,16 +108,16 @@ void loadPositions(Board* board) {
     int quiets = 0;
 
     positions = malloc(sizeof(TuningPosition) * 120000000);
-    while(1) {
+    while (positionsCount < 10000) {
         estr = fgets(buf, sizeof(buf), f);
 
         if (!estr) {
             break;
         }
 
-        char** res = str_split(estr, ',');
+        char **res = str_split(estr, ',');
 
-        char* fen = *res;
+        char *fen = *res;
         int movesToEnd = atoi(*(res + 1));
         double result = atof(*(res + 2));
 
@@ -138,7 +138,7 @@ void loadPositions(Board* board) {
             quiets++;
         }
 
-        for(int i = 0; i < 3; i++) {
+        for (int i = 0; i < 3; i++) {
             free(res[i]);
         }
 
@@ -150,21 +150,18 @@ void loadPositions(Board* board) {
 
 }
 
-char** str_split(char* a_str, const char a_delim)
-{
-    char** result    = 0;
-    size_t count     = 0;
-    char* tmp        = a_str;
-    char* last_comma = 0;
+char **str_split(char *a_str, const char a_delim) {
+    char **result = 0;
+    size_t count = 0;
+    char *tmp = a_str;
+    char *last_comma = 0;
     char delim[2];
     delim[0] = a_delim;
     delim[1] = 0;
 
     /* Count how many elements will be extracted. */
-    while (*tmp)
-    {
-        if (a_delim == *tmp)
-        {
+    while (*tmp) {
+        if (a_delim == *tmp) {
             count++;
             last_comma = tmp;
         }
@@ -178,15 +175,13 @@ char** str_split(char* a_str, const char a_delim)
        knows where the list of returned strings ends. */
     count++;
 
-    result = malloc(sizeof(char*) * count);
+    result = malloc(sizeof(char *) * count);
 
-    if (result)
-    {
-        size_t idx  = 0;
-        char* token = strtok(a_str, delim);
+    if (result) {
+        size_t idx = 0;
+        char *token = strtok(a_str, delim);
 
-        while (token)
-        {
+        while (token) {
             assert(idx < count);
             *(result + idx++) = strdup(token);
             token = strtok(0, delim);
@@ -199,10 +194,11 @@ char** str_split(char* a_str, const char a_delim)
 }
 
 double r(int eval) {
-    return 1. / (1. + exp(-eval / K));
+    // printf("%d %f\n", eval, 1. / (1. + pow(10., eval * K / 400.)));
+    return 1. / (1. + pow(10., -eval * K / 400.));
 }
 
-double fun(Board* board) {
+double fun(Board *board) {
     SearchInfo searchInfo;
     TimeManager tm = createFixDepthTm(MAX_PLY - 1);
     resetSearchInfo(&searchInfo, tm);
@@ -213,11 +209,10 @@ double fun(Board* board) {
     double errorSums = 0;
 
 
-
-    for(int i = 0; i < positionsCount; i++) {
+    for (int i = 0; i < positionsCount; i++) {
         resetSearchInfo(&searchInfo, tm);
 
-        char* fen = positions[i].fen;
+        char *fen = positions[i].fen;
         int movesToEnd = positions[i].movesToEnd;
         double result = positions[i].result;
 
@@ -243,116 +238,118 @@ double fun(Board* board) {
     return errorSums;
 }
 
-void setValues(int* values) {
-    PAWN_EV = values[0];
-    KNIGHT_EV = values[1];
-    BISHOP_EV = values[2];
-    ROOK_EV = values[3];
-    QUEEN_EV = values[4];
+void setValues(int *values) {
+    int curIndex = 0;
+
+    transfer(&values[curIndex], &PAWN_EV_MG, &curIndex, 1);
+    transfer(&values[curIndex], &PAWN_EV_EG, &curIndex, 1);
+    transfer(&values[curIndex], &KNIGHT_EV_MG, &curIndex, 1);
+    transfer(&values[curIndex], &KNIGHT_EV_EG, &curIndex, 1);
+    transfer(&values[curIndex], &BISHOP_EV_MG, &curIndex, 1);
+    transfer(&values[curIndex], &BISHOP_EV_EG, &curIndex, 1);
+    transfer(&values[curIndex], &ROOK_EV, &curIndex, 1);
+    transfer(&values[curIndex], &ROOK_EV_EG, &curIndex, 1);
+    transfer(&values[curIndex], &QUEEN_EV_MG, &curIndex, 1);
+    transfer(&values[curIndex], &QUEEN_EV_EG, &curIndex, 1);
 
     KingDangerFactor = values[5];
     RookOnOpenFileBonus = values[6];
     RookOnPartOpenFileBonus = values[7];
 
+    // PST
+    transferPST(&values[curIndex], pawnPST, &curIndex);
+    transferPST(&values[curIndex], knightPST, &curIndex);
+    transferPST(&values[curIndex], bishopPST, &curIndex);
+    transferPST(&values[curIndex], rookPST, &curIndex);
+    transferPST(&values[curIndex], queenPST, &curIndex);
+    transferPST(&values[curIndex], kingPST, &curIndex);
+    transferPST(&values[curIndex], egKingPST, &curIndex);
 
-    int curIndex = 8;
-
-    if (PARAMS_COUNT > 8) {
-        // PST
-        transferPST(&values[curIndex], pawnPST, &curIndex);
-        transferPST(&values[curIndex], knightPST, &curIndex);
-        transferPST(&values[curIndex], bishopPST, &curIndex);
-        transferPST(&values[curIndex], rookPST, &curIndex);
-        transferPST(&values[curIndex], queenPST, &curIndex);
-        transferPST(&values[curIndex], kingPST, &curIndex);
-        transferPST(&values[curIndex], egKingPST, &curIndex);
-
-        // Mobility
-        transfer(&values[curIndex], QueenMobility, &curIndex, 28);
-        transfer(&values[curIndex], RookMobility, &curIndex, 15);
-        transfer(&values[curIndex], BishopMobility, &curIndex, 14);
-        transfer(&values[curIndex], KnightMobility, &curIndex, 8);
+    // Mobility
+    transfer(&values[curIndex], QueenMobility, &curIndex, 28);
+    transfer(&values[curIndex], RookMobility, &curIndex, 15);
+    transfer(&values[curIndex], BishopMobility, &curIndex, 14);
+    transfer(&values[curIndex], KnightMobility, &curIndex, 8);
 
 
-        transfer(&values[curIndex], PassedPawnBonus, &curIndex, 8);
+    transfer(&values[curIndex], PassedPawnBonus, &curIndex, 8);
 
-        transfer(&values[curIndex], &DoublePawnsPenalty, &curIndex, 1);
-        transfer(&values[curIndex], &IsolatedPawnPenalty, &curIndex, 1);
-        transfer(&values[curIndex], &DoubleBishopsBonusMG, &curIndex, 1);
-        transfer(&values[curIndex], &DoubleBishopsBonusEG, &curIndex, 1);
-    }
+    transfer(&values[curIndex], &DoublePawnsPenalty, &curIndex, 1);
+    transfer(&values[curIndex], &IsolatedPawnPenalty, &curIndex, 1);
+    transfer(&values[curIndex], &DoubleBishopsBonusMG, &curIndex, 1);
+    transfer(&values[curIndex], &DoubleBishopsBonusEG, &curIndex, 1);
 
 
     // re-init due to dependent eval
     initDependencyEval();
 }
 
-int* transfer(int* from, int* to, int* curIndex, int length) {
+int *transfer(int *from, int *to, int *curIndex, int length) {
     for (int i = 0; i < length; i++) {
         to[i] = *(from + i);
         (*curIndex)++;
     }
 }
 
-int* transferPST(int* from, int* to, int* curIndex) {
+int *transferPST(int *from, int *to, int *curIndex) {
     transfer(from, to, curIndex, 64);
 }
 
-int* getValues() {
-    int* res = (int*)malloc(sizeof(int) * PARAMS_COUNT);
+int *getValues() {
+    int *res = (int *) malloc(sizeof(int) * PARAMS_COUNT);
 
-    res[0] = PAWN_EV;
-    res[1] = KNIGHT_EV;
-    res[2] = BISHOP_EV;
-    res[3] = ROOK_EV;
-    res[4] = QUEEN_EV;
+    int curIndex = 0;
 
-    res[5] = KingDangerFactor;
-    res[6] = RookOnOpenFileBonus;
-    res[7] = RookOnPartOpenFileBonus;
+    transfer(&PAWN_EV_MG, &res[curIndex], &curIndex, 1);
+    transfer(&PAWN_EV_EG, &res[curIndex], &curIndex, 1);
+    transfer(&KNIGHT_EV_MG, &res[curIndex], &curIndex, 1);
+    transfer(&KNIGHT_EV_EG, &res[curIndex], &curIndex, 1);
+    transfer(&BISHOP_EV_MG, &res[curIndex], &curIndex, 1);
+    transfer(&BISHOP_EV_EG, &res[curIndex], &curIndex, 1);
+    transfer(&ROOK_EV_MG, &res[curIndex], &curIndex, 1);
+    transfer(&ROOK_EV_EG, &res[curIndex], &curIndex, 1);
+    transfer(&QUEEN_EV_MG, &res[curIndex], &curIndex, 1);
+    transfer(&QUEEN_EV_EG, &res[curIndex], &curIndex, 1);
 
-    int curIndex = 8;
 
-    if (PARAMS_COUNT > 8) {
-        // PST
-        transferPST(pawnPST, &res[curIndex], &curIndex);
-        transferPST(knightPST, &res[curIndex], &curIndex);
-        transferPST(bishopPST, &res[curIndex], &curIndex);
-        transferPST(rookPST, &res[curIndex], &curIndex);
-        transferPST(queenPST, &res[curIndex], &curIndex);
-        transferPST(kingPST, &res[curIndex], &curIndex);
-        transferPST(egKingPST, &res[curIndex], &curIndex);
+    // PST
+    transferPST(pawnPST, &res[curIndex], &curIndex);
+    transferPST(knightPST, &res[curIndex], &curIndex);
+    transferPST(bishopPST, &res[curIndex], &curIndex);
+    transferPST(rookPST, &res[curIndex], &curIndex);
+    transferPST(queenPST, &res[curIndex], &curIndex);
+    transferPST(kingPST, &res[curIndex], &curIndex);
+    transferPST(egKingPST, &res[curIndex], &curIndex);
 
-        // Mobility
-        transfer(QueenMobility, &res[curIndex], &curIndex, 28);
-        transfer(RookMobility, &res[curIndex], &curIndex, 15);
-        transfer(BishopMobility, &res[curIndex], &curIndex, 14);
-        transfer(KnightMobility, &res[curIndex], &curIndex, 8);
+    // Mobility
+    transfer(QueenMobility, &res[curIndex], &curIndex, 28);
+    transfer(RookMobility, &res[curIndex], &curIndex, 15);
+    transfer(BishopMobility, &res[curIndex], &curIndex, 14);
+    transfer(KnightMobility, &res[curIndex], &curIndex, 8);
 
-        transfer(PassedPawnBonus, &res[curIndex], &curIndex, 8);
+    transfer(PassedPawnBonus, &res[curIndex], &curIndex, 8);
 
-        transfer(&DoublePawnsPenalty, &res[curIndex], &curIndex, 1);
-        transfer(&IsolatedPawnPenalty, &res[curIndex], &curIndex, 1);
-        transfer(&DoubleBishopsBonusMG, &res[curIndex], &curIndex, 1);
-        transfer(&DoubleBishopsBonusEG, &res[curIndex], &curIndex, 1);
-    }
+    transfer(&DoublePawnsPenalty, &res[curIndex], &curIndex, 1);
+    transfer(&IsolatedPawnPenalty, &res[curIndex], &curIndex, 1);
+    transfer(&DoubleBishopsBonusMG, &res[curIndex], &curIndex, 1);
+    transfer(&DoubleBishopsBonusEG, &res[curIndex], &curIndex, 1);
 
     return res;
 }
 
 void changeParam(int n, int value) {
-    int* params = getValues();
+    int *params = getValues();
     *(params + n) = value;
     setValues(params);
     free(params);
 }
 
 void printParams() {
-    int* params = getValues();
+    int *params = getValues();
 
     int curIndex = 0;
 
-    FILE* f;
+    FILE *f;
     char name[] = "weights.txt";
 
     if ((f = fopen(name, "w")) == NULL) {
@@ -360,11 +357,18 @@ void printParams() {
         return;
     }
 
-    printArray("PAWN_EV", &params[curIndex], &curIndex, 1, f);
-    printArray("KNIGHT_EV", &params[curIndex], &curIndex, 1, f);
-    printArray("BISHOP_EV", &params[curIndex], &curIndex, 1, f);
-    printArray("ROOK_EV", &params[curIndex], &curIndex, 1, f);
-    printArray("QUEEN_EV", &params[curIndex], &curIndex, 1, f);
+
+    printArray("PAWN_EV_MG", &params[curIndex], &curIndex, 1, f);
+    printArray("PAWN_EG", &params[curIndex], &curIndex, 1, f);
+    printArray("KNIGHT_EV_MG", &params[curIndex], &curIndex, 1, f);
+    printArray("KNIGHT_EV_EG", &params[curIndex], &curIndex, 1, f);
+    printArray("BISHOP_EV_MG", &params[curIndex], &curIndex, 1, f);
+    printArray("BISHOP_EV_EG", &params[curIndex], &curIndex, 1, f);
+    printArray("ROOK_EV_MG", &params[curIndex], &curIndex, 1, f);
+    printArray("ROOK_EV_EG", &params[curIndex], &curIndex, 1, f);
+    printArray("QUEEN_EV_MG", &params[curIndex], &curIndex, 1, f);
+    printArray("QUEEN_EV_EG", &params[curIndex], &curIndex, 1, f);
+
     printArray("KingDangerFactor", &params[curIndex], &curIndex, 1, f);
     printArray("RookOnOpenFileBonus", &params[curIndex], &curIndex, 1, f);
     printArray("RookOnPartOpenFileBonus", &params[curIndex], &curIndex, 1, f);
@@ -395,20 +399,20 @@ void printParams() {
     fclose(f);
 }
 
-void printPST(char* name, int* pst, int* curIndex, FILE* f) {
+void printPST(char *name, int *pst, int *curIndex, FILE *f) {
     // printf("%s\n", name);
     fprintf(f, "%s\n", name);
     for (int i = 0; i < 64; ++i, (*curIndex)++) {
-       //  printf("%d, ", pst[i]);
+        //  printf("%d, ", pst[i]);
         fprintf(f, "%d, ", pst[i]);
         if (i > 0 && (i + 1) % 8 == 0) {
-          //   printf("\n");
+            //   printf("\n");
             fprintf(f, "\n");
         }
     }
 }
 
-void printArray(char* name, int* arr, int* curIndex, int length, FILE* f) {
+void printArray(char *name, int *arr, int *curIndex, int length, FILE *f) {
     if (length == 1) {
         // printf("%s: %d\n", name, arr[0]);
         fprintf(f, "%s: %d\n", name, arr[0]);
