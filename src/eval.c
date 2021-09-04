@@ -9,21 +9,43 @@ int BISHOP_EV = 322;
 int ROOK_EV = 500;
 int QUEEN_EV = 923;
 
+int PAWN_EV_EG = 100;
+int KNIGHT_EV_EG = 322;
+int BISHOP_EV_EG = 322;
+int ROOK_EV_EG = 500;
+int QUEEN_EV_EG = 923;
+
 //Mobility bonuses
-int QueenMobility[28] = {
-        -30, -20, -10, -52, -47, 34, -3, 18, 23, 24, 18, 29, 36, 39, 42, 47, 50, 42, 48, 49, 52, 46, 55, 52, 37, 76, 45, 42,
-};
+int QueenMobility[28] = { -30, -20, -10, -52, -47, 34, -3, 18, 23, 24, 18, 29, 36, 39, 42, 47, 50, 42, 48, 49, 52, 46, 55, 52, 37, 76, 45, 42, };
+int QueenMobilityEG[28] = { -30, -20, -10, -52, -47, 34, -3, 18, 23, 24, 18, 29, 36, 39, 42, 47, 50, 42, 48, 49, 52, 46, 55, 52, 37, 76, 45, 42, };
+
 int RookMobility[15] = {-402, -51, -57, -22, 0, 0, 8, 8, 13, 21, 25, 29, 35, 34, 35, };
+int RookMobilityEG[15] = {-402, -51, -57, -22, 0, 0, 8, 8, 13, 21, 25, 29, 35, 34, 35, };
+
 int BishopMobility[14] = {-13, -39, -23, -9, 2, 6, 15, 19, 21, 25, 27, 39, 21, 38,};
+int BishopMobilityEG[14] = {-13, -39, -23, -9, 2, 6, 15, 19, 21, 25, 27, 39, 21, 38,};
+
 int KnightMobility[8] = {-101, -46, -24, -18, -19, -22, -21, -14, };
+int KnightMobilityEG[8] = {-101, -46, -24, -18, -19, -22, -21, -14, };
 
 //additional bonuses and penalties
 int PassedPawnBonus[8] = {0, 0, -5, 5, 36, 92, 163, 0, };
+int PassedPawnBonusEG[8] = {0, 0, -5, 5, 36, 92, 163, 0, };
+
 int DoublePawnsPenalty = -30;
+int DoublePawnsPenaltyEG = -30;
+
 int IsolatedPawnPenalty = -4;
+int IsolatedPawnPenaltyEG = -4;
+
 int RookOnOpenFileBonus = 20;
+int RookOnOpenFileBonusEG = 20;
+
 int RookOnPartOpenFileBonus = 24;
+int RookOnPartOpenFileBonusEG = 24;
+
 int KingDangerFactor = 602;
+
 int DoubleBishopsBonusMG = 38;
 int DoubleBishopsBonusEG = 30;
 
@@ -32,10 +54,13 @@ int DoubleBishopsBonus() {
 }
 
 int fullEval(Board *board) {
-    int eval = board->eval;
+
+    int eval = 0;
     stage = stageGame(board);
 
-    eval += kingPsqtEval(board);
+    //Base eval (Material + PSQT)
+    eval += materialEval(board);
+    eval += psqtEval(board);
 
     //Mobility eval
     eval += (mobilityAndKingDangerEval(board, WHITE) - mobilityAndKingDangerEval(board, BLACK));
@@ -53,11 +78,50 @@ int fullEval(Board *board) {
     return (board->color == WHITE ? normalizedEval : -normalizedEval);
 }
 
-int kingPsqtEval(Board *board) {
+int materialEval(Board* board) {
     int eval = 0;
-    U64 mask = board->pieces[KING];
-    eval += (psqtPieceEval(board, mask, kingPST) * stage / 98. +
-             psqtPieceEval(board, mask, egKingPST) * (98. - stage) / 98.);
+
+    int wpCount = popcount(board->pieces[PAWN] & board->colours[WHITE]);
+    int bpCount = popcount(board->pieces[PAWN] & board->colours[BLACK]);
+    int wnCount = popcount(board->pieces[KNIGHT] & board->colours[WHITE]);
+    int bnCount = popcount(board->pieces[KNIGHT] & board->colours[BLACK]);
+    int wbCount = popcount(board->pieces[BISHOP] & board->colours[WHITE]);
+    int bbCount = popcount(board->pieces[BISHOP] & board->colours[BLACK]);
+    int wrCount = popcount(board->pieces[ROOK] & board->colours[WHITE]);
+    int brCount = popcount(board->pieces[ROOK] & board->colours[BLACK]);
+    int wqCount = popcount(board->pieces[QUEEN] & board->colours[WHITE]);
+    int bqCount = popcount(board->pieces[QUEEN] & board->colours[BLACK]);
+
+    eval += PAWN_EV * (wpCount - bpCount);
+    eval += KNIGHT_EV * (wnCount - bnCount);
+    eval += BISHOP_EV * (wbCount - bbCount);
+    eval += ROOK_EV * (wrCount - brCount);
+    eval += QUEEN_EV * (wqCount - bqCount);
+
+    return eval;
+}
+
+int psqtEval(Board* board) {
+    int eval = 0;
+
+    U64 mask = board->pieces[PAWN];
+    eval += psqtPieceEval(board, mask, pawnPST);
+
+    mask = board->pieces[KNIGHT];
+    eval += psqtPieceEval(board, mask, knightPST);
+
+    mask = board->pieces[BISHOP];
+    eval += psqtPieceEval(board, mask, bishopPST);
+
+    mask = board->pieces[ROOK];
+    eval += psqtPieceEval(board, mask, rookPST);
+
+    mask = board->pieces[QUEEN];
+    eval += psqtPieceEval(board, mask, queenPST);
+
+    mask = board->pieces[KING];
+    eval += (psqtPieceEval(board, mask, kingPST) * stage / 98. + psqtPieceEval(board, mask, egKingPST) * (98. - stage) / 98.);
+
     return eval;
 }
 
@@ -247,8 +311,6 @@ void initEval() {
 }
 
 void initDependencyEval() {
-    initPSQT();
-
     for (int i = 0; i < 100; i++) {
         KingDanger[i] = kingDanger(i);
     }

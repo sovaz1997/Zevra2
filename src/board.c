@@ -71,7 +71,6 @@ void clearBoard(Board* board) {
     memset(board, 0, sizeof(*board));
     board->gameInfo = gameInfo;
     board->enpassantSquare = 0;
-    board->eval = 0;
 }
 
 void printBoard(Board* board) {
@@ -105,21 +104,6 @@ void printBoardSplitter() {
 
 void setPiece(Board* board, int piece, int color, int sq) {
     clearPiece(board, sq);
-
-    if (piece) {
-        if (color == WHITE) {
-            if (piece != KING) {
-                board->eval += pVal(piece);
-                board->eval += allPST[piece][square(7 - rankOf(sq), fileOf(sq))];
-            }
-        } else {
-            if (piece != KING) {
-                board->eval -= pVal(piece);
-                board->eval -= allPST[piece][sq];
-            }
-        }
-    }
-
     setBit(&board->pieces[piece], sq);
     setBit(&board->colours[color], sq);
     board->squares[sq] = makePiece(piece, color);
@@ -132,21 +116,6 @@ void clearPiece(Board* board, int sq) {
     
     U8 piece = board->squares[sq];
     board->key ^= zobristKeys[board->squares[sq]][sq];
-
-    if (pieceType(piece)) {
-        if (pieceColor(piece) == WHITE) {
-            if (pieceType(piece) != KING) {
-                board->eval -= pVal(pieceType(piece));
-                board->eval -= allPST[pieceType(piece)][square(7 - rankOf(sq), fileOf(sq))];
-            }
-        } else {
-
-            if (pieceType(piece) != KING) {
-                board->eval += pVal(pieceType(piece));
-                board->eval += allPST[pieceType(piece)][sq];
-            }
-        }
-    }
 
     clearBit(&board->pieces[pieceType(piece)], sq);
     clearBit(&board->colours[pieceColor(piece)], sq);

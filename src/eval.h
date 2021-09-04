@@ -45,6 +45,7 @@ int fullEval(Board *board);
 
 int DoubleBishopsBonus();
 int materialEval(Board *board);
+int psqtEval(Board* board);
 
 int psqtPieceEval(Board *board, U64 mask, const int *pstTable);
 
