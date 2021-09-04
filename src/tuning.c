@@ -14,12 +14,12 @@ struct TuningPosition {
     char fen[512];
     int movesToEnd;
     double result;
-
 };
 
 void makeTuning(Board *board) {
     loadPositions(board);
 
+    printf("!");
     int *curValues = getValues();
 
     const int changeFactor = 1;
@@ -30,7 +30,6 @@ void makeTuning(Board *board) {
         int improved = 0;
         int iterations = 0;
         for (int i = 1; i < PARAMS_COUNT; i++) {
-
             int tmpParam = curValues[i];
             changeParam(i, curValues[i] + changeFactor);
 
@@ -67,12 +66,6 @@ void makeTuning(Board *board) {
                     }
                     changeParam(i, curValues[i] + changeFactor);
                     curValues[i] += changeFactor;
-//                    curValues[i] -= changeFactor;
-//                    improved = 1;
-//                    E = newE;
-//                    printParams();
-//                    iterations++;
-//                    printf("NewE: %.7f; index: %d; value: %d\n", E, i, curValues[i]);
                 } else {
                     changeParam(i, tmpParam);
                     curValues[i] = tmpParam;
@@ -307,13 +300,13 @@ int *transferPST(int *from, int *to, int *curIndex) {
 }
 
 int *getValues() {
-    int *res = (int *) malloc(sizeof(int) * PARAMS_COUNT);
+    int *res = (int *) malloc(sizeof(int) * PARAMS_COUNT * 2);
 
     int curIndex = 0;
 
-
     // PST
     transferPST(pawnPST, &res[curIndex], &curIndex);
+
     transferPST(knightPST, &res[curIndex], &curIndex);
     transferPST(bishopPST, &res[curIndex], &curIndex);
     transferPST(rookPST, &res[curIndex], &curIndex);
@@ -346,21 +339,23 @@ int *getValues() {
     transfer(&DoubleBishopsBonusMG, &res[curIndex], &curIndex, 1);
     transfer(&DoubleBishopsBonusEG, &res[curIndex], &curIndex, 1);
 
-    transfer(&PAWN_EV, &PAWN_EV, &res[curIndex], 1);
-    transfer(&PAWN_EV_EG, &PAWN_EV_EG, &res[curIndex], 1);
-    transfer(&KNIGHT_EV, &KNIGHT_EV, &res[curIndex], 1);
-    transfer(&KNIGHT_EV_EG, &KNIGHT_EV_EG, &res[curIndex], 1);
-    transfer(&BISHOP_EV, &BISHOP_EV, &res[curIndex], 1);
-    transfer(&BISHOP_EV_EG, &BISHOP_EV_EG, &res[curIndex], 1);
-    transfer(&ROOK_EV, &ROOK_EV, &res[curIndex], 1);
-    transfer(&ROOK_EV_EG, &ROOK_EV_EG, &res[curIndex], 1);
-    transfer(&QUEEN_EV, &QUEEN_EV, &res[curIndex], 1);
-    transfer(&QUEEN_EV_EG, &QUEEN_EV_EG, &res[curIndex], 1);
-    transfer(&KingDangerFactor, &KingDangerFactor, &res[curIndex], 1);
-    transfer(&RookOnOpenFileBonus, &RookOnOpenFileBonus, &res[curIndex], 1);
-    transfer(&RookOnOpenFileBonusEG, &RookOnOpenFileBonusEG, &res[curIndex], 1);
-    transfer(&RookOnPartOpenFileBonus, &RookOnPartOpenFileBonus, &res[curIndex], 1);
-    transfer(&RookOnPartOpenFileBonusEG, &RookOnPartOpenFileBonusEG, &res[curIndex], 1);
+    transfer(&PAWN_EV, &res[curIndex], &curIndex, 1);
+    transfer(&PAWN_EV_EG, &res[curIndex], &curIndex, 1);
+    transfer(&KNIGHT_EV, &res[curIndex], &curIndex, 1);
+    transfer(&KNIGHT_EV_EG, &res[curIndex], &curIndex, 1);
+    transfer(&BISHOP_EV, &res[curIndex], &curIndex, 1);
+    transfer(&BISHOP_EV_EG, &res[curIndex], &curIndex, 1);
+    transfer(&ROOK_EV, &res[curIndex], &curIndex, 1);
+    transfer(&ROOK_EV_EG, &res[curIndex], &curIndex, 1);
+    transfer(&QUEEN_EV, &res[curIndex], &curIndex, 1);
+    transfer(&QUEEN_EV_EG, &res[curIndex], &curIndex, 1);
+    transfer(&KingDangerFactor, &res[curIndex], &curIndex, 1);
+    transfer(&RookOnOpenFileBonus, &res[curIndex], &curIndex, 1);
+    transfer(&RookOnOpenFileBonusEG,&res[curIndex], &curIndex, 1);
+    transfer(&RookOnPartOpenFileBonus, &res[curIndex], &curIndex, 1);
+    transfer(&RookOnPartOpenFileBonusEG, &res[curIndex], &curIndex, 1);
+
+    return res;
 }
 
 void changeParam(int n, int value) {
@@ -383,56 +378,54 @@ void printParams() {
         return;
     }
 
-    if (PARAMS_COUNT > 8) {
-        printPST("pawnPST", &params[curIndex], &curIndex, f);
-        printPST("knightPST", &params[curIndex], &curIndex, f);
-        printPST("bishopPST", &params[curIndex], &curIndex, f);
-        printPST("rookPST", &params[curIndex], &curIndex, f);
-        printPST("queenPST", &params[curIndex], &curIndex, f);
-        printPST("kingPST", &params[curIndex], &curIndex, f);
-        printPST("egPawnPST", &params[curIndex], &curIndex, f);
-        printPST("egKnightPST", &params[curIndex], &curIndex, f);
-        printPST("egBishopPST", &params[curIndex], &curIndex, f);
-        printPST("egRookPST", &params[curIndex], &curIndex, f);
-        printPST("egQueenPST", &params[curIndex], &curIndex, f);
-        printPST("egKingPST", &params[curIndex], &curIndex, f);
+    printPST("pawnPST", &params[curIndex], &curIndex, f);
+    printPST("knightPST", &params[curIndex], &curIndex, f);
+    printPST("bishopPST", &params[curIndex], &curIndex, f);
+    printPST("rookPST", &params[curIndex], &curIndex, f);
+    printPST("queenPST", &params[curIndex], &curIndex, f);
+    printPST("kingPST", &params[curIndex], &curIndex, f);
+    printPST("egPawnPST", &params[curIndex], &curIndex, f);
+    printPST("egKnightPST", &params[curIndex], &curIndex, f);
+    printPST("egBishopPST", &params[curIndex], &curIndex, f);
+    printPST("egRookPST", &params[curIndex], &curIndex, f);
+    printPST("egQueenPST", &params[curIndex], &curIndex, f);
+    printPST("egKingPST", &params[curIndex], &curIndex, f);
 
-        // Mobility
-        printArray("QueenMobility", &params[curIndex], &curIndex, 28, f);
-        printArray("QueenMobilityEG", &params[curIndex], &curIndex, 28, f);
-        printArray("RookMobility", &params[curIndex], &curIndex, 15, f);
-        printArray("RookMobilityEG", &params[curIndex], &curIndex, 15, f);
-        printArray("BishopMobility", &params[curIndex], &curIndex, 14, f);
-        printArray("BishopMobilityEG", &params[curIndex], &curIndex, 14, f);
-        printArray("KnightMobility", &params[curIndex], &curIndex, 8, f);
-        printArray("KnightMobilityEG", &params[curIndex], &curIndex, 8, f);
+    // Mobility
+    printArray("QueenMobility", &params[curIndex], &curIndex, 28, f);
+    printArray("QueenMobilityEG", &params[curIndex], &curIndex, 28, f);
+    printArray("RookMobility", &params[curIndex], &curIndex, 15, f);
+    printArray("RookMobilityEG", &params[curIndex], &curIndex, 15, f);
+    printArray("BishopMobility", &params[curIndex], &curIndex, 14, f);
+    printArray("BishopMobilityEG", &params[curIndex], &curIndex, 14, f);
+    printArray("KnightMobility", &params[curIndex], &curIndex, 8, f);
+    printArray("KnightMobilityEG", &params[curIndex], &curIndex, 8, f);
 
-        printArray("PassedPawnsBonus", &params[curIndex], &curIndex, 8, f);
-        printArray("PassedPawnsBonusEG", &params[curIndex], &curIndex, 8, f);
+    printArray("PassedPawnsBonus", &params[curIndex], &curIndex, 8, f);
+    printArray("PassedPawnsBonusEG", &params[curIndex], &curIndex, 8, f);
 
-        printArray("DoublePawnsPenalty", &params[curIndex], &curIndex, 1, f);
-        printArray("DoublePawnsPenaltyEg", &params[curIndex], &curIndex, 1, f);
-        printArray("IsolatedPawnPenalty", &params[curIndex], &curIndex, 1, f);
-        printArray("IsolatedPawnPenaltyEg", &params[curIndex], &curIndex, 1, f);
-        printArray("DoubleBishopsBonusMG", &params[curIndex], &curIndex, 1, f);
-        printArray("DoubleBishopsBonusEG", &params[curIndex], &curIndex, 1, f);
+    printArray("DoublePawnsPenalty", &params[curIndex], &curIndex, 1, f);
+    printArray("DoublePawnsPenaltyEg", &params[curIndex], &curIndex, 1, f);
+    printArray("IsolatedPawnPenalty", &params[curIndex], &curIndex, 1, f);
+    printArray("IsolatedPawnPenaltyEg", &params[curIndex], &curIndex, 1, f);
+    printArray("DoubleBishopsBonusMG", &params[curIndex], &curIndex, 1, f);
+    printArray("DoubleBishopsBonusEG", &params[curIndex], &curIndex, 1, f);
 
-        printArray("PAWN_EV", &params[curIndex], &curIndex, 1, f);
-        printArray("PAWN_EG", &params[curIndex], &curIndex, 1, f);
-        printArray("KNIGHT_EV", &params[curIndex], &curIndex, 1, f);
-        printArray("KNIGHT_EV_EG", &params[curIndex], &curIndex, 1, f);
-        printArray("BISHOP_EV", &params[curIndex], &curIndex, 1, f);
-        printArray("BISHOP_EV_EG", &params[curIndex], &curIndex, 1, f);
-        printArray("ROOK_EV", &params[curIndex], &curIndex, 1, f);
-        printArray("ROOK_EV_EG", &params[curIndex], &curIndex, 1, f);
-        printArray("QUEEN_EV", &params[curIndex], &curIndex, 1, f);
-        printArray("QUEEN_EV_EG", &params[curIndex], &curIndex, 1, f);
-        printArray("KingDangerFactor", &params[curIndex], &curIndex, 1, f);
-        printArray("RookOnOpenFileBonus", &params[curIndex], &curIndex, 1, f);
-        printArray("RookOnOpenFileBonusEg", &params[curIndex], &curIndex, 1, f);
-        printArray("RookOnPartOpenFileBonus", &params[curIndex], &curIndex, 1, f);
-        printArray("RookOnPartOpenFileBonusEg", &params[curIndex], &curIndex, 1, f);
-    }
+    printArray("PAWN_EV", &params[curIndex], &curIndex, 1, f);
+    printArray("PAWN_EG", &params[curIndex], &curIndex, 1, f);
+    printArray("KNIGHT_EV", &params[curIndex], &curIndex, 1, f);
+    printArray("KNIGHT_EV_EG", &params[curIndex], &curIndex, 1, f);
+    printArray("BISHOP_EV", &params[curIndex], &curIndex, 1, f);
+    printArray("BISHOP_EV_EG", &params[curIndex], &curIndex, 1, f);
+    printArray("ROOK_EV", &params[curIndex], &curIndex, 1, f);
+    printArray("ROOK_EV_EG", &params[curIndex], &curIndex, 1, f);
+    printArray("QUEEN_EV", &params[curIndex], &curIndex, 1, f);
+    printArray("QUEEN_EV_EG", &params[curIndex], &curIndex, 1, f);
+    printArray("KingDangerFactor", &params[curIndex], &curIndex, 1, f);
+    printArray("RookOnOpenFileBonus", &params[curIndex], &curIndex, 1, f);
+    printArray("RookOnOpenFileBonusEg", &params[curIndex], &curIndex, 1, f);
+    printArray("RookOnPartOpenFileBonus", &params[curIndex], &curIndex, 1, f);
+    printArray("RookOnPartOpenFileBonusEg", &params[curIndex], &curIndex, 1, f);
 
     fclose(f);
 }
