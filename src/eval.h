@@ -18,13 +18,13 @@ extern int BISHOP_EV_EG;
 extern int ROOK_EV_EG;
 extern int QUEEN_EV_EG;
 
-//extern int PAWN_EVAL[99];
-//extern int KNIGHT_EVAL[99];
-//extern int BISHOP_EVAL[99];
-//extern int ROOK_EVAL[99];
-//extern int QUEEN_EVAL[99];
+int* PAWN_EVAL;
+int* KNIGHT_EVAL;
+int* BISHOP_EVAL;
+int* ROOK_EVAL;
+int* QUEEN_EVAL;
 
-int pVal();
+int pVal(Board* b, int n);
 
 //Mobility bonuses
 extern int QueenMobility[28];
@@ -56,7 +56,7 @@ int KingDangerFactor;
 int fullEval(Board *board);
 
 int DoubleBishopsBonus();
-int materialEval(Board* board)
+int materialEval(Board* board);
 
 int psqtPieceEval(Board *board, U64 mask, const int *pstTable);
 
@@ -78,15 +78,13 @@ int mateScore(int eval);
 
 void initEval();
 
-void initValues();
+void destroyEval();
 
 int stageGame(Board *board);
 
 U8 horizontalScan(U64 bitboard);
 
-int kingPsqtEval();
-
-int baseEval(Board *board);
+int kingPsqtEval(Board* board);
 
 int kingDanger(int attacksCount);
 

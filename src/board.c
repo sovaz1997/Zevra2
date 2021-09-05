@@ -402,11 +402,11 @@ int see(Board* board, int toSq, U8 taget, int fromSq, U8 aPiece) {
     U64 fromSet = (1ull << fromSq);
     U64 occu = board->colours[WHITE] | board->colours[BLACK];
     U64 attadef = attacksTo(board, toSq);
-    gain[d] = pVal(pieceType(taget));
+    gain[d] = pVal(board, pieceType(taget));
 
     do {
         d++;
-        gain[d] = pVal(pieceType(aPiece)) - gain[d - 1];
+        gain[d] = pVal(board, pieceType(aPiece)) - gain[d - 1];
         if(max(gain[d - 1], gain[d]) < 0)
             break;
         attadef ^= fromSet;

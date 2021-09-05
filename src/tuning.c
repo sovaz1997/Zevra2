@@ -7,8 +7,8 @@
 #include "tuning.h"
 #include "search.h"
 
-const double K = 2.5;
-const int PARAMS_COUNT = 8 + 7 * 64 + 28 + 15 + 14 + 8 + 8 + 4;
+const double K = 150;
+const int PARAMS_COUNT = 535;
 
 struct TuningPosition {
     char fen[512];
@@ -30,11 +30,12 @@ void makeTuning(Board *board) {
         int improved = 0;
         int iterations = 0;
         for (int i = 1; i < PARAMS_COUNT; i++) {
-
             int tmpParam = curValues[i];
             changeParam(i, curValues[i] + changeFactor);
 
             double newE = fun(board);
+
+            printf("%d %f %f\n", i, E, newE);
 
             if (newE < E) {
                 while (newE < E) {
@@ -67,12 +68,6 @@ void makeTuning(Board *board) {
                     }
                     changeParam(i, curValues[i] + changeFactor);
                     curValues[i] += changeFactor;
-//                    curValues[i] -= changeFactor;
-//                    improved = 1;
-//                    E = newE;
-//                    printParams();
-//                    iterations++;
-//                    printf("NewE: %.7f; index: %d; value: %d\n", E, i, curValues[i]);
                 } else {
                     changeParam(i, tmpParam);
                     curValues[i] = tmpParam;
@@ -108,7 +103,7 @@ void loadPositions(Board *board) {
     int quiets = 0;
 
     positions = malloc(sizeof(TuningPosition) * 120000000);
-    while (positionsCount < 10000) {
+    while (1) {
         estr = fgets(buf, sizeof(buf), f);
 
         if (!estr) {
@@ -159,7 +154,6 @@ char **str_split(char *a_str, const char a_delim) {
     delim[0] = a_delim;
     delim[1] = 0;
 
-    /* Count how many elements will be extracted. */
     while (*tmp) {
         if (a_delim == *tmp) {
             count++;
@@ -168,11 +162,8 @@ char **str_split(char *a_str, const char a_delim) {
         tmp++;
     }
 
-    /* Add space for trailing token. */
     count += last_comma < (a_str + strlen(a_str) - 1);
 
-    /* Add space for terminating null string so caller
-       knows where the list of returned strings ends. */
     count++;
 
     result = malloc(sizeof(char *) * count);
@@ -194,8 +185,7 @@ char **str_split(char *a_str, const char a_delim) {
 }
 
 double r(int eval) {
-    // printf("%d %f\n", eval, 1. / (1. + pow(10., eval * K / 400.)));
-    return 1. / (1. + pow(10., -eval * K / 400.));
+    return 1. / (1. + exp(-eval / K));
 }
 
 double fun(Board *board) {
@@ -221,7 +211,6 @@ double fun(Board *board) {
         setFen(board, fen);
 
         int eval = fullEval(board);
-        // int eval = quiesceSearch(board, &searchInfo, -MATE_SCORE, MATE_SCORE, 0);
 
         if (board->color == BLACK) {
             eval = -eval;
@@ -247,14 +236,10 @@ void setValues(int *values) {
     transfer(&values[curIndex], &KNIGHT_EV_EG, &curIndex, 1);
     transfer(&values[curIndex], &BISHOP_EV_MG, &curIndex, 1);
     transfer(&values[curIndex], &BISHOP_EV_EG, &curIndex, 1);
-    transfer(&values[curIndex], &ROOK_EV, &curIndex, 1);
+    transfer(&values[curIndex], &ROOK_EV_MG, &curIndex, 1);
     transfer(&values[curIndex], &ROOK_EV_EG, &curIndex, 1);
     transfer(&values[curIndex], &QUEEN_EV_MG, &curIndex, 1);
     transfer(&values[curIndex], &QUEEN_EV_EG, &curIndex, 1);
-
-    KingDangerFactor = values[5];
-    RookOnOpenFileBonus = values[6];
-    RookOnPartOpenFileBonus = values[7];
 
     // PST
     transferPST(&values[curIndex], pawnPST, &curIndex);
@@ -278,6 +263,9 @@ void setValues(int *values) {
     transfer(&values[curIndex], &IsolatedPawnPenalty, &curIndex, 1);
     transfer(&values[curIndex], &DoubleBishopsBonusMG, &curIndex, 1);
     transfer(&values[curIndex], &DoubleBishopsBonusEG, &curIndex, 1);
+    transfer(&values[curIndex], &KingDangerFactor, &curIndex, 1);
+    transfer(&values[curIndex], &RookOnOpenFileBonus, &curIndex, 1);
+    transfer(&values[curIndex], &RookOnPartOpenFileBonus, &curIndex, 1);
 
 
     // re-init due to dependent eval
@@ -333,6 +321,9 @@ int *getValues() {
     transfer(&IsolatedPawnPenalty, &res[curIndex], &curIndex, 1);
     transfer(&DoubleBishopsBonusMG, &res[curIndex], &curIndex, 1);
     transfer(&DoubleBishopsBonusEG, &res[curIndex], &curIndex, 1);
+    transfer(&KingDangerFactor, &res[curIndex], &curIndex, 1);
+    transfer(&RookOnOpenFileBonus, &res[curIndex], &curIndex, 1);
+    transfer(&RookOnPartOpenFileBonus, &res[curIndex], &curIndex, 1);
 
     return res;
 }
@@ -369,32 +360,29 @@ void printParams() {
     printArray("QUEEN_EV_MG", &params[curIndex], &curIndex, 1, f);
     printArray("QUEEN_EV_EG", &params[curIndex], &curIndex, 1, f);
 
+    printPST("pawnPST", &params[curIndex], &curIndex, f);
+    printPST("knightPST", &params[curIndex], &curIndex, f);
+    printPST("bishopPST", &params[curIndex], &curIndex, f);
+    printPST("rookPST", &params[curIndex], &curIndex, f);
+    printPST("queenPST", &params[curIndex], &curIndex, f);
+    printPST("kingPST", &params[curIndex], &curIndex, f);
+    printPST("egKingPST", &params[curIndex], &curIndex, f);
+
+    // Mobility
+    printArray("QueenMobility", &params[curIndex], &curIndex, 28, f);
+    printArray("RookMobility", &params[curIndex], &curIndex, 15, f);
+    printArray("BishopMobility", &params[curIndex], &curIndex, 14, f);
+    printArray("KnightMobility", &params[curIndex], &curIndex, 8, f);
+
+    printArray("PassedPawnsBonus", &params[curIndex], &curIndex, 8, f);
+
+    printArray("DoublePawnsPenalty", &params[curIndex], &curIndex, 1, f);
+    printArray("IsolatedPawnPenalty", &params[curIndex], &curIndex, 1, f);
+    printArray("DoubleBishopsBonusMG", &params[curIndex], &curIndex, 1, f);
+    printArray("DoubleBishopsBonusEG", &params[curIndex], &curIndex, 1, f);
     printArray("KingDangerFactor", &params[curIndex], &curIndex, 1, f);
     printArray("RookOnOpenFileBonus", &params[curIndex], &curIndex, 1, f);
     printArray("RookOnPartOpenFileBonus", &params[curIndex], &curIndex, 1, f);
-
-    if (PARAMS_COUNT > 8) {
-        printPST("pawnPST", &params[curIndex], &curIndex, f);
-        printPST("knightPST", &params[curIndex], &curIndex, f);
-        printPST("bishopPST", &params[curIndex], &curIndex, f);
-        printPST("rookPST", &params[curIndex], &curIndex, f);
-        printPST("queenPST", &params[curIndex], &curIndex, f);
-        printPST("kingPST", &params[curIndex], &curIndex, f);
-        printPST("egKingPST", &params[curIndex], &curIndex, f);
-
-        // Mobility
-        printArray("QueenMobility", &params[curIndex], &curIndex, 28, f);
-        printArray("RookMobility", &params[curIndex], &curIndex, 15, f);
-        printArray("BishopMobility", &params[curIndex], &curIndex, 14, f);
-        printArray("KnightMobility", &params[curIndex], &curIndex, 8, f);
-
-        printArray("PassedPawnsBonus", &params[curIndex], &curIndex, 8, f);
-
-        printArray("DoublePawnsPenalty", &params[curIndex], &curIndex, 1, f);
-        printArray("IsolatedPawnPenalty", &params[curIndex], &curIndex, 1, f);
-        printArray("DoubleBishopsBonusMG", &params[curIndex], &curIndex, 1, f);
-        printArray("DoubleBishopsBonusEG", &params[curIndex], &curIndex, 1, f);
-    }
 
     fclose(f);
 }

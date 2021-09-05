@@ -9,17 +9,11 @@ int BISHOP_EV_MG = 322;
 int ROOK_EV_MG = 500;
 int QUEEN_EV_MG = 923;
 
-int PAWN_EV_EG = 100;
+int PAWN_EV_EG = 112;
 int KNIGHT_EV_EG = 322;
 int BISHOP_EV_EG = 322;
 int ROOK_EV_EG = 500;
 int QUEEN_EV_EG = 923;
-
-//int PAWN_EVAL[STAGE_N];
-//int KNIGHT_EVAL[STAGE_N];
-//int BISHOP_EVAL[STAGE_N];
-//int ROOK_EVAL[STAGE_N];
-//int QUEEN_EVAL[STAGE_N];
 
 //Mobility bonuses
 int QueenMobility[28] = {
@@ -63,7 +57,7 @@ int fullEval(Board *board) {
     //King safety
     eval += (kingEval(board, WHITE) - kingEval(board, BLACK));
 
-    int normalizedEval = round((double)eval / (double)PAWN_EV * 100.);
+    int normalizedEval = round((double)eval / (double)PAWN_EV_MG * 100.);
 
     return (board->color == WHITE ? normalizedEval : -normalizedEval);
 }
@@ -277,12 +271,25 @@ int mateScore(int eval) {
 }
 
 void initEval() {
-    initDependencyEval();
+    PAWN_EVAL = (int*) malloc(sizeof(int) * STAGE_N);
+    KNIGHT_EVAL = (int*) malloc(sizeof(int) * STAGE_N);
+    BISHOP_EVAL = (int*) malloc(sizeof(int) * STAGE_N);
+    ROOK_EVAL = (int*) malloc(sizeof(int) * STAGE_N);
+    QUEEN_EVAL = (int*) malloc(sizeof(int) * STAGE_N);
 
+    initDependencyEval();
     for (int i = 0; i < 64; ++i) {
         for (int j = 0; j < 64; ++j)
             distanceBonus[i][j] = 14 - (abs(rankOf(i) - rankOf(j)) + abs(fileOf(i) - fileOf(j)));
     }
+}
+
+void destroyEval() {
+    free(PAWN_EVAL);
+    free(KNIGHT_EVAL);
+    free(BISHOP_EVAL);
+    free(ROOK_EVAL);
+    free(QUEEN_EVAL);
 }
 
 void initDependencyEval() {
@@ -290,6 +297,10 @@ void initDependencyEval() {
 
     for (int i = 0; i < STAGE_N; i++) {
         PAWN_EVAL[i] = getScore2(PAWN_EV_MG, PAWN_EV_EG, i);
+        KNIGHT_EVAL[i] = getScore2(KNIGHT_EV_MG, KNIGHT_EV_EG, i);
+        BISHOP_EVAL[i] = getScore2(BISHOP_EV_MG, BISHOP_EV_EG, i);
+        ROOK_EVAL[i] = getScore2(ROOK_EV_MG, ROOK_EV_EG, i);
+        QUEEN_EVAL[i] = getScore2(QUEEN_EV_MG, QUEEN_EV_EG, i);
     }
 
     for (int i = 0; i < 100; i++) {
@@ -312,20 +323,22 @@ void initDependencyEval() {
     }
 }
 
-int pVal(int n) {
+int pVal(Board* b, int n) {
+    int stage = stageGame(b);
+
     switch (n) {
         case 0:
             return 0;
         case 1:
-            return PAWN_EV;
+            return PAWN_EVAL[stage];
         case 2:
-            return KNIGHT_EV;
+            return KNIGHT_EVAL[stage];
         case 3:
-            return BISHOP_EV;
+            return BISHOP_EVAL[stage];
         case 4:
-            return ROOK_EV;
+            return ROOK_EVAL[stage];
         case 5:
-            return QUEEN_EV;
+            return QUEEN_EVAL[stage];
         case 6:
             return 0;
     }
