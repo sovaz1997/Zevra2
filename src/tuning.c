@@ -8,7 +8,7 @@
 #include "search.h"
 
 const double K = 150;
-const int PARAMS_COUNT = 535;
+const int PARAMS_COUNT = 538;
 
 struct TuningPosition {
     char fen[512];

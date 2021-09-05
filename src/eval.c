@@ -4,33 +4,33 @@
 
 //Material
 int PAWN_EV_MG = 100;
-int KNIGHT_EV_MG = 322;
+int KNIGHT_EV_MG = 329;
 int BISHOP_EV_MG = 322;
-int ROOK_EV_MG = 500;
+int ROOK_EV_MG = 498;
 int QUEEN_EV_MG = 923;
 
-int PAWN_EV_EG = 112;
+int PAWN_EV_EG = 103;
 int KNIGHT_EV_EG = 322;
 int BISHOP_EV_EG = 322;
-int ROOK_EV_EG = 500;
+int ROOK_EV_EG = 509;
 int QUEEN_EV_EG = 923;
 
 //Mobility bonuses
 int QueenMobility[28] = {
         -30, -20, -10, -52, -47, 34, -3, 18, 23, 24, 18, 29, 36, 39, 42, 47, 50, 42, 48, 49, 52, 46, 55, 52, 37, 76, 45, 42,
 };
-int RookMobility[15] = {-402, -51, -57, -22, 0, 0, 8, 8, 13, 21, 25, 29, 35, 34, 35, };
-int BishopMobility[14] = {-13, -39, -23, -9, 2, 6, 15, 19, 21, 25, 27, 39, 21, 38,};
-int KnightMobility[8] = {-101, -46, -24, -18, -19, -22, -21, -14, };
+int RookMobility[15] = {-402, -51, -57, -22, 0, 0, 8, 8, 13, 20, 25, 29, 35, 34, 35, };
+int BishopMobility[14] = {-13, -39, -23, -9, 2, 6, 15, 20, 23, 27, 29, 41, 27, 44, };
+int KnightMobility[8] = {-101, -45, -25, -18, -19, -22, -21, -14, };
 
 //additional bonuses and penalties
-int PassedPawnBonus[8] = {0, 0, -5, 5, 36, 92, 163, 0, };
-int DoublePawnsPenalty = -30;
+int PassedPawnBonus[8] = {0, -4, -6, 3, 27, 99, 125, 0, };
+int DoublePawnsPenalty = -28;
 int IsolatedPawnPenalty = -4;
 int RookOnOpenFileBonus = 20;
 int RookOnPartOpenFileBonus = 24;
 int KingDangerFactor = 602;
-int DoubleBishopsBonusMG = 38;
+int DoubleBishopsBonusMG = 42;
 int DoubleBishopsBonusEG = 30;
 
 int DoubleBishopsBonus() {
@@ -244,9 +244,9 @@ int bishopsEval(Board *board) {
 
 int getPassedPawnBonus(int sq, int color) {
     if (color == WHITE)
-        return -pawnPST[square(7 - rankOf(sq), fileOf(sq))] + PassedPawnBonus[rankOf(sq)];
+        return PassedPawnBonus[rankOf(sq)];
 
-    return -pawnPST[square(rankOf(sq), fileOf(sq))] + PassedPawnBonus[7 - rankOf(sq)];
+    return PassedPawnBonus[7 - rankOf(sq)];
 }
 
 int kingEval(Board *board, int color) {
