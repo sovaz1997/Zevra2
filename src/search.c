@@ -163,7 +163,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         return quiesceSearch(board, searchInfo, alpha, beta, height);
 
 
-    int iidDepthReduction = 4;
+    int iidDepthReduction = 7;
     if (depth > iidDepthReduction && !root && !ttEntry->evalType) {
         int eval = search(board, searchInfo, alpha, beta, depth - iidDepthReduction, height);
         Transposition new_tt;
