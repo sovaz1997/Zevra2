@@ -162,6 +162,24 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     if(!pvNode && !havePromotionPawn(board) && !weInCheck && depth <= 4 && staticEval + RazorMargin * depth < alpha && RazoringPruningAllow)
         return quiesceSearch(board, searchInfo, alpha, beta, height);
 
+
+    int iidDepthReduction = 4;
+    if (depth > iidDepthReduction && !root && !ttEntry->evalType) {
+        int eval = search(board, searchInfo, alpha, beta, depth - iidDepthReduction, height);
+        Transposition new_tt;
+        int iidHashType;
+        if (eval <= alpha) {
+            iidHashType = upperbound;
+        } else if (eval >= beta) {
+            iidHashType = lowerbound;
+        } else {
+            iidHashType = exact;
+        }
+
+        setTransposition(&new_tt, keyPosition, alpha, iidHashType, depth - iidDepthReduction, searchInfo->bestMove, ttAge, height);
+        replaceTransposition(ttEntry, new_tt);
+    }
+
     movegen(board, moves[height]);
     moveOrdering(board, moves[height], searchInfo, height, depth);
 
