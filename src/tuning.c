@@ -8,7 +8,7 @@
 #include "search.h"
 
 const double K = 150;
-const int PARAMS_COUNT = 538;
+const int PARAMS_COUNT = 858;
 
 struct TuningPosition {
     char fen[512];
@@ -248,6 +248,11 @@ void setValues(int *values) {
     transferPST(&values[curIndex], rookPST, &curIndex);
     transferPST(&values[curIndex], queenPST, &curIndex);
     transferPST(&values[curIndex], kingPST, &curIndex);
+    transferPST(&values[curIndex], egPawnPST, &curIndex);
+    transferPST(&values[curIndex], egKnightPST, &curIndex);
+    transferPST(&values[curIndex], egBishopPST, &curIndex);
+    transferPST(&values[curIndex], egRookPST, &curIndex);
+    transferPST(&values[curIndex], egQueenPST, &curIndex);
     transferPST(&values[curIndex], egKingPST, &curIndex);
 
     // Mobility
@@ -307,6 +312,12 @@ int *getValues() {
     transferPST(rookPST, &res[curIndex], &curIndex);
     transferPST(queenPST, &res[curIndex], &curIndex);
     transferPST(kingPST, &res[curIndex], &curIndex);
+    transferPST(egPawnPST, &res[curIndex], &curIndex);
+    transferPST(egKnightPST, &res[curIndex], &curIndex);
+    transferPST(egBishopPST, &res[curIndex], &curIndex);
+    transferPST(egRookPST, &res[curIndex], &curIndex);
+    transferPST(egQueenPST, &res[curIndex], &curIndex);
+    transferPST(egKingPST, &res[curIndex], &curIndex);
     transferPST(egKingPST, &res[curIndex], &curIndex);
 
     // Mobility
@@ -366,6 +377,11 @@ void printParams() {
     printPST("rookPST", &params[curIndex], &curIndex, f);
     printPST("queenPST", &params[curIndex], &curIndex, f);
     printPST("kingPST", &params[curIndex], &curIndex, f);
+    printPST("egPawnPST", &params[curIndex], &curIndex, f);
+    printPST("egKnightPST", &params[curIndex], &curIndex, f);
+    printPST("egBishopPST", &params[curIndex], &curIndex, f);
+    printPST("egRookPST", &params[curIndex], &curIndex, f);
+    printPST("egQueenPST", &params[curIndex], &curIndex, f);
     printPST("egKingPST", &params[curIndex], &curIndex, f);
 
     // Mobility

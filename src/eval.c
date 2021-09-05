@@ -41,7 +41,7 @@ int fullEval(Board *board) {
     int eval = board->eval;
     stage = stageGame(board);
 
-    eval += kingPsqtEval(board);
+    eval += psqtEval(board);
 
     //Material Eval
     eval += materialEval(board);
@@ -86,23 +86,41 @@ int materialEval(Board* board) {
     return eval;
 }
 
-int kingPsqtEval(Board *board) {
+int psqtEval(Board* board) {
     int eval = 0;
-    U64 mask = board->pieces[KING];
-    eval += (psqtPieceEval(board, mask, kingPST) * stage / 98. +
-             psqtPieceEval(board, mask, egKingPST) * (98. - stage) / 98.);
+
+    U64 mask = board->pieces[PAWN];
+    eval += psqtPieceEval(board, mask, PAWN);
+
+    mask = board->pieces[KNIGHT];
+    eval += psqtPieceEval(board, mask, KNIGHT);
+
+    mask = board->pieces[BISHOP];
+    eval += psqtPieceEval(board, mask, BISHOP);
+
+    mask = board->pieces[ROOK];
+    eval += psqtPieceEval(board, mask, ROOK);
+
+    mask = board->pieces[QUEEN];
+    eval += psqtPieceEval(board, mask, QUEEN);
+
+    mask = board->pieces[KING];
+    eval += psqtPieceEval(board, mask, KING);
+
     return eval;
 }
 
-int psqtPieceEval(Board *board, U64 mask, const int *pstTable) {
+int psqtPieceEval(Board *board, U64 mask, int pieceType) {
     int eval = 0;
 
     while (mask) {
         int sq = firstOne(mask);
-        if (squareBitboard[sq] & board->colours[WHITE])
-            eval += *(pstTable + square(7 - rankOf(sq), fileOf(sq)));
-        else
-            eval -= *(pstTable + sq);
+        U64 isWhite = squareBitboard[sq] & board->colours[WHITE];
+        int relativeSq = isWhite ? square(7 - rankOf(sq), fileOf(sq)) : sq;
+        int multiple = isWhite ? 1 : -1;
+        int sqEval = multiple * PST[stage][pieceType][relativeSq];
+
+        eval += sqEval;
 
         clearBit(&mask, sq);
     }

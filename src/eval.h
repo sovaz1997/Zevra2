@@ -58,7 +58,7 @@ int fullEval(Board *board);
 int DoubleBishopsBonus();
 int materialEval(Board* board);
 
-int psqtPieceEval(Board *board, U64 mask, const int *pstTable);
+int psqtPieceEval(Board *board, U64 mask, int pieceType);
 
 int mobilityAndKingDangerEval(Board *board, int color);
 
@@ -69,8 +69,6 @@ int bishopsEval(Board *board);
 int rooksEval(Board *board, int color);
 
 int kingEval(Board *board, int color);
-
-int attackCount(Board *board, int sq, int color);
 
 int getPassedPawnBonus(int sq, int color);
 
@@ -84,7 +82,7 @@ int stageGame(Board *board);
 
 U8 horizontalScan(U64 bitboard);
 
-int kingPsqtEval(Board* board);
+int psqtEval(Board* board);
 
 int kingDanger(int attacksCount);
 
