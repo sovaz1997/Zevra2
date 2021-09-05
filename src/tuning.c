@@ -35,7 +35,7 @@ void makeTuning(Board *board) {
 
             double newE = fun(board);
 
-            printf("%d %f %f\n", i, E, newE);
+            printf("%d %.7f %.7f\n", i, E, newE);
 
             if (newE < E) {
                 while (newE < E) {
@@ -317,7 +317,6 @@ int *getValues() {
     transferPST(egBishopPST, &res[curIndex], &curIndex);
     transferPST(egRookPST, &res[curIndex], &curIndex);
     transferPST(egQueenPST, &res[curIndex], &curIndex);
-    transferPST(egKingPST, &res[curIndex], &curIndex);
     transferPST(egKingPST, &res[curIndex], &curIndex);
 
     // Mobility
