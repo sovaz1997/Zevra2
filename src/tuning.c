@@ -123,7 +123,7 @@ void loadPositions(Board *board) {
         if (abs(eval - qEval) < 50 && popcount(board->colours[WHITE] | board->colours[BLACK]) > 7) {
             ++positionsCount;
             strcpy(positions[positionsCount - 1].fen, fen);
-            if (positionsCount % 1000 == 0) {
+            if (positionsCount % 100000 == 0) {
                 printf("Pos count: %d\n", positionsCount);
             }
 
