@@ -6,16 +6,29 @@
 
 #include "tuning.h"
 #include "search.h"
+#include "math.h"
 
-const double K = 150;
 const int PARAMS_COUNT = 858;
+const double K = 150;
 
 struct TuningPosition {
     char fen[512];
     int movesToEnd;
     double result;
-
 };
+
+
+struct CalculateArgs {
+    int from;
+    int to;
+    int result;
+    TuningPosition * pos;
+};
+
+
+
+int positionsCount = 0;
+TuningPosition *positions;
 
 void makeTuning(Board *board) {
     loadPositions(board);
@@ -85,10 +98,9 @@ void makeTuning(Board *board) {
     for (int i = 0; i < PARAMS_COUNT; i++) {
         printf("%d ", curValues[i]);
     }
-}
 
-int positionsCount = 0;
-TuningPosition *positions;
+    free(positions);
+}
 
 void loadPositions(Board *board) {
     FILE *f = fopen("all-test-positions.txt", "r");
@@ -188,43 +200,115 @@ double r(int eval) {
     return 1. / (1. + exp(-eval / K));
 }
 
+TuningPosition* makeCopyPositions() {
+    size_t sz = sizeof(struct TuningPosition) * positionsCount;
+    TuningPosition* newArr = malloc(sz);
+    memcpy(newArr, positions, sz);
+    return newArr;
+}
+
 double fun(Board *board) {
     SearchInfo searchInfo;
     TimeManager tm = createFixDepthTm(MAX_PLY - 1);
     resetSearchInfo(&searchInfo, tm);
 
     int posCount = 0;
-    const double fadingFactor = 40;
 
     double errorSums = 0;
 
 
-    for (int i = 0; i < positionsCount; i++) {
-        resetSearchInfo(&searchInfo, tm);
+    int THREADS_N = 18;
 
-        char *fen = positions[i].fen;
+    pthread_t tid[THREADS_N];
+    CalculateArgs* args[THREADS_N];
+
+    int step = positionsCount / THREADS_N;
+    for (int i = 0; i < THREADS_N; i++) {
+        args[i] = malloc(sizeof(SearchArgs));
+        args[i]->from = i * step;
+        args[i]->to = i == THREADS_N - 1 ? positionsCount : (i * step) + step;
+        printf("(%d; %d)\n", args[i]->from, args[i]->to);
+        pthread_create(&tid[i], NULL, &calculate, args[i]);
+    }
+
+    for (int i = 0; i < THREADS_N; i++) {
+        pthread_join(tid[i], NULL);
+    }
+
+    int errorsSums = 0;
+    for (int i = 0; i < THREADS_N; i++) {
+        errorsSums += args[i]->result;
+    }
+
+    for (int i = 0; i < THREADS_N; i++) {
+        free(args[i]->pos);
+        free(args[i]);
+    }
+//
+//    for (int i = 0; i < positionsCount; i++) {
+//        resetSearchInfo(&searchInfo, tm);
+//
+//        char *fen = positions[i].fen;
+//        int movesToEnd = positions[i].movesToEnd;
+//        double result = positions[i].result;
+//
+//        double fading = exp(-movesToEnd / fadingFactor);
+//
+//        setFen(board, fen);
+//
+//        int eval = fullEval(board);
+//
+//        if (board->color == BLACK) {
+//            eval = -eval;
+//        }
+//
+//        double error = pow(r(eval) - result, 2) * fading;
+//        errorSums += error;
+//
+//        ++posCount;
+//    }
+//
+//    errorSums /= posCount;
+
+    return errorSums / positionsCount;
+}
+
+void* calculate(void* args) {
+    CalculateArgs* calculateArgs = (CalculateArgs*) args;
+
+    const double fadingFactor = 40;
+
+    Board *board = malloc(sizeof(board));
+    clearBoard(board);
+
+    int errorSums = 0;
+
+    printf("[%d; %d]\n", calculateArgs->from, calculateArgs->to);
+
+    for (int i = calculateArgs->from; i < calculateArgs->to; i++) {
+
+        // char *fen = positions[i].fen;
         int movesToEnd = positions[i].movesToEnd;
+        printf("(%d %d) %d\n", calculateArgs->from, calculateArgs->to, i);
         double result = positions[i].result;
 
         double fading = exp(-movesToEnd / fadingFactor);
-
-        setFen(board, fen);
-
-        int eval = fullEval(board);
-
-        if (board->color == BLACK) {
+//
+       //  setFen(board, fen);
+//
+     //   int eval = fullEval(board);
+//
+   /*     if (board->color == BLACK) {
             eval = -eval;
-        }
-
-        double error = pow(r(eval) - result, 2) * fading;
-        errorSums += error;
-
-        ++posCount;
+        }*/
+//
+//        double error = pow(r(eval) - result, 2) * fading;
+//        errorSums += error;
     }
 
-    errorSums /= posCount;
+    free(board);
 
-    return errorSums;
+    calculateArgs->result = errorSums;
 }
 
 void setValues(int *values) {

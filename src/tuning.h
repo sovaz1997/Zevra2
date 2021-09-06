@@ -1,10 +1,13 @@
 #include "board.h"
 
 typedef struct TuningPosition TuningPosition;
+typedef struct CalculateArgs CalculateArgs;
 
 double fun(Board* board);
+TuningPosition* makeCopyPositions();
 void makeTuning(Board* board);
 int* getValues();
+void* calculate(void* args);
 void setValues(int* values);
 void changeParam(int n, int value);
 void printParams();
