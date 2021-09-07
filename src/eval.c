@@ -357,6 +357,10 @@ void initStagedPSQT(int st) {
 void initDependencyStagedEval(int st) {
     initStagedPSQT(st);
 
+    for (int i = 0; i < 100; i++) {
+        KingDanger[i] = kingDanger(i);
+    }
+
     PAWN_EVAL[stage] = getScore2(PAWN_EV_MG, PAWN_EV_EG, st);
     KNIGHT_EVAL[stage] = getScore2(KNIGHT_EV_MG, KNIGHT_EV_EG, st);
     BISHOP_EVAL[stage] = getScore2(BISHOP_EV_MG, BISHOP_EV_EG, st);

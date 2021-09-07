@@ -8,7 +8,7 @@
 #include "search.h"
 
 double K = 0.9166;
-const int PARAMS_COUNT = 857;
+const int PARAMS_COUNT = 858;
 
 struct TuningPosition {
     char fen[512];
@@ -282,6 +282,7 @@ void setValues(int *values, int stage) {
     transfer(&values[curIndex], &IsolatedPawnPenalty, &curIndex, 1);
     transfer(&values[curIndex], &DoubleBishopsBonusMG, &curIndex, 1);
     transfer(&values[curIndex], &DoubleBishopsBonusEG, &curIndex, 1);
+    transfer(&values[curIndex], &KingDangerFactor, &curIndex, 1);
     transfer(&values[curIndex], &RookOnOpenFileBonus, &curIndex, 1);
     transfer(&values[curIndex], &RookOnPartOpenFileBonus, &curIndex, 1);
 
@@ -344,6 +345,7 @@ int *getValues() {
     transfer(&IsolatedPawnPenalty, &res[curIndex], &curIndex, 1);
     transfer(&DoubleBishopsBonusMG, &res[curIndex], &curIndex, 1);
     transfer(&DoubleBishopsBonusEG, &res[curIndex], &curIndex, 1);
+    transfer(&KingDangerFactor, &res[curIndex], &curIndex, 1);
     transfer(&RookOnOpenFileBonus, &res[curIndex], &curIndex, 1);
     transfer(&RookOnPartOpenFileBonus, &res[curIndex], &curIndex, 1);
 
@@ -407,6 +409,7 @@ void printParams() {
     printArray("IsolatedPawnPenalty", &params[curIndex], &curIndex, 1, f);
     printArray("DoubleBishopsBonusMG", &params[curIndex], &curIndex, 1, f);
     printArray("DoubleBishopsBonusEG", &params[curIndex], &curIndex, 1, f);
+    printArray("KingDangerFactor", &params[curIndex], &curIndex, 1, f);
     printArray("RookOnOpenFileBonus", &params[curIndex], &curIndex, 1, f);
     printArray("RookOnPartOpenFileBonus", &params[curIndex], &curIndex, 1, f);
 
@@ -421,15 +424,14 @@ void printParams() {
 int *calculateLinear(Board *board) {
     setFen(board, "4k3/8/8/8/8/8/8/qq2K3 w - - 0 1");
 
-    int bytesLength = PARAMS_COUNT * sizeof(int);
-    int *linearEval = malloc(bytesLength);
-    int *values = malloc(bytesLength);
-    memset(values, 0, bytesLength);
+    double *linearEval = malloc(PARAMS_COUNT * sizeof(double));
+    int *values = malloc(PARAMS_COUNT * sizeof(int));
+    memset(values, 0, PARAMS_COUNT * sizeof(int));
 
     int stage = stageGame(board);
     setValues(values, stage);
 
-    double up = 100000;
+    double up = 1000000;
     int a = fullEval(board);
     for (int i = 0; i < PARAMS_COUNT; i++) {
         values[i] = up;
@@ -442,8 +444,9 @@ int *calculateLinear(Board *board) {
         values[i] = 0;
 
         linearEval[i] = (b - a) / up;
+
         if (b - a != 0) {
-            printf("%d: %f ", i, (b - a) / up);
+            printf("%d: %f ", i, linearEval[i]);
         }
     }
     printf("\n");
