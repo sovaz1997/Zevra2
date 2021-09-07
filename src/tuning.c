@@ -7,8 +7,8 @@
 #include "tuning.h"
 #include "search.h"
 
-const double K = 150;
-const int PARAMS_COUNT = 858;
+double K = 0.9166;
+const int PARAMS_COUNT = 857;
 
 struct TuningPosition {
     char fen[512];
@@ -25,6 +25,11 @@ void makeTuning(Board *board) {
     const int changeFactor = 1;
 
     double E = fun(board);
+
+//    for (double i = 0.916; i < 0.917; i += 0.0002) {
+//        K = i;
+//        printf("%.7f: %.10f\n", i, fun(board));
+//    }
 
     while (1) {
         int improved = 0;
@@ -120,8 +125,17 @@ void loadPositions(Board *board) {
         setFen(board, fen);
         int eval = fullEval(board);
         int qEval = quiesceSearch(board, &searchInfo, -MATE_SCORE, MATE_SCORE, 0);
+
+
         if (abs(eval - qEval) < 50 && popcount(board->colours[WHITE] | board->colours[BLACK]) > 7) {
             ++positionsCount;
+
+            calculateLinear(board);
+
+            if (positionsCount % 100 == 0) {
+                printf("%d\n", positionsCount);
+            }
+
             strcpy(positions[positionsCount - 1].fen, fen);
             if (positionsCount % 100000 == 0) {
                 printf("Pos count: %d\n", positionsCount);
@@ -185,7 +199,7 @@ char **str_split(char *a_str, const char a_delim) {
 }
 
 double r(int eval) {
-    return 1. / (1. + exp(-eval / K));
+    return 1. / (1. + pow(10, -K * eval / 400.));
 }
 
 double fun(Board *board) {
@@ -194,7 +208,7 @@ double fun(Board *board) {
     resetSearchInfo(&searchInfo, tm);
 
     int posCount = 0;
-    const double fadingFactor = 40;
+    // const double fadingFactor = 40;
 
     double errorSums = 0;
 
@@ -206,7 +220,7 @@ double fun(Board *board) {
         int movesToEnd = positions[i].movesToEnd;
         double result = positions[i].result;
 
-        double fading = exp(-movesToEnd / fadingFactor);
+        // double fading = exp(-movesToEnd / fadingFactor);
 
         setFen(board, fen);
 
@@ -216,7 +230,7 @@ double fun(Board *board) {
             eval = -eval;
         }
 
-        double error = pow(r(eval) - result, 2) * fading;
+        double error = pow(r(eval) - result, 2); // * fading;
         errorSums += error;
 
         ++posCount;
@@ -227,7 +241,7 @@ double fun(Board *board) {
     return errorSums;
 }
 
-void setValues(int *values) {
+void setValues(int *values, int stage) {
     int curIndex = 0;
 
     transfer(&values[curIndex], &PAWN_EV_MG, &curIndex, 1);
@@ -268,13 +282,12 @@ void setValues(int *values) {
     transfer(&values[curIndex], &IsolatedPawnPenalty, &curIndex, 1);
     transfer(&values[curIndex], &DoubleBishopsBonusMG, &curIndex, 1);
     transfer(&values[curIndex], &DoubleBishopsBonusEG, &curIndex, 1);
-    transfer(&values[curIndex], &KingDangerFactor, &curIndex, 1);
     transfer(&values[curIndex], &RookOnOpenFileBonus, &curIndex, 1);
     transfer(&values[curIndex], &RookOnPartOpenFileBonus, &curIndex, 1);
 
 
     // re-init due to dependent eval
-    initDependencyEval();
+    initDependencyStagedEval(stage);
 }
 
 int *transfer(int *from, int *to, int *curIndex, int length) {
@@ -331,7 +344,6 @@ int *getValues() {
     transfer(&IsolatedPawnPenalty, &res[curIndex], &curIndex, 1);
     transfer(&DoubleBishopsBonusMG, &res[curIndex], &curIndex, 1);
     transfer(&DoubleBishopsBonusEG, &res[curIndex], &curIndex, 1);
-    transfer(&KingDangerFactor, &res[curIndex], &curIndex, 1);
     transfer(&RookOnOpenFileBonus, &res[curIndex], &curIndex, 1);
     transfer(&RookOnPartOpenFileBonus, &res[curIndex], &curIndex, 1);
 
@@ -341,7 +353,7 @@ int *getValues() {
 void changeParam(int n, int value) {
     int *params = getValues();
     *(params + n) = value;
-    setValues(params);
+    setValues(params, 1); // TODO: исп. по-другому
     free(params);
 }
 
@@ -395,11 +407,48 @@ void printParams() {
     printArray("IsolatedPawnPenalty", &params[curIndex], &curIndex, 1, f);
     printArray("DoubleBishopsBonusMG", &params[curIndex], &curIndex, 1, f);
     printArray("DoubleBishopsBonusEG", &params[curIndex], &curIndex, 1, f);
-    printArray("KingDangerFactor", &params[curIndex], &curIndex, 1, f);
     printArray("RookOnOpenFileBonus", &params[curIndex], &curIndex, 1, f);
     printArray("RookOnPartOpenFileBonus", &params[curIndex], &curIndex, 1, f);
 
     fclose(f);
+}
+
+/**
+ * Вычисление линейной функции оценки для определенной позиции
+ * @param b
+ * @return
+ */
+int *calculateLinear(Board *board) {
+    setFen(board, "4k3/8/8/8/8/8/8/qq2K3 w - - 0 1");
+
+    int bytesLength = PARAMS_COUNT * sizeof(int);
+    int *linearEval = malloc(bytesLength);
+    int *values = malloc(bytesLength);
+    memset(values, 0, bytesLength);
+
+    int stage = stageGame(board);
+    setValues(values, stage);
+
+    double up = 100000;
+    int a = fullEval(board);
+    for (int i = 0; i < PARAMS_COUNT; i++) {
+        values[i] = up;
+        setValues(values, stage);
+
+        int* test = getValues();
+
+        int b = fullEval(board);
+
+        values[i] = 0;
+
+        linearEval[i] = (b - a) / up;
+        if (b - a != 0) {
+            printf("%d: %f ", i, (b - a) / up);
+        }
+    }
+    printf("\n");
+
+    free(values);
 }
 
 void printPST(char *name, int *pst, int *curIndex, FILE *f) {

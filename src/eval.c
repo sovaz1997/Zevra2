@@ -4,34 +4,35 @@
 
 //Material
 int PAWN_EV_MG = 100;
-int KNIGHT_EV_MG = 330;
-int BISHOP_EV_MG = 324;
-int ROOK_EV_MG = 498;
-int QUEEN_EV_MG = 923;
+int KNIGHT_EV_MG = 300;
+int BISHOP_EV_MG = 330;
+int ROOK_EV_MG = 550;
+int QUEEN_EV_MG = 1000;
 
-int PAWN_EV_EG = 103;
-int KNIGHT_EV_EG = 322;
-int BISHOP_EV_EG = 322;
-int ROOK_EV_EG = 509;
-int QUEEN_EV_EG = 923;
+int PAWN_EV_EG = 100;
+int KNIGHT_EV_EG = 300;
+int BISHOP_EV_EG = 330;
+int ROOK_EV_EG = 550;
+int QUEEN_EV_EG = 1000;
 
 //Mobility bonuses
 int QueenMobility[28] = {
-        -30, -20, -10, -52, -47, 34, 2, 17, 23, 24, 18, 29, 36, 39, 41, 47, 50, 42, 48, 52, 54, 49, 61, 58, 41, 84, 47, 47,
+        -30, -20, -10, 0, 5, 10, 12, 15, 18, 20, 25, 30, 32, 35,
+        40, 45, 50, 55, 57, 60, 63, 65, 70, 75, 80, 85, 90, 95
 };
-int RookMobility[15] = {-402, -50, -57, -22, 0, 0, 8, 8, 13, 20, 25, 29, 35, 34, 35, };
-int BishopMobility[14] = {-13, -39, -23, -9, 2, 7, 16, 20, 23, 27, 29, 41, 27, 44, };
-int KnightMobility[8] = {-101, -45, -25, -18, -19, -22, -21, -14, };
+int RookMobility[15] = {-30, -20, -10, 0, 10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80};
+int BishopMobility[14] = {-30, -10, 5, 15, 20, 25, 35, 40, 45, 50, 55, 60, 65, 70};
+int KnightMobility[8] = {-50, -25, -10, -2, 5, 10, 15, 25};
 
 //additional bonuses and penalties
-int PassedPawnBonus[8] = {0, -8, -8, 1, 25, 99, 125, 0, };
-int DoublePawnsPenalty = -28;
-int IsolatedPawnPenalty = -4;
-int RookOnOpenFileBonus = 20;
-int RookOnPartOpenFileBonus = 24;
-int KingDangerFactor = 602;
-int DoubleBishopsBonusMG = 42;
-int DoubleBishopsBonusEG = 30;
+int PassedPawnBonus[8] = {0, 0, 10, 20, 40, 80, 120, 0};
+int DoublePawnsPenalty = -15;
+int IsolatedPawnPenalty = -5;
+int RookOnOpenFileBonus = 10;
+int RookOnPartOpenFileBonus = 20;
+int KingDangerFactor = 600;
+int DoubleBishopsBonusMG = 30;
+int DoubleBishopsBonusEG = 20;
 
 int DoubleBishopsBonus() {
     return getScore2(DoubleBishopsBonusMG, DoubleBishopsBonusEG, stage);
@@ -57,9 +58,9 @@ int fullEval(Board *board) {
     //King safety
     eval += (kingEval(board, WHITE) - kingEval(board, BLACK));
 
-    int normalizedEval = round((double)eval / (double)PAWN_EV_MG * 100.);
+    // int normalizedEval = round((double)eval / (double)PAWN_EV_MG * 100.);
 
-    return (board->color == WHITE ? normalizedEval : -normalizedEval);
+    return (board->color == WHITE ? eval : -eval);
 }
 
 
@@ -78,6 +79,7 @@ int materialEval(Board* board) {
     int bqCount = popcount(board->pieces[QUEEN] & board->colours[BLACK]);
 
     eval += PAWN_EVAL[stage] * (wpCount - bpCount);
+
     eval += KNIGHT_EVAL[stage] * (wnCount - bnCount);
     eval += BISHOP_EVAL[stage] * (wbCount - bbCount);
     eval += ROOK_EVAL[stage] * (wrCount - brCount);
@@ -324,6 +326,42 @@ void initDependencyEval() {
     for (int i = 0; i < 100; i++) {
         KingDanger[i] = kingDanger(i);
     }
+
+    //Isolated pawn hash init
+    for (int i = 0; i < 256; ++i) {
+        IsolatedPawnsHash[i] = 0;
+        for (int f = 0; f < 8; ++f) {
+            int leftEmpty = 1, rightEmpty = 1;
+
+            if (f < 7)
+                rightEmpty = !getBit8(i, f + 1);
+            if (f > 0)
+                leftEmpty = !getBit8(i, f - 1);
+
+            IsolatedPawnsHash[i] += IsolatedPawnPenalty * (leftEmpty && rightEmpty && getBit(i, f));
+        }
+    }
+}
+
+void initStagedPSQT(int st) {
+    for (int sq = 0; sq < 64; sq++) {
+        PST[st][PAWN][sq] = getScore2(pawnPST[sq], egPawnPST[sq], st);
+        PST[st][KNIGHT][sq] = getScore2(knightPST[sq], egKnightPST[sq], st);
+        PST[st][BISHOP][sq] = getScore2(bishopPST[sq], egBishopPST[sq], st);
+        PST[st][ROOK][sq] = getScore2(rookPST[sq], egRookPST[sq], st);
+        PST[st][QUEEN][sq] = getScore2(queenPST[sq], egQueenPST[sq], st);
+        PST[st][KING][sq] = getScore2(kingPST[sq], egKingPST[sq], st);
+    }
+}
+
+void initDependencyStagedEval(int st) {
+    initStagedPSQT(st);
+
+    PAWN_EVAL[stage] = getScore2(PAWN_EV_MG, PAWN_EV_EG, st);
+    KNIGHT_EVAL[stage] = getScore2(KNIGHT_EV_MG, KNIGHT_EV_EG, st);
+    BISHOP_EVAL[stage] = getScore2(BISHOP_EV_MG, BISHOP_EV_EG, st);
+    ROOK_EVAL[stage] = getScore2(ROOK_EV_MG, ROOK_EV_EG, st);
+    QUEEN_EVAL[stage] = getScore2(QUEEN_EV_MG, QUEEN_EV_EG, st);
 
     //Isolated pawn hash init
     for (int i = 0; i < 256; ++i) {

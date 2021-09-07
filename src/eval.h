@@ -87,5 +87,7 @@ int psqtEval(Board* board);
 int kingDanger(int attacksCount);
 
 void initDependencyEval();
+void initStagedPSQT(int st);
+void initDependencyStagedEval(int st);
 
 #endif
