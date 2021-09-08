@@ -31,7 +31,7 @@ void makeTuning(Board *board) {
         int improved = 0;
         int iterations = 0;
         for (int i = 1; i < PARAMS_COUNT; i++) {
-            incParam(evalParams, i);
+            incParam(evalParams, i, 1);
 
             double newE = fun(board);
 
@@ -43,24 +43,24 @@ void makeTuning(Board *board) {
                 iterations++;
                 // printf("NewE: %.7f; index: %d; value: %d\n", E, i, evalParams[i]);
             } else {
-                decParam(evalParams, i);
-                decParam(evalParams, i);
+                incParam(evalParams, i, -2);
 
                 newE = fun(board);
 
                 if (newE < E) {
-                    decParam(evalParams, i);
+                    incParam(evalParams, i, -1);
                     improved = 1;
                     E = newE;
                     printParams();
                     iterations++;
                     // printf("NewE: %.7f; index: %d; value: %d\n", E, i, evalParams[i]);
                 } else {
-                    incParam(evalParams, i);
+                    incParam(evalParams, i, 1);
                 }
             }
         }
 
+        printf("NewE: %.7f\n", E);
         printf("Iterations: %d/%d\n", iterations, PARAMS_COUNT);
 
         if (!improved) {
@@ -146,7 +146,7 @@ void loadPositions(Board *board) {
     linearEvals = malloc(sizeof(double ) * N);
 
     while (1) {
-        if (positionsCount > 1000) {
+        if (positionsCount > 10000) {
             break;
         }
 
@@ -405,17 +405,10 @@ void changeParam(int n, int value) {
     free(params);
 }
 
-void incParam(int* arr, int n) {
+void incParam(int* arr, int n, int value) {
     (*(arr + n))++;
     for (int i = 0; i < positionsCount; i++) {
-        linearEvals[i] += linearEvalPositions[i][n];
-    }
-}
-
-void decParam(int* arr, int n) {
-    (*(arr + n))--;
-    for (int i = 0; i < positionsCount; i++) {
-        linearEvals[i] -= linearEvalPositions[i][n];
+        linearEvals[i] += linearEvalPositions[i][n] * value;
     }
 }
 

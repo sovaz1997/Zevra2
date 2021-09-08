@@ -16,5 +16,4 @@ int* transfer(int* from, int* to, int* curIndex, int length);
 void loadPositions(Board* board);
 char** str_split(char* a_str, const char a_delim);
 int* calculateLinear(Board* board, int positionNumber);
-void incParam(int* arr, int n);
-void decParam(int* arr, int n);
+void incParam(int* arr, int n, int value);
