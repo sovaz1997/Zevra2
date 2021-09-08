@@ -29,66 +29,46 @@ struct LinearEvalParam {
 
 LinearEvalPosition* linearEvalPositions;
 double* linearEvals;
+int* evalParams;
 
 void makeTuning(Board *board) {
     loadPositions(board);
 
-    int *curValues = getValues();
-
-    const int changeFactor = 1;
+    evalParams = getValues();
 
     double E = fun(board);
 
-//    for (double i = 0.916; i < 0.917; i += 0.0002) {
-//        K = i;
-//        printf("%.7f: %.10f\n", i, fun(board));
-//    }
-
-    while (1) {
+    while(1) {
         int improved = 0;
         int iterations = 0;
         for (int i = 1; i < PARAMS_COUNT; i++) {
-            int tmpParam = curValues[i];
-            changeParam(i, curValues[i] + changeFactor);
+            incParam(evalParams, i);
 
             double newE = fun(board);
 
-            printf("%d %.7f %.7f\n", i, E, newE);
-
+            printf("NewE: %.7f; E: %.7f, index: %d; value: %d\n", newE, E, i, evalParams[i]);
+            // printf("NewE: %.7f; index: %d; value: %d\n", E, i, evalParams[i]);
             if (newE < E) {
-                while (newE < E) {
-                    improved = 1;
-                    curValues[i] += changeFactor;
-                    E = newE;
-                    printParams();
-                    iterations++;
-                    printf("NewE: %.7f; index: %d; value: %d\n", E, i, curValues[i]);
-                    changeParam(i, curValues[i] + changeFactor);
-                    newE = fun(board);
-                }
-                changeParam(i, curValues[i] - changeFactor);
-                curValues[i] -= changeFactor;
+                improved = 1;
+                E = newE;
+                printParams();
+                iterations++;
+                printf("NewE: %.7f; index: %d; value: %d\n", E, i, evalParams[i]);
             } else {
-                changeParam(i, curValues[i] - changeFactor);
+                decParam(evalParams, i);
+                decParam(evalParams, i);
 
                 newE = fun(board);
 
                 if (newE < E) {
-                    while (newE < E) {
-                        improved = 1;
-                        curValues[i] -= changeFactor;
-                        E = newE;
-                        printParams();
-                        iterations++;
-                        printf("NewE: %.7f; index: %d; value: %d\n", E, i, curValues[i]);
-                        changeParam(i, curValues[i] - changeFactor);
-                        newE = fun(board);
-                    }
-                    changeParam(i, curValues[i] + changeFactor);
-                    curValues[i] += changeFactor;
+                    decParam(evalParams, i);
+                    improved = 1;
+                    E = newE;
+                    printParams();
+                    iterations++;
+                    printf("NewE: %.7f; index: %d; value: %d\n", E, i, evalParams[i]);
                 } else {
-                    changeParam(i, tmpParam);
-                    curValues[i] = tmpParam;
+                    incParam(evalParams, i);
                 }
             }
         }
@@ -100,8 +80,65 @@ void makeTuning(Board *board) {
         }
     }
 
+
+//    while (1) {
+//        int improved = 0;
+//        int iterations = 0;
+//        for (int i = 1; i < PARAMS_COUNT; i++) {
+//            int tmpParam = curValues[i];
+//            changeParam(i, curValues[i] + changeFactor);
+//
+//            double newE = fun(board);
+//
+//            printf("%d %.7f %.7f\n", i, E, newE);
+//
+//            if (newE < E) {
+//                while (newE < E) {
+//                    improved = 1;
+//                    curValues[i] += changeFactor;
+//                    E = newE;
+//                    printParams();
+//                    iterations++;
+//                    printf("NewE: %.7f; index: %d; value: %d\n", E, i, curValues[i]);
+//                    changeParam(i, curValues[i] + changeFactor);
+//                    newE = fun(board);
+//                }
+//                changeParam(i, curValues[i] - changeFactor);
+//                curValues[i] -= changeFactor;
+//            } else {
+//                changeParam(i, curValues[i] - changeFactor);
+//
+//                newE = fun(board);
+//
+//                if (newE < E) {
+//                    while (newE < E) {
+//                        improved = 1;
+//                        curValues[i] -= changeFactor;
+//                        E = newE;
+//                        printParams();
+//                        iterations++;
+//                        printf("NewE: %.7f; index: %d; value: %d\n", E, i, curValues[i]);
+//                        changeParam(i, curValues[i] - changeFactor);
+//                        newE = fun(board);
+//                    }
+//                    changeParam(i, curValues[i] + changeFactor);
+//                    curValues[i] += changeFactor;
+//                } else {
+//                    changeParam(i, tmpParam);
+//                    curValues[i] = tmpParam;
+//                }
+//            }
+//        }
+
+//        printf("Iterations: %d/%d\n", iterations, PARAMS_COUNT);
+//
+//        if (!improved) {
+//            break;
+//        }
+//    }
+
     for (int i = 0; i < PARAMS_COUNT; i++) {
-        printf("%d ", curValues[i]);
+        printf("%d ", evalParams[i]);
     }
 }
 
@@ -126,6 +163,10 @@ void loadPositions(Board *board) {
     linearEvals = malloc(sizeof(double ) * N);
 
     while (1) {
+        if (positionsCount > 1000) {
+            break;
+        }
+
         estr = fgets(buf, sizeof(buf), f);
 
         if (!estr) {
@@ -217,7 +258,7 @@ char **str_split(char *a_str, const char a_delim) {
     return result;
 }
 
-double r(int eval) {
+double r(double eval) {
     return 1. / (1. + pow(10, -K * eval / 400.));
 }
 
@@ -227,7 +268,7 @@ double fun(Board *board) {
     resetSearchInfo(&searchInfo, tm);
 
     int posCount = 0;
-    // const double fadingFactor = 40;
+    const double fadingFactor = 40;
 
     double errorSums = 0;
 
@@ -239,17 +280,18 @@ double fun(Board *board) {
         int movesToEnd = positions[i].movesToEnd;
         double result = positions[i].result;
 
-        // double fading = exp(-movesToEnd / fadingFactor);
+        double fading = exp(-movesToEnd / fadingFactor);
 
         setFen(board, fen);
 
-        int eval = fullEval(board);
+        // int eval = getLinearEval(i);// fullEval(board);
+        double eval = linearEvals[i];
 
-        if (board->color == BLACK) {
+        /*if (board->color == BLACK) {
             eval = -eval;
-        }
+        }*/
 
-        double error = pow(r(eval) - result, 2); // * fading;
+        double error = pow(r(eval) - result, 2) * fading;
         errorSums += error;
 
         ++posCount;
@@ -378,7 +420,7 @@ void changeParam(int n, int value) {
     free(params);
 }
 
-void incParam(int* arr, int n, int value) {
+void incParam(int* arr, int n) {
     (*(arr + n))++;
     for (int i = 0; i < positionsCount; i++) {
         for (int j = 0; j < linearEvalPositions[i].paramsCount; j++) {
@@ -390,7 +432,7 @@ void incParam(int* arr, int n, int value) {
     }
 }
 
-void decParam(int* arr, int n, int value) {
+void decParam(int* arr, int n) {
     (*(arr + n))--;
     for (int i = 0; i < positionsCount; i++) {
         for (int j = 0; j < linearEvalPositions[i].paramsCount; j++) {
@@ -403,7 +445,7 @@ void decParam(int* arr, int n, int value) {
 }
 
 void printParams() {
-    int *params = getValues();
+    int *params = evalParams; //getValues();
 
     int curIndex = 0;
 
