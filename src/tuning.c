@@ -16,9 +16,9 @@ struct TuningPosition {
     double result;
 };
 
-double** linearEvalPositions;
-double* linearEvals;
-int* evalParams;
+double **linearEvalPositions;
+double *linearEvals;
+int *evalParams;
 
 void makeTuning(Board *board) {
     loadPositions(board);
@@ -27,99 +27,94 @@ void makeTuning(Board *board) {
 
     double E = fun(board);
 
-    while(1) {
-        int improved = 0;
-        int iterations = 0;
-        for (int i = 1; i < PARAMS_COUNT; i++) {
-            int before = evalParams[i];
-            incParam(evalParams, i, 1);
-
-            double newE = fun(board);
-
-            // printf("NewE: %.7f; index: %d; value: %d\n", E, i, evalParams[i]);
-            if (newE < E) {
-                improved = 1;
-                E = newE;
-                printParams();
-                iterations++;
-                // printf("NewE: %.7f; index: %d; value: %d\n", E, i, evalParams[i]);
-            } else {
-                incParam(evalParams, i, -2);
-
-                newE = fun(board);
-
-                if (newE < E) {
-                    // incParam(evalParams, i, -1);
-                    improved = 1;
-                    E = newE;
-                    printParams();
-                    iterations++;
-                    // printf("NewE: %.7f; index: %d; value: %d\n", E, i, evalParams[i]);
-                } else {
-                    evalParams[i] = before;
-                }
-            }
-        }
-
-        printf("NewE: %.7f\n", E);
-        printf("Iterations: %d/%d\n", iterations, PARAMS_COUNT);
-
-        if (!improved) {
-            break;
-        }
-    }
-
-
-//    while (1) {
+//    while(1) {
 //        int improved = 0;
 //        int iterations = 0;
 //        for (int i = 1; i < PARAMS_COUNT; i++) {
-//            incParam(evalParams, i);
+//            incParam(evalParams, i, 1);
 //
 //            double newE = fun(board);
 //
-//            printf("%d %.7f %.7f\n", i, E, newE);
-//
+//            // printf("NewE: %.7f; index: %d; value: %d\n", E, i, evalParams[i]);
 //            if (newE < E) {
-//                while (newE < E) {
+//                improved = 1;
+//                E = newE;
+//                printParams();
+//                iterations++;
+//                // printf("NewE: %.7f; index: %d; value: %d\n", E, i, evalParams[i]);
+//            } else {
+//                incParam(evalParams, i, -2);
+//
+//                newE = fun(board);
+//
+//                if (newE < E) {
+//                    // incParam(evalParams, i, -1);
 //                    improved = 1;
 //                    E = newE;
 //                    printParams();
 //                    iterations++;
 //                    // printf("NewE: %.7f; index: %d; value: %d\n", E, i, evalParams[i]);
-//                    incParam(evalParams, i);
-//                    newE = fun(board);
-//                }
-//                decParam(evalParams, i);
-//            } else {
-//                decParam(evalParams, i);
-//                decParam(evalParams, i);
-//
-//                newE = fun(board);
-//
-//                if (newE < E) {
-//                    while (newE < E) {
-//                        improved = 1;
-//                        E = newE;
-//                        printParams();
-//                        iterations++;
-//                        // printf("NewE: %.7f; index: %d; value: %d\n", E, i, evalParams[i]);
-//                        decParam(evalParams, i);
-//                        newE = fun(board);
-//                    }
-//                    incParam(evalParams, i);
 //                } else {
-//                    incParam(evalParams, i);
+//                    incParam(evalParams, i, 1);
 //                }
 //            }
 //        }
 //
+//        printf("NewE: %.7f\n", E);
 //        printf("Iterations: %d/%d\n", iterations, PARAMS_COUNT);
 //
 //        if (!improved) {
 //            break;
 //        }
 //    }
+
+
+    while (1) {
+        int improved = 0;
+        int iterations = 0;
+        for (int i = 1; i < PARAMS_COUNT; i++) {
+            incParam(evalParams, i, 1);
+
+            double newE = fun(board);
+
+            printf("%d %.7f %.7f\n", i, E, newE);
+
+            if (newE < E) {
+                while (newE < E) {
+                    improved = 1;
+                    E = newE;
+                    printParams();
+                    iterations++;
+                    // printf("NewE: %.7f; index: %d; value: %d\n", E, i, evalParams[i]);
+                    incParam(evalParams, i, 1);
+                    newE = fun(board);
+                }
+                incParam(evalParams, i, -1);
+            } else {
+                incParam(evalParams, i, -2);
+
+                newE = fun(board);
+
+
+                while (newE < E) {
+                    improved = 1;
+                    E = newE;
+                    printParams();
+                    iterations++;
+                    // printf("NewE: %.7f; index: %d; value: %d\n", E, i, evalParams[i]);
+                    incParam(evalParams, i, -1);
+                    newE = fun(board);
+                }
+                incParam(evalParams, i, 1);
+            }
+        }
+
+        printf("Iterations: %d/%d\n", iterations, PARAMS_COUNT);
+
+        if (!improved) {
+            break;
+        }
+    }
 
     for (int i = 0; i < PARAMS_COUNT; i++) {
         printf("%d ", evalParams[i]);
@@ -143,8 +138,8 @@ void loadPositions(Board *board) {
 
     int N = 120000000;
     positions = malloc(sizeof(TuningPosition) * N);
-    linearEvalPositions = malloc(sizeof(double*) * N);
-    linearEvals = malloc(sizeof(double ) * N);
+    linearEvalPositions = malloc(sizeof(double *) * N);
+    linearEvals = malloc(sizeof(double) * N);
 
     while (1) {
         estr = fgets(buf, sizeof(buf), f);
@@ -402,8 +397,8 @@ void changeParam(int n, int value) {
     free(params);
 }
 
-void incParam(int* arr, int n, int value) {
-    (*(arr + n))++;
+void incParam(int *arr, int n, int value) {
+    (*(arr + n)) += value;
     for (int i = 0; i < positionsCount; i++) {
         linearEvals[i] += linearEvalPositions[i][n] * value;
     }
@@ -472,7 +467,7 @@ void printParams() {
  * @return
  */
 int *calculateLinear(Board *board, int positionNumber) {
-    int* prevValues = getValues();
+    int *prevValues = getValues();
 
     linearEvalPositions[positionNumber] = malloc(sizeof(double) * PARAMS_COUNT);
 
@@ -512,7 +507,7 @@ int *calculateLinear(Board *board, int positionNumber) {
 
 double getLinearEval(int positionNumber) {
     double eval = 0;
-    int* evalSettings = getValues();
+    int *evalSettings = getValues();
     for (int i = 0; i < PARAMS_COUNT; i++) {
         eval += linearEvalPositions[positionNumber][i] * evalSettings[i];
     }
