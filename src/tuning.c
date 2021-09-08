@@ -31,6 +31,7 @@ void makeTuning(Board *board) {
         int improved = 0;
         int iterations = 0;
         for (int i = 1; i < PARAMS_COUNT; i++) {
+            int before = evalParams[i];
             incParam(evalParams, i, 1);
 
             double newE = fun(board);
@@ -48,14 +49,14 @@ void makeTuning(Board *board) {
                 newE = fun(board);
 
                 if (newE < E) {
-                    incParam(evalParams, i, -1);
+                    // incParam(evalParams, i, -1);
                     improved = 1;
                     E = newE;
                     printParams();
                     iterations++;
                     // printf("NewE: %.7f; index: %d; value: %d\n", E, i, evalParams[i]);
                 } else {
-                    incParam(evalParams, i, 1);
+                    evalParams[i] = before;
                 }
             }
         }
@@ -129,7 +130,7 @@ int positionsCount = 0;
 TuningPosition *positions;
 
 void loadPositions(Board *board) {
-    FILE *f = fopen("all-test-positions.txt", "r");
+    FILE *f = fopen("10000.txt", "r");
 
     SearchInfo searchInfo;
     TimeManager tm = createFixDepthTm(MAX_PLY - 1);
@@ -146,10 +147,6 @@ void loadPositions(Board *board) {
     linearEvals = malloc(sizeof(double ) * N);
 
     while (1) {
-        if (positionsCount > 10000) {
-            break;
-        }
-
         estr = fgets(buf, sizeof(buf), f);
 
         if (!estr) {
