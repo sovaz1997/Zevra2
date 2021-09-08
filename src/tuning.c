@@ -73,8 +73,7 @@ void makeTuning(Board *board) {
 //        int improved = 0;
 //        int iterations = 0;
 //        for (int i = 1; i < PARAMS_COUNT; i++) {
-//            int tmpParam = curValues[i];
-//            changeParam(i, curValues[i] + changeFactor);
+//            incParam(evalParams, i);
 //
 //            double newE = fun(board);
 //
@@ -83,41 +82,37 @@ void makeTuning(Board *board) {
 //            if (newE < E) {
 //                while (newE < E) {
 //                    improved = 1;
-//                    curValues[i] += changeFactor;
 //                    E = newE;
 //                    printParams();
 //                    iterations++;
-//                    printf("NewE: %.7f; index: %d; value: %d\n", E, i, curValues[i]);
-//                    changeParam(i, curValues[i] + changeFactor);
+//                    // printf("NewE: %.7f; index: %d; value: %d\n", E, i, evalParams[i]);
+//                    incParam(evalParams, i);
 //                    newE = fun(board);
 //                }
-//                changeParam(i, curValues[i] - changeFactor);
-//                curValues[i] -= changeFactor;
+//                decParam(evalParams, i);
 //            } else {
-//                changeParam(i, curValues[i] - changeFactor);
+//                decParam(evalParams, i);
+//                decParam(evalParams, i);
 //
 //                newE = fun(board);
 //
 //                if (newE < E) {
 //                    while (newE < E) {
 //                        improved = 1;
-//                        curValues[i] -= changeFactor;
 //                        E = newE;
 //                        printParams();
 //                        iterations++;
-//                        printf("NewE: %.7f; index: %d; value: %d\n", E, i, curValues[i]);
-//                        changeParam(i, curValues[i] - changeFactor);
+//                        // printf("NewE: %.7f; index: %d; value: %d\n", E, i, evalParams[i]);
+//                        decParam(evalParams, i);
 //                        newE = fun(board);
 //                    }
-//                    changeParam(i, curValues[i] + changeFactor);
-//                    curValues[i] += changeFactor;
+//                    incParam(evalParams, i);
 //                } else {
-//                    changeParam(i, tmpParam);
-//                    curValues[i] = tmpParam;
+//                    incParam(evalParams, i);
 //                }
 //            }
 //        }
-
+//
 //        printf("Iterations: %d/%d\n", iterations, PARAMS_COUNT);
 //
 //        if (!improved) {
