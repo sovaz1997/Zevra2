@@ -56,7 +56,7 @@ int fullEval(Board *board) {
     eval += (rooksEval(board, WHITE) - rooksEval(board, BLACK));
 
     //King safety
-    eval += (kingEval(board, WHITE) - kingEval(board, BLACK));
+    // eval += (kingEval(board, WHITE) - kingEval(board, BLACK));
 
     // int normalizedEval = round((double)eval / (double)PAWN_EV_MG * 100.);
 
@@ -133,7 +133,7 @@ int psqtPieceEval(Board *board, U64 mask, int pieceType) {
 int kingDanger(int attacksCount) {
     double normalized = (attacksCount / 100. * 10.) - 5;
 
-    return KingDangerFactor * (1. / (1. + exp(-normalized))) - 4;
+    return KingDangerFactor * (1. / (1. + exp(-normalized)));
 }
 
 int mobilityAndKingDangerEval(Board *board, int color) {

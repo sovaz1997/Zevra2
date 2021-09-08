@@ -14,8 +14,20 @@ struct TuningPosition {
     char fen[512];
     int movesToEnd;
     double result;
-
 };
+
+
+struct LinearEvalPosition {
+    int paramsCount;
+    LinearEvalParam* params;
+};
+
+struct LinearEvalParam {
+    int number;
+    double k;
+};
+
+LinearEvalPosition* linearEvalPositions;
 
 void makeTuning(Board *board) {
     loadPositions(board);
@@ -107,7 +119,10 @@ void loadPositions(Board *board) {
 
     int quiets = 0;
 
-    positions = malloc(sizeof(TuningPosition) * 120000000);
+    int N = 120000000;
+    positions = malloc(sizeof(TuningPosition) * N);
+    linearEvalPositions = malloc(sizeof(LinearEvalPosition) * N);
+
     while (1) {
         estr = fgets(buf, sizeof(buf), f);
 
@@ -130,7 +145,8 @@ void loadPositions(Board *board) {
         if (abs(eval - qEval) < 50 && popcount(board->colours[WHITE] | board->colours[BLACK]) > 7) {
             ++positionsCount;
 
-            calculateLinear(board);
+            calculateLinear(board, positionsCount - 1);
+            printf("%f\n", getLinearEval(positionsCount - 1));
 
             if (positionsCount % 100 == 0) {
                 printf("%d\n", positionsCount);
@@ -421,8 +437,13 @@ void printParams() {
  * @param b
  * @return
  */
-int *calculateLinear(Board *board) {
+int *calculateLinear(Board *board, int positionNumber) {
+    int* prevValues = getValues();
+
     setFen(board, "4k3/8/8/8/8/8/8/qq2K3 w - - 0 1");
+    printf("!%d\n!", fullEval(board));
+
+    linearEvalPositions[positionNumber].params = malloc(sizeof(LinearEvalParam) * PARAMS_COUNT);
 
     double *linearEval = malloc(PARAMS_COUNT * sizeof(double));
     int *values = malloc(PARAMS_COUNT * sizeof(int));
@@ -431,27 +452,62 @@ int *calculateLinear(Board *board) {
     int stage = stageGame(board);
     setValues(values, stage);
 
-    double up = 1000000;
+    double up = 10000;
     int a = fullEval(board);
+
+    int evalParamsCount = 0;
     for (int i = 0; i < PARAMS_COUNT; i++) {
         values[i] = up;
         setValues(values, stage);
 
-        int* test = getValues();
-
         int b = fullEval(board);
-
-        values[i] = 0;
 
         linearEval[i] = (b - a) / up;
 
+        values[i] = 2 * up;
+        setValues(values, stage);
+        int c = fullEval(board);
+        values[i] = 0;
+
+        if (c - b != b - a) {
+            printf("%d - %d!!!\n", c - b, b - a);
+        }
+
         if (b - a != 0) {
+            linearEvalPositions[positionNumber].params[evalParamsCount].number = i;
+            linearEvalPositions[positionNumber].params[evalParamsCount].k = linearEval[i];
+            evalParamsCount++;
             printf("%d: %f ", i, linearEval[i]);
         }
     }
-    printf("\n");
+    linearEvalPositions[positionNumber].params = realloc(
+            linearEvalPositions[positionNumber].params,
+            sizeof(LinearEvalParam) * evalParamsCount
+    );
+
+    linearEvalPositions[positionNumber].paramsCount = evalParamsCount;
+
+    // printf("\n");
 
     free(values);
+
+    setValues(prevValues, stage);
+    free(prevValues);
+}
+
+double getLinearEval(int positionNumber) {
+    double eval = 0;
+    int* evalSettings = getValues();
+    printf("\n");
+    for (int i = 0; i < linearEvalPositions[positionNumber].paramsCount; i++) {
+        double k = linearEvalPositions[positionNumber].params[i].k;
+        int evalParamIndex = linearEvalPositions[positionNumber].params[i].number;
+        eval += evalSettings[evalParamIndex] * k;
+        printf("%f ", evalSettings[evalParamIndex] * k);
+    }
+    printf("\n");
+    free(evalSettings);
+    return eval;
 }
 
 void printPST(char *name, int *pst, int *curIndex, FILE *f) {
