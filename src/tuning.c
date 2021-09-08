@@ -269,9 +269,9 @@ double fun(Board *board) {
         // int eval = getLinearEval(i);// fullEval(board);
         double eval = linearEvals[i];
 
-        /*if (board->color == BLACK) {
+        if (board->color == BLACK) {
             eval = -eval;
-        }*/
+        }
 
         double error = pow(r(eval) - result, 2) * fading;
         errorSums += error;
