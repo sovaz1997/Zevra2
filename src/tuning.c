@@ -27,49 +27,7 @@ void makeTuning(Board *board) {
 
     double E = fun(board);
 
-//    while(1) {
-//        int improved = 0;
-//        int iterations = 0;
-//        for (int i = 1; i < PARAMS_COUNT; i++) {
-//            incParam(evalParams, i, 1);
-//
-//            double newE = fun(board);
-//
-//            // printf("NewE: %.7f; index: %d; value: %d\n", E, i, evalParams[i]);
-//            if (newE < E) {
-//                improved = 1;
-//                E = newE;
-//                printParams();
-//                iterations++;
-//                // printf("NewE: %.7f; index: %d; value: %d\n", E, i, evalParams[i]);
-//            } else {
-//                incParam(evalParams, i, -2);
-//
-//                newE = fun(board);
-//
-//                if (newE < E) {
-//                    // incParam(evalParams, i, -1);
-//                    improved = 1;
-//                    E = newE;
-//                    printParams();
-//                    iterations++;
-//                    // printf("NewE: %.7f; index: %d; value: %d\n", E, i, evalParams[i]);
-//                } else {
-//                    incParam(evalParams, i, 1);
-//                }
-//            }
-//        }
-//
-//        printf("NewE: %.7f\n", E);
-//        printf("Iterations: %d/%d\n", iterations, PARAMS_COUNT);
-//
-//        if (!improved) {
-//            break;
-//        }
-//    }
-
-
-    while (1) {
+    while(1) {
         int improved = 0;
         int iterations = 0;
         for (int i = 1; i < PARAMS_COUNT; i++) {
@@ -77,44 +35,86 @@ void makeTuning(Board *board) {
 
             double newE = fun(board);
 
-            printf("%d %.7f %.7f\n", i, E, newE);
-
+            // printf("NewE: %.7f; index: %d; value: %d\n", E, i, evalParams[i]);
             if (newE < E) {
-                while (newE < E) {
-                    improved = 1;
-                    E = newE;
-                    printParams();
-                    iterations++;
-                    // printf("NewE: %.7f; index: %d; value: %d\n", E, i, evalParams[i]);
-                    incParam(evalParams, i, 1);
-                    newE = fun(board);
-                }
-                incParam(evalParams, i, -1);
+                improved = 1;
+                E = newE;
+                printParams();
+                iterations++;
+                // printf("NewE: %.7f; index: %d; value: %d\n", E, i, evalParams[i]);
             } else {
                 incParam(evalParams, i, -2);
 
                 newE = fun(board);
 
-
-                while (newE < E) {
+                if (newE < E) {
+                    // incParam(evalParams, i, -1);
                     improved = 1;
                     E = newE;
                     printParams();
                     iterations++;
                     // printf("NewE: %.7f; index: %d; value: %d\n", E, i, evalParams[i]);
-                    incParam(evalParams, i, -1);
-                    newE = fun(board);
+                } else {
+                    incParam(evalParams, i, 1);
                 }
-                incParam(evalParams, i, 1);
             }
         }
 
+        printf("NewE: %.7f\n", E);
         printf("Iterations: %d/%d\n", iterations, PARAMS_COUNT);
 
         if (!improved) {
             break;
         }
     }
+
+
+//    while (1) {
+//        int improved = 0;
+//        int iterations = 0;
+//        for (int i = 1; i < PARAMS_COUNT; i++) {
+//            incParam(evalParams, i, 1);
+//
+//            double newE = fun(board);
+//
+//            printf("%d %.7f %.7f\n", i, E, newE);
+//
+//            if (newE < E) {
+//                while (newE < E) {
+//                    improved = 1;
+//                    E = newE;
+//                    printParams();
+//                    iterations++;
+//                    // printf("NewE: %.7f; index: %d; value: %d\n", E, i, evalParams[i]);
+//                    incParam(evalParams, i, 1);
+//                    newE = fun(board);
+//                }
+//                incParam(evalParams, i, -1);
+//            } else {
+//                incParam(evalParams, i, -2);
+//
+//                newE = fun(board);
+//
+//
+//                while (newE < E) {
+//                    improved = 1;
+//                    E = newE;
+//                    printParams();
+//                    iterations++;
+//                    // printf("NewE: %.7f; index: %d; value: %d\n", E, i, evalParams[i]);
+//                    incParam(evalParams, i, -1);
+//                    newE = fun(board);
+//                }
+//                incParam(evalParams, i, 1);
+//            }
+//        }
+//
+//        printf("Iterations: %d/%d\n", iterations, PARAMS_COUNT);
+//
+//        if (!improved) {
+//            break;
+//        }
+//    }
 
     for (int i = 0; i < PARAMS_COUNT; i++) {
         printf("%d ", evalParams[i]);
