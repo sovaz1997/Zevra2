@@ -1,8 +1,6 @@
 #include "board.h"
 
 typedef struct TuningPosition TuningPosition;
-typedef struct LinearEvalPosition LinearEvalPosition;
-typedef struct LinearEvalParam LinearEvalParam;
 
 double fun(Board* board);
 void makeTuning(Board* board);

@@ -16,18 +16,7 @@ struct TuningPosition {
     double result;
 };
 
-
-struct LinearEvalPosition {
-    int paramsCount;
-    LinearEvalParam* params;
-};
-
-struct LinearEvalParam {
-    int number;
-    double k;
-};
-
-LinearEvalPosition* linearEvalPositions;
+double** linearEvalPositions;
 double* linearEvals;
 int* evalParams;
 
@@ -46,14 +35,13 @@ void makeTuning(Board *board) {
 
             double newE = fun(board);
 
-            printf("NewE: %.7f; E: %.7f, index: %d; value: %d\n", newE, E, i, evalParams[i]);
             // printf("NewE: %.7f; index: %d; value: %d\n", E, i, evalParams[i]);
             if (newE < E) {
                 improved = 1;
                 E = newE;
                 printParams();
                 iterations++;
-                printf("NewE: %.7f; index: %d; value: %d\n", E, i, evalParams[i]);
+                // printf("NewE: %.7f; index: %d; value: %d\n", E, i, evalParams[i]);
             } else {
                 decParam(evalParams, i);
                 decParam(evalParams, i);
@@ -66,7 +54,7 @@ void makeTuning(Board *board) {
                     E = newE;
                     printParams();
                     iterations++;
-                    printf("NewE: %.7f; index: %d; value: %d\n", E, i, evalParams[i]);
+                    // printf("NewE: %.7f; index: %d; value: %d\n", E, i, evalParams[i]);
                 } else {
                     incParam(evalParams, i);
                 }
@@ -159,7 +147,7 @@ void loadPositions(Board *board) {
 
     int N = 120000000;
     positions = malloc(sizeof(TuningPosition) * N);
-    linearEvalPositions = malloc(sizeof(LinearEvalPosition) * N);
+    linearEvalPositions = malloc(sizeof(double*) * N);
     linearEvals = malloc(sizeof(double ) * N);
 
     while (1) {
@@ -182,6 +170,7 @@ void loadPositions(Board *board) {
 
         setFen(board, fen);
         int eval = fullEval(board);
+
         int qEval = quiesceSearch(board, &searchInfo, -MATE_SCORE, MATE_SCORE, 0);
 
 
@@ -189,6 +178,7 @@ void loadPositions(Board *board) {
             ++positionsCount;
 
             calculateLinear(board, positionsCount - 1);
+            printf("%f - %d\n", getLinearEval(positionsCount - 1), eval);
 
             linearEvals[positionsCount - 1] = getLinearEval(positionsCount - 1);
 
@@ -423,24 +413,14 @@ void changeParam(int n, int value) {
 void incParam(int* arr, int n) {
     (*(arr + n))++;
     for (int i = 0; i < positionsCount; i++) {
-        for (int j = 0; j < linearEvalPositions[i].paramsCount; j++) {
-            if (n == linearEvalPositions[i].params[j].number) {
-                linearEvals[i] += linearEvalPositions[i].params[j].k;
-                break;
-            }
-        }
+        linearEvals[i] += linearEvalPositions[i][n];
     }
 }
 
 void decParam(int* arr, int n) {
     (*(arr + n))--;
     for (int i = 0; i < positionsCount; i++) {
-        for (int j = 0; j < linearEvalPositions[i].paramsCount; j++) {
-            if (n == linearEvalPositions[i].params[j].number) {
-                linearEvals[i] -= linearEvalPositions[i].params[j].k;
-                break;
-            }
-        }
+        linearEvals[i] -= linearEvalPositions[i][n];
     }
 }
 
@@ -509,7 +489,7 @@ void printParams() {
 int *calculateLinear(Board *board, int positionNumber) {
     int* prevValues = getValues();
 
-    linearEvalPositions[positionNumber].params = malloc(sizeof(LinearEvalParam) * PARAMS_COUNT);
+    linearEvalPositions[positionNumber] = malloc(sizeof(double) * PARAMS_COUNT);
 
     double *linearEval = malloc(PARAMS_COUNT * sizeof(double));
     int *values = malloc(PARAMS_COUNT * sizeof(int));
@@ -530,18 +510,14 @@ int *calculateLinear(Board *board, int positionNumber) {
         linearEval[i] = ev / up;
         values[i] = 0;
 
-        if (ev != 0) {
-            linearEvalPositions[positionNumber].params[evalParamsCount].number = i;
-            linearEvalPositions[positionNumber].params[evalParamsCount].k = linearEval[i];
-            evalParamsCount++;
-        }
+        linearEvalPositions[positionNumber][i] = linearEval[i];
+        evalParamsCount++;
     }
-    linearEvalPositions[positionNumber].params = realloc(
+    /*linearEvalPositions[positionNumber].params = realloc(
             linearEvalPositions[positionNumber].params,
             sizeof(LinearEvalParam) * evalParamsCount
-    );
+    );*/
 
-    linearEvalPositions[positionNumber].paramsCount = evalParamsCount;
 
     free(values);
 
@@ -552,10 +528,8 @@ int *calculateLinear(Board *board, int positionNumber) {
 double getLinearEval(int positionNumber) {
     double eval = 0;
     int* evalSettings = getValues();
-    for (int i = 0; i < linearEvalPositions[positionNumber].paramsCount; i++) {
-        double k = linearEvalPositions[positionNumber].params[i].k;
-        int evalParamIndex = linearEvalPositions[positionNumber].params[i].number;
-        eval += evalSettings[evalParamIndex] * k;
+    for (int i = 0; i < PARAMS_COUNT; i++) {
+        eval += linearEvalPositions[positionNumber][i] * evalSettings[i];
     }
     free(evalSettings);
     return eval;
