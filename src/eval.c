@@ -44,10 +44,6 @@ int fullEval(Board *board) {
 
     eval += psqtEval(board);
 
-    if (eval > 50000) {
-        printf("!!!\n");
-    }
-
     //Material Eval
     eval += materialEval(board);
 
@@ -61,8 +57,6 @@ int fullEval(Board *board) {
 
     //King safety
     // eval += (kingEval(board, WHITE) - kingEval(board, BLACK));
-
-    // int normalizedEval = round((double)eval / (double)PAWN_EV_MG * 100.);
 
     return (board->color == WHITE ? eval : -eval);
 }

@@ -39,7 +39,6 @@ void makeTuning(Board *board) {
             if (newE < E) {
                 improved = 1;
                 E = newE;
-                printParams();
                 iterations++;
                 // printf("NewE: %.7f; index: %d; value: %d\n", E, i, evalParams[i]);
             } else {
@@ -51,7 +50,6 @@ void makeTuning(Board *board) {
                     // incParam(evalParams, i, -1);
                     improved = 1;
                     E = newE;
-                    printParams();
                     iterations++;
                     // printf("NewE: %.7f; index: %d; value: %d\n", E, i, evalParams[i]);
                 } else {
@@ -59,6 +57,7 @@ void makeTuning(Board *board) {
                 }
             }
         }
+        printParams();
 
         printf("NewE: %.7f\n", E);
         printf("Iterations: %d/%d\n", iterations, PARAMS_COUNT);
@@ -125,7 +124,7 @@ int positionsCount = 0;
 TuningPosition *positions;
 
 void loadPositions(Board *board) {
-    FILE *f = fopen("10000.txt", "r");
+    FILE *f = fopen("100000.txt", "r");
 
     SearchInfo searchInfo;
     TimeManager tm = createFixDepthTm(MAX_PLY - 1);
@@ -165,7 +164,7 @@ void loadPositions(Board *board) {
             ++positionsCount;
 
             calculateLinear(board, positionsCount - 1);
-            printf("%f - %d\n", getLinearEval(positionsCount - 1), eval);
+            // printf("%f - %d\n", getLinearEval(positionsCount - 1), eval);
 
             linearEvals[positionsCount - 1] = getLinearEval(positionsCount - 1);
 
@@ -240,9 +239,9 @@ double r(double eval) {
 }
 
 double fun(Board *board) {
-    SearchInfo searchInfo;
-    TimeManager tm = createFixDepthTm(MAX_PLY - 1);
-    resetSearchInfo(&searchInfo, tm);
+    // SearchInfo searchInfo;
+    // TimeManager tm = createFixDepthTm(MAX_PLY - 1);
+    // resetSearchInfo(&searchInfo, tm);
 
     int posCount = 0;
     const double fadingFactor = 40;
@@ -251,15 +250,15 @@ double fun(Board *board) {
 
 
     for (int i = 0; i < positionsCount; i++) {
-        resetSearchInfo(&searchInfo, tm);
+        // resetSearchInfo(&searchInfo, tm);
 
-        char *fen = positions[i].fen;
+        /*char *fen = positions[i].fen;
         int movesToEnd = positions[i].movesToEnd;
         double result = positions[i].result;
 
         double fading = exp(-movesToEnd / fadingFactor);
 
-        setFen(board, fen);
+        setFen(board, fen);*/
 
         // int eval = getLinearEval(i);// fullEval(board);
         double eval = linearEvals[i];
@@ -268,7 +267,7 @@ double fun(Board *board) {
             eval = -eval;
         }
 
-        double error = pow(r(eval) - result, 2) * fading;
+        double error = pow(r(eval) - positions[i].result, 2); // * fading;
         errorSums += error;
 
         ++posCount;
