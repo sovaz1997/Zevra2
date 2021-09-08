@@ -44,6 +44,10 @@ int fullEval(Board *board) {
 
     eval += psqtEval(board);
 
+    if (eval > 50000) {
+        printf("!!!\n");
+    }
+
     //Material Eval
     eval += materialEval(board);
 
