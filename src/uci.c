@@ -172,6 +172,7 @@ int main() {
         free(str);
     }
 
+    destroyEval();
     free(board);
 }
 

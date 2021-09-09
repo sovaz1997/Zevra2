@@ -3,29 +3,35 @@
 #include <math.h>
 
 //Material
-int PAWN_EV = 100;
-int KNIGHT_EV = 322;
-int BISHOP_EV = 322;
-int ROOK_EV = 500;
-int QUEEN_EV = 923;
+int PAWN_EV_MG = 100;
+int KNIGHT_EV_MG = 311;
+int BISHOP_EV_MG = 264;
+int ROOK_EV_MG = 417;
+int QUEEN_EV_MG = 1005;
+
+int PAWN_EV_EG = 159;
+int KNIGHT_EV_EG = 405;
+int BISHOP_EV_EG = 427;
+int ROOK_EV_EG = 643;
+int QUEEN_EV_EG = 1133;
 
 //Mobility bonuses
 int QueenMobility[28] = {
-        -30, -20, -10, -52, -47, 34, -3, 18, 23, 24, 18, 29, 36, 39, 42, 47, 50, 42, 48, 49, 52, 46, 55, 52, 37, 76, 45, 42,
+        -28, -20, -10, -1, 35, 34, 64, 70, 75, 83, 88, 100, 104, 113, 116, 122, 124, 125, 141, 134, 148, 146, 155, 156, 158, 173, 174, 175,
 };
-int RookMobility[15] = {-402, -51, -57, -22, 0, 0, 8, 8, 13, 21, 25, 29, 35, 34, 35, };
-int BishopMobility[14] = {-13, -39, -23, -9, 2, 6, 15, 19, 21, 25, 27, 39, 21, 38,};
-int KnightMobility[8] = {-101, -46, -24, -18, -19, -22, -21, -14, };
+int RookMobility[15] = {-86, -48, -6, 0, 5, 13, 20, 26, 29, 37, 43, 45, 45, 44, 43, };
+int BishopMobility[14] = {-65, -55, -15, 2, 16, 26, 34, 42, 49, 56, 59, 61, 57, 69, };
+int KnightMobility[8] = {-153, -72, -46, -24, -7, 4, 13, 23, };
 
 //additional bonuses and penalties
-int PassedPawnBonus[8] = {0, 0, -5, 5, 36, 92, 163, 0, };
-int DoublePawnsPenalty = -30;
-int IsolatedPawnPenalty = -4;
-int RookOnOpenFileBonus = 20;
-int RookOnPartOpenFileBonus = 24;
-int KingDangerFactor = 602;
-int DoubleBishopsBonusMG = 38;
-int DoubleBishopsBonusEG = 30;
+int PassedPawnBonus[8] = {0, -11, -10, 4, 35, 88, 127, 0, };
+int DoublePawnsPenalty = -33;
+int IsolatedPawnPenalty = -8;
+int RookOnOpenFileBonus = 30;
+int RookOnPartOpenFileBonus = 26;
+int KingDangerFactor = 733;
+int DoubleBishopsBonusMG = 32;
+int DoubleBishopsBonusEG = 78;
 
 int DoubleBishopsBonus() {
     return getScore2(DoubleBishopsBonusMG, DoubleBishopsBonusEG, stage);
@@ -35,7 +41,10 @@ int fullEval(Board *board) {
     int eval = board->eval;
     stage = stageGame(board);
 
-    eval += kingPsqtEval(board);
+    eval += psqtEval(board);
+
+    //Material Eval
+    eval += materialEval(board);
 
     //Mobility eval
     eval += (mobilityAndKingDangerEval(board, WHITE) - mobilityAndKingDangerEval(board, BLACK));
@@ -46,30 +55,71 @@ int fullEval(Board *board) {
     eval += (rooksEval(board, WHITE) - rooksEval(board, BLACK));
 
     //King safety
-    eval += (kingEval(board, WHITE) - kingEval(board, BLACK));
+    // eval += (kingEval(board, WHITE) - kingEval(board, BLACK));
 
-    int normalizedEval = round((double)eval / (double)PAWN_EV * 100.);
-
-    return (board->color == WHITE ? normalizedEval : -normalizedEval);
+    return (board->color == WHITE ? eval : -eval);
 }
 
-int kingPsqtEval(Board *board) {
+
+int materialEval(Board* board) {
     int eval = 0;
-    U64 mask = board->pieces[KING];
-    eval += (psqtPieceEval(board, mask, kingPST) * stage / 98. +
-             psqtPieceEval(board, mask, egKingPST) * (98. - stage) / 98.);
+
+    int wpCount = popcount(board->pieces[PAWN] & board->colours[WHITE]);
+    int bpCount = popcount(board->pieces[PAWN] & board->colours[BLACK]);
+    int wnCount = popcount(board->pieces[KNIGHT] & board->colours[WHITE]);
+    int bnCount = popcount(board->pieces[KNIGHT] & board->colours[BLACK]);
+    int wbCount = popcount(board->pieces[BISHOP] & board->colours[WHITE]);
+    int bbCount = popcount(board->pieces[BISHOP] & board->colours[BLACK]);
+    int wrCount = popcount(board->pieces[ROOK] & board->colours[WHITE]);
+    int brCount = popcount(board->pieces[ROOK] & board->colours[BLACK]);
+    int wqCount = popcount(board->pieces[QUEEN] & board->colours[WHITE]);
+    int bqCount = popcount(board->pieces[QUEEN] & board->colours[BLACK]);
+
+    eval += PAWN_EVAL[stage] * (wpCount - bpCount);
+
+    eval += KNIGHT_EVAL[stage] * (wnCount - bnCount);
+    eval += BISHOP_EVAL[stage] * (wbCount - bbCount);
+    eval += ROOK_EVAL[stage] * (wrCount - brCount);
+    eval += QUEEN_EVAL[stage] * (wqCount - bqCount);
+
     return eval;
 }
 
-int psqtPieceEval(Board *board, U64 mask, const int *pstTable) {
+int psqtEval(Board* board) {
+    int eval = 0;
+
+    U64 mask = board->pieces[PAWN];
+    eval += psqtPieceEval(board, mask, PAWN);
+
+    mask = board->pieces[KNIGHT];
+    eval += psqtPieceEval(board, mask, KNIGHT);
+
+    mask = board->pieces[BISHOP];
+    eval += psqtPieceEval(board, mask, BISHOP);
+
+    mask = board->pieces[ROOK];
+    eval += psqtPieceEval(board, mask, ROOK);
+
+    mask = board->pieces[QUEEN];
+    eval += psqtPieceEval(board, mask, QUEEN);
+
+    mask = board->pieces[KING];
+    eval += psqtPieceEval(board, mask, KING);
+
+    return eval;
+}
+
+int psqtPieceEval(Board *board, U64 mask, int pieceType) {
     int eval = 0;
 
     while (mask) {
         int sq = firstOne(mask);
-        if (squareBitboard[sq] & board->colours[WHITE])
-            eval += *(pstTable + square(7 - rankOf(sq), fileOf(sq)));
-        else
-            eval -= *(pstTable + sq);
+        U64 isWhite = squareBitboard[sq] & board->colours[WHITE];
+        int relativeSq = isWhite ? square(7 - rankOf(sq), fileOf(sq)) : sq;
+        int multiple = isWhite ? 1 : -1;
+        int sqEval = multiple * PST[stage][pieceType][relativeSq];
+
+        eval += sqEval;
 
         clearBit(&mask, sq);
     }
@@ -80,7 +130,7 @@ int psqtPieceEval(Board *board, U64 mask, const int *pstTable) {
 int kingDanger(int attacksCount) {
     double normalized = (attacksCount / 100. * 10.) - 5;
 
-    return KingDangerFactor * (1. / (1. + exp(-normalized))) - 4;
+    return KingDangerFactor * (1. / (1. + exp(-normalized)));
 }
 
 int mobilityAndKingDangerEval(Board *board, int color) {
@@ -211,9 +261,9 @@ int bishopsEval(Board *board) {
 
 int getPassedPawnBonus(int sq, int color) {
     if (color == WHITE)
-        return -pawnPST[square(7 - rankOf(sq), fileOf(sq))] + PassedPawnBonus[rankOf(sq)];
+        return PassedPawnBonus[rankOf(sq)];
 
-    return -pawnPST[square(rankOf(sq), fileOf(sq))] + PassedPawnBonus[7 - rankOf(sq)];
+    return PassedPawnBonus[7 - rankOf(sq)];
 }
 
 int kingEval(Board *board, int color) {
@@ -238,16 +288,37 @@ int mateScore(int eval) {
 }
 
 void initEval() {
-    initDependencyEval();
+    PAWN_EVAL = (int*) malloc(sizeof(int) * STAGE_N);
+    KNIGHT_EVAL = (int*) malloc(sizeof(int) * STAGE_N);
+    BISHOP_EVAL = (int*) malloc(sizeof(int) * STAGE_N);
+    ROOK_EVAL = (int*) malloc(sizeof(int) * STAGE_N);
+    QUEEN_EVAL = (int*) malloc(sizeof(int) * STAGE_N);
 
+    initDependencyEval();
     for (int i = 0; i < 64; ++i) {
         for (int j = 0; j < 64; ++j)
             distanceBonus[i][j] = 14 - (abs(rankOf(i) - rankOf(j)) + abs(fileOf(i) - fileOf(j)));
     }
 }
 
+void destroyEval() {
+    free(PAWN_EVAL);
+    free(KNIGHT_EVAL);
+    free(BISHOP_EVAL);
+    free(ROOK_EVAL);
+    free(QUEEN_EVAL);
+}
+
 void initDependencyEval() {
     initPSQT();
+
+    for (int i = 0; i < STAGE_N; i++) {
+        PAWN_EVAL[i] = getScore2(PAWN_EV_MG, PAWN_EV_EG, i);
+        KNIGHT_EVAL[i] = getScore2(KNIGHT_EV_MG, KNIGHT_EV_EG, i);
+        BISHOP_EVAL[i] = getScore2(BISHOP_EV_MG, BISHOP_EV_EG, i);
+        ROOK_EVAL[i] = getScore2(ROOK_EV_MG, ROOK_EV_EG, i);
+        QUEEN_EVAL[i] = getScore2(QUEEN_EV_MG, QUEEN_EV_EG, i);
+    }
 
     for (int i = 0; i < 100; i++) {
         KingDanger[i] = kingDanger(i);
@@ -269,20 +340,62 @@ void initDependencyEval() {
     }
 }
 
-int pVal(int n) {
+void initStagedPSQT(int st) {
+    for (int sq = 0; sq < 64; sq++) {
+        PST[st][PAWN][sq] = getScore2(pawnPST[sq], egPawnPST[sq], st);
+        PST[st][KNIGHT][sq] = getScore2(knightPST[sq], egKnightPST[sq], st);
+        PST[st][BISHOP][sq] = getScore2(bishopPST[sq], egBishopPST[sq], st);
+        PST[st][ROOK][sq] = getScore2(rookPST[sq], egRookPST[sq], st);
+        PST[st][QUEEN][sq] = getScore2(queenPST[sq], egQueenPST[sq], st);
+        PST[st][KING][sq] = getScore2(kingPST[sq], egKingPST[sq], st);
+    }
+}
+
+void initDependencyStagedEval(int st) {
+    initStagedPSQT(st);
+
+    for (int i = 0; i < 100; i++) {
+        KingDanger[i] = kingDanger(i);
+    }
+
+    PAWN_EVAL[stage] = getScore2(PAWN_EV_MG, PAWN_EV_EG, st);
+    KNIGHT_EVAL[stage] = getScore2(KNIGHT_EV_MG, KNIGHT_EV_EG, st);
+    BISHOP_EVAL[stage] = getScore2(BISHOP_EV_MG, BISHOP_EV_EG, st);
+    ROOK_EVAL[stage] = getScore2(ROOK_EV_MG, ROOK_EV_EG, st);
+    QUEEN_EVAL[stage] = getScore2(QUEEN_EV_MG, QUEEN_EV_EG, st);
+
+    //Isolated pawn hash init
+    for (int i = 0; i < 256; ++i) {
+        IsolatedPawnsHash[i] = 0;
+        for (int f = 0; f < 8; ++f) {
+            int leftEmpty = 1, rightEmpty = 1;
+
+            if (f < 7)
+                rightEmpty = !getBit8(i, f + 1);
+            if (f > 0)
+                leftEmpty = !getBit8(i, f - 1);
+
+            IsolatedPawnsHash[i] += IsolatedPawnPenalty * (leftEmpty && rightEmpty && getBit(i, f));
+        }
+    }
+}
+
+int pVal(Board* b, int n) {
+    int stage = stageGame(b);
+
     switch (n) {
         case 0:
             return 0;
         case 1:
-            return PAWN_EV;
+            return PAWN_EVAL[stage];
         case 2:
-            return KNIGHT_EV;
+            return KNIGHT_EVAL[stage];
         case 3:
-            return BISHOP_EV;
+            return BISHOP_EVAL[stage];
         case 4:
-            return ROOK_EV;
+            return ROOK_EVAL[stage];
         case 5:
-            return QUEEN_EV;
+            return QUEEN_EVAL[stage];
         case 6:
             return 0;
     }
