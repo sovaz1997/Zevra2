@@ -14,6 +14,7 @@ struct TuningPosition {
     char fen[512];
     int movesToEnd;
     double result;
+    int mul;
 };
 
 double **linearEvalPositions;
@@ -179,6 +180,7 @@ void loadPositions(Board *board) {
 
             positions[positionsCount - 1].result = result;
             positions[positionsCount - 1].movesToEnd = movesToEnd;
+            positions[positionsCount - 1].mul = board->color == WHITE ? 1 : -1;
 
             quiets++;
         }
@@ -261,11 +263,7 @@ double fun(Board *board) {
         setFen(board, fen);*/
 
         // int eval = getLinearEval(i);// fullEval(board);
-        double eval = linearEvals[i];
-
-        if (board->color == BLACK) {
-            eval = -eval;
-        }
+        double eval = linearEvals[i] * positions[i].mul;
 
         double error = pow(r(eval) - positions[i].result, 2); // * fading;
         errorSums += error;
