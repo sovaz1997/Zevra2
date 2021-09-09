@@ -4,35 +4,34 @@
 
 //Material
 int PAWN_EV_MG = 100;
-int KNIGHT_EV_MG = 300;
-int BISHOP_EV_MG = 330;
-int ROOK_EV_MG = 550;
-int QUEEN_EV_MG = 1000;
+int KNIGHT_EV_MG = 311;
+int BISHOP_EV_MG = 264;
+int ROOK_EV_MG = 417;
+int QUEEN_EV_MG = 1005;
 
-int PAWN_EV_EG = 100;
-int KNIGHT_EV_EG = 300;
-int BISHOP_EV_EG = 330;
-int ROOK_EV_EG = 550;
-int QUEEN_EV_EG = 1000;
+int PAWN_EV_EG = 159;
+int KNIGHT_EV_EG = 405;
+int BISHOP_EV_EG = 427;
+int ROOK_EV_EG = 643;
+int QUEEN_EV_EG = 1133;
 
 //Mobility bonuses
 int QueenMobility[28] = {
-        -30, -20, -10, 0, 5, 10, 12, 15, 18, 20, 25, 30, 32, 35,
-        40, 45, 50, 55, 57, 60, 63, 65, 70, 75, 80, 85, 90, 95
+        -28, -20, -10, -1, 35, 34, 64, 70, 75, 83, 88, 100, 104, 113, 116, 122, 124, 125, 141, 134, 148, 146, 155, 156, 158, 173, 174, 175,
 };
-int RookMobility[15] = {-30, -20, -10, 0, 10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80};
-int BishopMobility[14] = {-30, -10, 5, 15, 20, 25, 35, 40, 45, 50, 55, 60, 65, 70};
-int KnightMobility[8] = {-50, -25, -10, -2, 5, 10, 15, 25};
+int RookMobility[15] = {-86, -48, -6, 0, 5, 13, 20, 26, 29, 37, 43, 45, 45, 44, 43, };
+int BishopMobility[14] = {-65, -55, -15, 2, 16, 26, 34, 42, 49, 56, 59, 61, 57, 69, };
+int KnightMobility[8] = {-153, -72, -46, -24, -7, 4, 13, 23, };
 
 //additional bonuses and penalties
-int PassedPawnBonus[8] = {0, 0, 10, 20, 40, 80, 120, 0};
-int DoublePawnsPenalty = -15;
-int IsolatedPawnPenalty = -5;
-int RookOnOpenFileBonus = 10;
-int RookOnPartOpenFileBonus = 20;
-int KingDangerFactor = 600;
-int DoubleBishopsBonusMG = 30;
-int DoubleBishopsBonusEG = 20;
+int PassedPawnBonus[8] = {0, -11, -10, 4, 35, 88, 127, 0, };
+int DoublePawnsPenalty = -33;
+int IsolatedPawnPenalty = -8;
+int RookOnOpenFileBonus = 30;
+int RookOnPartOpenFileBonus = 26;
+int KingDangerFactor = 733;
+int DoubleBishopsBonusMG = 32;
+int DoubleBishopsBonusEG = 78;
 
 int DoubleBishopsBonus() {
     return getScore2(DoubleBishopsBonusMG, DoubleBishopsBonusEG, stage);

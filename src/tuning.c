@@ -125,7 +125,7 @@ int positionsCount = 0;
 TuningPosition *positions;
 
 void loadPositions(Board *board) {
-    FILE *f = fopen("100000.txt", "r");
+    FILE *f = fopen("2000000.txt", "r");
 
     SearchInfo searchInfo;
     TimeManager tm = createFixDepthTm(MAX_PLY - 1);
@@ -263,9 +263,11 @@ double fun(Board *board) {
         setFen(board, fen);*/
 
         // int eval = getLinearEval(i);// fullEval(board);
+        int movesToEnd = positions[i].movesToEnd;
+        double fading = exp(-movesToEnd / fadingFactor);
         double eval = linearEvals[i] * positions[i].mul;
 
-        double error = pow(r(eval) - positions[i].result, 2); // * fading;
+        double error = pow(r(eval) - positions[i].result, 2) * fading;
         errorSums += error;
 
         ++posCount;
