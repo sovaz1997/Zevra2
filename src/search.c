@@ -475,7 +475,7 @@ void initSearch() {
 
     for(int i = 1; i < MAX_PLY; ++i) {
         for(int j = 1; j < 64; ++j) {
-            lmr[i][j] = 0.75 + log(i) * log(j) / 2;
+            lmr[i][j] = 0.75 + log(i) * log(j) / 2.5;
         }
     }
 
