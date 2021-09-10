@@ -21,8 +21,7 @@ double *linearEvals;
 int *evalParams;
 
 void makeTuning(Board *board) {
-    loadPositions(board);
-
+    load(board, 1);
     evalParams = getValues();
 
     double E = fun();
@@ -71,7 +70,29 @@ void makeTuning(Board *board) {
 int positionsCount = 0;
 TuningPosition *positions;
 
-void loadPositions(Board *board) {
+void load(Board *board, int useFromFile) {
+    int* firstEvalValues = getValues();
+
+    if (useFromFile) {
+        FILE* f = fopen("linear.bin", "rb");
+        fseek(f, 0, SEEK_END);
+        size_t fileSize = ftell(f);
+        positionsCount = fileSize / (sizeof(double) * PARAMS_COUNT);
+
+        fseek(f, 0, SEEK_SET);
+        linearEvalPositions = malloc(positionsCount * sizeof(double*));
+
+        for (int i = 0; i < positionsCount; ++i) {
+            linearEvalPositions[i] = (double*)malloc(sizeof(double) * PARAMS_COUNT);
+            fread(linearEvalPositions[i], sizeof(double), PARAMS_COUNT, f);
+        }
+
+        printf("!%d!\n", positionsCount);
+
+        fclose(f);
+    }
+
+
     FILE *f = fopen("2000000.txt", "r");
 
     SearchInfo searchInfo;
@@ -85,10 +106,15 @@ void loadPositions(Board *board) {
 
     int N = 120000000;
     positions = malloc(sizeof(TuningPosition) * N);
-    linearEvalPositions = malloc(sizeof(double *) * N);
+    if (!useFromFile) {
+        linearEvalPositions = malloc(sizeof(double *) * N);
+    }
     linearEvals = malloc(sizeof(double) * N);
 
     while (1) {
+        if (positionsCount > 1000) {
+            break;
+        }
         estr = fgets(buf, sizeof(buf), f);
 
         if (!estr) {
@@ -113,7 +139,9 @@ void loadPositions(Board *board) {
 
             calculateLinear(board, positionsCount - 1);
 
-            linearEvals[positionsCount - 1] = getLinearEval(positionsCount - 1);
+            if (!useFromFile) {
+                linearEvals[positionsCount - 1] = getLinearEval(positionsCount - 1, firstEvalValues);
+            }
 
             if (positionsCount % 100 == 0) {
                 printf("%d\n", positionsCount);
@@ -140,6 +168,15 @@ void loadPositions(Board *board) {
     printf("Pos count: %d; quiets count: %d\n", positionsCount, quiets);
 
     fclose(f);
+
+    f = fopen("linear.bin", "wb");
+
+    for (int i = 0; i < positionsCount; i++) {
+        fwrite(linearEvalPositions[i], sizeof(double), PARAMS_COUNT, f);
+    }
+
+    fclose(f);
+    free(firstEvalValues);
 
 }
 
@@ -420,15 +457,15 @@ int *calculateLinear(Board *board, int positionNumber) {
     free(prevValues);
 }
 
-double getLinearEval(int positionNumber) {
+double getLinearEval(int positionNumber, int* firstEvalValues) {
     double eval = 0;
-    int *evalSettings = getValues();
+    // int *evalSettings = getValues();
 
     for (int i = 0; i < PARAMS_COUNT; i++) {
-        eval += linearEvalPositions[positionNumber][i] * evalSettings[i];
+        eval += linearEvalPositions[positionNumber][i] * firstEvalValues[i];
     }
 
-    free(evalSettings);
+    // free(evalSettings);
     return eval;
 }
 
