@@ -2,12 +2,11 @@
 
 typedef struct TuningPosition TuningPosition;
 
-double fun(Board* board);
+double fun();
 void makeTuning(Board* board);
 int* getValues();
 void setValues(int* values, int stage);
 double getLinearEval(int positionNumber);
-void changeParam(int n, int value);
 void printParams();
 void printPST(char* name, int* pst, int* curIndex, FILE* f);
 void printArray(char* name, int* arr, int* curIndex, int length, FILE* f);
