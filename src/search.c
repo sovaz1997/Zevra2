@@ -486,7 +486,7 @@ void resetSearchInfo(SearchInfo* info, TimeManager tm) {
     memset(info, 0, sizeof(SearchInfo));
     info->tm = tm;
     setAbort(0);
-    compressHistory();
+    clearHistory();
 }
 
 void replaceTransposition(Transposition* tr, Transposition new_tr) {
