@@ -6,13 +6,25 @@
 #include "score.h"
 
 //Piece weights
-extern int PAWN_EV;
-extern int KNIGHT_EV;
-extern int BISHOP_EV;
-extern int ROOK_EV;
-extern int QUEEN_EV;
+extern int PAWN_EV_MG;
+extern int KNIGHT_EV_MG;
+extern int BISHOP_EV_MG;
+extern int ROOK_EV_MG;
+extern int QUEEN_EV_MG;
 
-int pVal();
+extern int PAWN_EV_EG;
+extern int KNIGHT_EV_EG;
+extern int BISHOP_EV_EG;
+extern int ROOK_EV_EG;
+extern int QUEEN_EV_EG;
+
+int* PAWN_EVAL;
+int* KNIGHT_EVAL;
+int* BISHOP_EVAL;
+int* ROOK_EVAL;
+int* QUEEN_EVAL;
+
+int pVal(Board* b, int n);
 
 //Mobility bonuses
 extern int QueenMobility[28];
@@ -44,9 +56,9 @@ int KingDangerFactor;
 int fullEval(Board *board);
 
 int DoubleBishopsBonus();
-int materialEval(Board *board);
+int materialEval(Board* board);
 
-int psqtPieceEval(Board *board, U64 mask, const int *pstTable);
+int psqtPieceEval(Board *board, U64 mask, int pieceType);
 
 int mobilityAndKingDangerEval(Board *board, int color);
 
@@ -58,26 +70,24 @@ int rooksEval(Board *board, int color);
 
 int kingEval(Board *board, int color);
 
-int attackCount(Board *board, int sq, int color);
-
 int getPassedPawnBonus(int sq, int color);
 
 int mateScore(int eval);
 
 void initEval();
 
-void initValues();
+void destroyEval();
 
 int stageGame(Board *board);
 
 U8 horizontalScan(U64 bitboard);
 
-int kingPsqtEval();
-
-int baseEval(Board *board);
+int psqtEval(Board* board);
 
 int kingDanger(int attacksCount);
 
 void initDependencyEval();
+void initStagedPSQT(int st);
+void initDependencyStagedEval(int st);
 
 #endif
