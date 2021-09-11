@@ -514,8 +514,8 @@ void clearHistory() {
 void compressHistory() {
     for(int i = 0; i < 64; ++i) {
         for(int j = 0; j < 64; ++j) {
-            history[WHITE][i][j] /= 100;
-            history[BLACK][i][j] /= 100;
+            history[WHITE][i][j] /= 2;
+            history[BLACK][i][j] /= 2;
         }   
     }
 }
