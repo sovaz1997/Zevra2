@@ -6,32 +6,42 @@
 #include "score.h"
 
 //Piece weights
-enum {
-    PAWN_EV = 100,
-    KNIGHT_EV = 300,
-    BISHOP_EV = 330,
-    ROOK_EV = 550,
-    QUEEN_EV = 1000
-};
+extern int PAWN_EV_MG;
+extern int KNIGHT_EV_MG;
+extern int BISHOP_EV_MG;
+extern int ROOK_EV_MG;
+extern int QUEEN_EV_MG;
 
-static const int pVal[7] = {0, PAWN_EV, KNIGHT_EV, BISHOP_EV, ROOK_EV, QUEEN_EV, 0};
+extern int PAWN_EV_EG;
+extern int KNIGHT_EV_EG;
+extern int BISHOP_EV_EG;
+extern int ROOK_EV_EG;
+extern int QUEEN_EV_EG;
+
+int* PAWN_EVAL;
+int* KNIGHT_EVAL;
+int* BISHOP_EVAL;
+int* ROOK_EVAL;
+int* QUEEN_EVAL;
+
+int pVal(Board* b, int n);
 
 //Mobility bonuses
-static const int QueenMobility[28] = {
-    -30, -20, -10, 0, 5, 10, 12, 15, 18, 20, 25, 30, 32, 35,
-    40, 45, 50, 55, 57, 60, 63, 65, 70, 75, 80, 85, 90, 95
-};
-static const int RookMobility[15] = {-30, -20, -10, 0, 10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80};
-static const int BishopMobility[14] = {-30, -10, 5, 15, 20, 25, 35, 40, 45, 50, 55, 60, 65, 70};
-static const int KnightMobility[14] = {-50, -25, -10, -2, 5, 10, 15, 25};
+extern int QueenMobility[28];
+extern int RookMobility[15];
+extern int BishopMobility[14];
+extern int KnightMobility[8];
 
 //additional bonuses and penalties
-static const int PassedPawnBonus[8] = {0, 0, 10, 20, 40, 80, 120, 0};
-static const int DoubleBishopsBonus = S(30, 20);
-static const int DoublePawnsPenalty = -15;
-static const int IsolatedPawnPenalty = -5;
-static const int RookOnOpenFileBonus = S(5, 0);
+extern int PassedPawnBonus[8];
+extern int DoublePawnsPenalty;
+extern int IsolatedPawnPenalty;
+extern int RookOnOpenFileBonus;
+extern int RookOnPartOpenFileBonus;
 int distanceBonus[64][64];
+
+extern int DoubleBishopsBonusMG;
+extern int DoubleBishopsBonusEG;
 
 //Hash eval
 int IsolatedPawnsHash[256];
@@ -39,23 +49,45 @@ int IsolatedPawnsHash[256];
 //global (using for speed-up)
 int stage;
 
-int fullEval(Board* board);
+int KingDanger[100];
+
+int KingDangerFactor;
+
+int fullEval(Board *board);
+
+int DoubleBishopsBonus();
 int materialEval(Board* board);
-int psqtEval(Board* board);
-int psqtPieceEval(Board* board, U64 mask, const int* pstTable);
-int mobilityEval(Board* board, int color);
-int pawnsEval(Board* board, int color);
-int bishopsEval(Board* board);
-int rooksEval(Board* board, int color);
-int kingEval(Board* board, int color);
-int attackCount(Board* board, int sq, int color);
+
+int psqtPieceEval(Board *board, U64 mask, int pieceType);
+
+int mobilityAndKingDangerEval(Board *board, int color);
+
+int pawnsEval(Board *board, int color);
+
+int bishopsEval(Board *board);
+
+int rooksEval(Board *board, int color);
+
+int kingEval(Board *board, int color);
+
 int getPassedPawnBonus(int sq, int color);
+
 int mateScore(int eval);
-int closeToMateScore(int eval);
+
 void initEval();
-int stageGame(Board* board);
+
+void destroyEval();
+
+int stageGame(Board *board);
+
 U8 horizontalScan(U64 bitboard);
-int kingPsqtEval();
-int baseEval(Board* board);
+
+int psqtEval(Board* board);
+
+int kingDanger(int attacksCount);
+
+void initDependencyEval();
+void initStagedPSQT(int st);
+void initDependencyStagedEval(int st);
 
 #endif

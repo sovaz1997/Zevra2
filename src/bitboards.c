@@ -1,6 +1,17 @@
 #include "bitboards.h"
 
 void initBitboards() {
+    for (int sq = 0; sq < 64; sq++) {
+        rankOfTable[sq] = sq / 8;
+        fileOfTable[sq] = sq % 8;
+    }
+
+    for (int r = 0; r < 8; r++) {
+        for (int f = 0; f < 8; f++) {
+            squareTable[r][f] = 8 * r + f;
+        }
+    }
+
     for(int i = 0; i < 8; ++i) {
         ranks[i] = (255ull << (i * 8));
         files[i] = (72340172838076673ull << i);
@@ -134,11 +145,21 @@ void attacksGen() {
     //Pawn attacks gen
 
     for(int sq = 0; sq < 64; ++sq) {
-        pawnAttacks[WHITE][sq] |= ((1ull << (sq + 9)) & ~files[0]);
-        pawnAttacks[WHITE][sq] |= ((1ull << (sq + 7)) & ~files[7]);
+        if (sq + 9 < 64) {
+            pawnAttacks[WHITE][sq] |= ((1ull << (sq + 9)) & ~files[0]);
+        }
 
-        pawnAttacks[BLACK][sq] |= ((1ull << (sq - 9)) & ~files[7]);
-        pawnAttacks[BLACK][sq] |= ((1ull << (sq - 7)) & ~files[0]);
+        if (sq + 7 < 64) {
+            pawnAttacks[WHITE][sq] |= ((1ull << (sq + 7)) & ~files[7]);
+        }
+
+        if (sq - 9 < 64) {
+            pawnAttacks[BLACK][sq] |= ((1ull << (sq - 9)) & ~files[7]);
+        }
+
+        if (sq - 7 < 64) {
+            pawnAttacks[BLACK][sq] |= ((1ull << (sq - 7)) & ~files[0]);
+        }
     }
 }
 
@@ -150,8 +171,8 @@ void printBitboard(U64 bitboard) {
     }
 }
 
-unsigned int square(unsigned int r, unsigned int f) {
-    return 8 * r + f;
+unsigned inline int square(unsigned int r, unsigned int f) {
+    return squareTable[r][f];
 }
 
 unsigned int popcount(U64 bitboard) {
@@ -192,10 +213,10 @@ void clearBit(uint64_t* bitboard, int sq) {
     (*bitboard) &= unSquareBitboard[sq];
 }
 
-int rankOf(int sq) {
-    return sq / 8;
+int inline rankOf(int sq) {
+    return rankOfTable[sq];
 }
 
-int fileOf(int sq) {
-    return sq % 8;
+int inline fileOf(int sq) {
+    return fileOfTable[sq];
 }

@@ -1,4 +1,5 @@
 #include "search.h"
+#include "uci.h"
 
 void* go(void* thread_data) {
     SearchArgs* args = (SearchArgs*)thread_data;
@@ -21,7 +22,7 @@ SearchInfo iterativeDeeping(Board* board, TimeManager tm) {
             break;
     }
 
-    printf("info nodes %lu time %lu\n", searchInfo.nodesCount, getTime(&searchInfo.timer));
+    printf("info nodes %llu time %llu\n", searchInfo.nodesCount, getTime(&searchInfo.timer));
     SEARCH_COMPLETE = 1;
     __sync_synchronize();
     printf("bestmove %s\n", bestMove);
@@ -201,7 +202,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
         //Fulility pruning
         if(!pvNode && depth < 9 && !extensions && !root && FutilityPruningAllow) {
-            if(staticEval + FutilityStep * depth + pVal[pieceType(undo.capturedPiece)] <= alpha) {
+            if(staticEval + FutilityStep * depth + pVal(board, pieceType(undo.capturedPiece)) <= alpha) {
                 unmakeMove(board, *curMove, &undo);
                 ++curMove;
                 continue;
@@ -236,17 +237,18 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
                 searchInfo->bestMove = *curMove;
 
             hashType = exact;
+        }
+        if(alpha >= beta) {
+            hashType = lowerbound;
 
             if(!undo.capturedPiece) {
                 if(searchInfo->killer[height][0])
                     searchInfo->killer[height][1] = searchInfo->killer[height][0];
-                
+
                 searchInfo->killer[height][0] = *curMove;
                 history[board->color][MoveFrom(*curMove)][MoveTo(*curMove)] += (depth * depth);
             }
-        }
-        if(alpha >= beta) {
-            hashType = lowerbound;
+
             break;
         }
         ++curMove;
@@ -277,7 +279,7 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
 
     //TT analysis
     int ttEval = evalFromTT(ttEntry->eval, height);
-    if(ttEntry->evalType && ttEntry->key == keyPosition) {
+    if(ttEntry->evalType && ttEntry->key == keyPosition && !TUNING_ENABLED) {
         if((ttEntry->evalType == lowerbound && ttEval >= beta && !mateScore(ttEntry->eval)) ||
            (ttEntry->evalType == upperbound && ttEval <= alpha && !mateScore(ttEntry->eval)) ||
            ttEntry->evalType == exact) {
@@ -295,9 +297,9 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
     if(val >= beta)
         return beta;
 
-    int delta = QUEEN_EV;
+    int delta = QUEEN_EV_MG;
     if(havePromotionPawn(board))
-        delta += (QUEEN_EV - 200);
+        delta += (QUEEN_EV_MG - 200);
 
     if(val < alpha - delta)
         return val;
@@ -370,7 +372,7 @@ U64 perftTest(Board* board, int depth, int height) {
                 for(int i = 0; i < height; ++i)
                     printf(" ");
 
-                printf("%s: %lu\n", mv, count);
+                printf("%s: %llu\n", mv, count);
             }
         }
 
@@ -391,7 +393,7 @@ void perft(Board* board, int depth) {
         if(!(end - start))
             end = start + 1;
         
-        printf("Perft %d: %lu; speed: %lu; time: %.3fs\n", i, nodes, nodes / (end - start), (end - start) / 1000.);
+        printf("Perft %d: %llu; speed: %llu; time: %.3fs\n", i, nodes, nodes / (end - start), (end - start) / 1000.);
     }
 }
 
@@ -472,9 +474,10 @@ void initSearch() {
             mvvLvaScores[attacker][victim] = 64 * victim - attacker;
     }
 
-    for(int i = 0; i < MAX_PLY; ++i) {
-        for(int j = 0; j < 64; ++j)
-            lmr[i][j]  = 0.75 + log(i) * log(j) / 2.25;
+    for(int i = 1; i < MAX_PLY; ++i) {
+        for(int j = 1; j < 64; ++j) {
+            lmr[i][j] = 0.75 + log(i) * log(j) / 2.25;
+        }
     }
 
     clearHistory();
