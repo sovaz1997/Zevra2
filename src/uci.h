@@ -13,6 +13,7 @@ struct Option {
 };
 
 extern char startpos[];
+extern const int TUNING_ENABLED;
 pthread_mutex_t mutex;
 
 int main();

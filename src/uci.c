@@ -1,13 +1,17 @@
 #include "uci.h"
+#include "tuning.h"
 
 char startpos[] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 Option option;
 
+const int TUNING_ENABLED = 0;
+
 int main() {
+
     initOption();
     initEngine();
 
-    Board* board = (Board*) malloc(sizeof(Board)); 
+    Board* board = (Board*) malloc(sizeof(Board));
 
 
     printEngineInfo();
@@ -20,6 +24,11 @@ int main() {
     gameInfo.moveCount = 0;
     board->gameInfo = &gameInfo;
     SEARCH_COMPLETE = 1;
+
+    // tuning
+    if (TUNING_ENABLED) {
+        makeTuning(board);
+    }
 
     TimeManager tm = initTM();
 
@@ -163,11 +172,12 @@ int main() {
         free(str);
     }
 
+    destroyEval();
     free(board);
 }
 
 void printEngineInfo() {
-    printf("id name Zevra v2.2 r317\nid author Oleg Smirnov\n");
+    printf("id name Zevra v2.4 r380\nid author Oleg Smirnov\n");
 }
 
 void readyok() {
@@ -192,7 +202,7 @@ void printSearchInfo(SearchInfo* info, Board* board, int depth, int eval, int ev
     int speed = (searchTime < 1 ? 0 : (info->nodesCount / (searchTime / 1000.)));
     int hashfull = (double)ttFilledSize  / (double)ttSize * 1000;
     
-    printf("info depth %d seldepth %d nodes %lu time %lu nps %d hashfull %d ", depth, info->selDepth, info->nodesCount, searchTime, speed, hashfull);
+    printf("info depth %d seldepth %d nodes %llu time %llu nps %d hashfull %d ", depth, info->selDepth, info->nodesCount, searchTime, speed, hashfull);
     printScore(eval);
     printf(evalType == lowerbound ? " lowerbound pv " : evalType == upperbound ? " upperbound pv " : " pv ");
     printPV(board, depth, info->bestMove);

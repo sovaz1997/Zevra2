@@ -87,7 +87,7 @@ void printBoard(Board* board) {
         printBoardSplitter();
     }
 
-    printf("Key: %lx\n\n", board->key);
+    printf("Key: %llu\n\n", board->key);
     printf("White check: %d \n", inCheck(board, WHITE));
     printf("Black check: %d \n\n", inCheck(board, BLACK));
     printf("Have promotion: %d\n", havePromotionPawn(board));
@@ -105,21 +105,6 @@ void printBoardSplitter() {
 
 void setPiece(Board* board, int piece, int color, int sq) {
     clearPiece(board, sq);
-
-    if (piece) {
-        if (color == WHITE) {
-            if (piece != KING) {
-                board->eval += pVal[piece];
-                board->eval += allPST[piece][square(7 - rankOf(sq), fileOf(sq))];
-            }
-        } else {
-            if (piece != KING) {
-                board->eval -= pVal[piece];
-                board->eval -= allPST[piece][sq];
-            }
-        }
-    }
-
     setBit(&board->pieces[piece], sq);
     setBit(&board->colours[color], sq);
     board->squares[sq] = makePiece(piece, color);
@@ -132,21 +117,6 @@ void clearPiece(Board* board, int sq) {
     
     U8 piece = board->squares[sq];
     board->key ^= zobristKeys[board->squares[sq]][sq];
-
-    if (pieceType(piece)) {
-        if (pieceColor(piece) == WHITE) {
-            if (pieceType(piece) != KING) {
-                board->eval -= pVal[pieceType(piece)];
-                board->eval -= allPST[pieceType(piece)][square(7 - rankOf(sq), fileOf(sq))];
-            }
-        } else {
-
-            if (pieceType(piece) != KING) {
-                board->eval += pVal[pieceType(piece)];
-                board->eval += allPST[pieceType(piece)][sq];
-            }
-        }
-    }
 
     clearBit(&board->pieces[pieceType(piece)], sq);
     clearBit(&board->colours[pieceColor(piece)], sq);
@@ -327,20 +297,6 @@ int inCheck(Board* board, int color) {
     return attackedSquare(board, kingPosition, color);
 }
 
-U8 firstAttacker(Board* board, U64 bitboard) {
-    if(!bitboard)
-        return 0;
-
-    return board->squares[firstOne(bitboard)];
-}
-
-U8 lastAttacker(Board* board, U64 bitboard) {
-    if(!bitboard)
-        return 0;
-
-    return board->squares[lastOne(bitboard)];
-}
-
 void addMoveToHist(Board* board) {
     board->gameInfo->moveHistory[board->gameInfo->moveCount] = board->key;
     ++board->gameInfo->moveCount;
@@ -420,11 +376,11 @@ int see(Board* board, int toSq, U8 taget, int fromSq, U8 aPiece) {
     U64 fromSet = (1ull << fromSq);
     U64 occu = board->colours[WHITE] | board->colours[BLACK];
     U64 attadef = attacksTo(board, toSq);
-    gain[d] = pVal[pieceType(taget)];
+    gain[d] = pVal(board, pieceType(taget));
 
     do {
         d++;
-        gain[d] = pVal[pieceType(aPiece)] - gain[d - 1];
+        gain[d] = pVal(board, pieceType(aPiece)) - gain[d - 1];
         if(max(gain[d - 1], gain[d]) < 0)
             break;
         attadef ^= fromSet;
