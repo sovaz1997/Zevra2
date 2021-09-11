@@ -176,8 +176,11 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
             iidHashType = exact;
         }
 
-        setTransposition(&new_tt, keyPosition, alpha, iidHashType, depth - iidDepthReduction, searchInfo->bestMove, ttAge, height);
-        replaceTransposition(ttEntry, new_tt);
+        if (eval >= beta) {
+            setTransposition(&new_tt, keyPosition, alpha, iidHashType, depth - iidDepthReduction, searchInfo->bestMove,
+                             ttAge, height);
+            replaceTransposition(ttEntry, new_tt);
+        }
     }
 
     movegen(board, moves[height]);
