@@ -224,8 +224,8 @@ int search(Board *board, SearchInfo *searchInfo, int alpha, int beta, int depth,
 
             eval = -search(board, searchInfo, -alpha - 1, -alpha, nextDepth + extensions - reductions, height + 1);
 
-            if (eval > alpha && eval < beta) {
-                eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions - reductions, height + 1);
+            if (eval > alpha) {
+                eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
             }
         }
         unmakeMove(board, *curMove, &undo);
