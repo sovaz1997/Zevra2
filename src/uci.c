@@ -6,7 +6,20 @@ Option option;
 
 const int TUNING_ENABLED = 0;
 
-int main() {
+int main(int argc, char* argv[]) {
+
+    if (argc > 2) {
+        if (strEquals(argv[1], "--search-params") && argc == 5) {
+            FutilityStep = atof(argv[2]);
+            ReverseFutilityStep = atof(argv[3]);
+            RazorMargin = atof(argv[4]);
+        }
+    }
+    for (int i = 0; i < argc; ++i) {
+        printf("%s ", argv[i]);
+    }
+    printf("\n");
+
 
     initOption();
     initEngine();

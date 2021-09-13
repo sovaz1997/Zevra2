@@ -1,6 +1,10 @@
 #include "search.h"
 #include "uci.h"
 
+double FutilityStep = 50;
+double ReverseFutilityStep = 90;
+double RazorMargin = 300;
+
 void* go(void* thread_data) {
     SearchArgs* args = (SearchArgs*)thread_data;
     iterativeDeeping(args->board, args->tm);
