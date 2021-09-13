@@ -145,7 +145,9 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         makeNullMove(board);
         searchInfo->nullMoveSearch = 1;
 
+        searchInfo->cutEnabled = !searchInfo->cutEnabled;
         int eval = -search(board, searchInfo, -beta, -beta + 1, depth - 1 - R, height + 1);
+        searchInfo->cutEnabled = !searchInfo->cutEnabled;
 
         searchInfo->nullMoveSearch = 0;
         unmakeNullMove(board);
@@ -178,8 +180,9 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     int cuts = 0;
     int multiCutMovesCount = 0;
 
-    if (!pvNode && depth > MultiCutSearchDepth && !root && !weInCheck) {
-        while(*curMove && movesCount < 4) {
+
+    if (!pvNode && searchInfo->cutEnabled && depth > MultiCutSearchDepth && !root && !weInCheck) {
+        while(*curMove && multiCutMovesCount < MultiCutCheckMovesCount) {
             makeMove(board, *curMove, &undo);
             if(inCheck(board, !board->color)) {
                 unmakeMove(board, *curMove, &undo);
@@ -187,7 +190,9 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
                 continue;
             }
 
+            searchInfo->cutEnabled = !searchInfo->cutEnabled;
             int e = -search(board, searchInfo, -beta, -alpha, depth - MultiCutSearchDepth, height + 1);
+            searchInfo->cutEnabled = !searchInfo->cutEnabled;
 
             if (e >= beta) {
                 ++cuts;
@@ -195,7 +200,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
             unmakeMove(board, *curMove, &undo);
 
-            if (cuts > 3) {
+            if (cuts >= MultiCutPruneLimit) {
                 return beta;
             }
             curMove++;
@@ -246,6 +251,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         if(movesCount == 1) {
             eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
         } else {
+            searchInfo->cutEnabled = !searchInfo->cutEnabled;
             if(LmrPruningAllow && playedMovesCount >= 3 && quiteMove) {
                 eval = -search(board, searchInfo, -alpha - 1, -alpha, nextDepth + extensions - reductions, height + 1);
                 if(eval > alpha)
@@ -256,6 +262,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
                 if(eval > alpha && eval < beta)
                     eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
             }
+            searchInfo->cutEnabled = !searchInfo->cutEnabled;
         }
         unmakeMove(board, *curMove, &undo);
         
@@ -516,6 +523,7 @@ void initSearch() {
 void resetSearchInfo(SearchInfo* info, TimeManager tm) {
     memset(info, 0, sizeof(SearchInfo));
     info->tm = tm;
+    info->cutEnabled = 1;
     setAbort(0);
     compressHistory();
 }

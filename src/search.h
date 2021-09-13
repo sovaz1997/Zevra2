@@ -31,6 +31,7 @@ struct SearchInfo {
     int nullMoveSearch;
     int searchTime;
     int selDepth;
+    int cutEnabled;
 };
 
 //Eval type
@@ -44,7 +45,10 @@ enum {
 static const int FutilityStep = 50;
 static const int ReverseFutilityStep = 90;
 static const int RazorMargin = 300;
+
 static const int MultiCutSearchDepth = 10;
+static const int MultiCutCheckMovesCount = 6;
+static const int MultiCutPruneLimit = 4;
 
 U16 moves[MAX_PLY][256];
 int movePrice[MAX_PLY][256];
