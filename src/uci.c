@@ -7,9 +7,15 @@ Option option;
 const int TUNING_ENABLED = 0;
 
 int main(int argc, char* argv[]) {
-
     if (argc > 2) {
         if (strEquals(argv[1], "--search-params") && argc == 5) {
+            printf("info string Params installed: ");
+
+            for (int i = 2; i < argc; ++i) {
+                printf("%f ", atof(argv[i]));
+            }
+            printf("\n");
+
             FutilityStep = atof(argv[2]);
             ReverseFutilityStep = atof(argv[3]);
             RazorMargin = atof(argv[4]);
