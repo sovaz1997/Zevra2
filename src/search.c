@@ -1,9 +1,9 @@
 #include "search.h"
 #include "uci.h"
 
-double FutilityStep = 50;
-double ReverseFutilityStep = 90;
-double RazorMargin = 300;
+double FutilityStep = 88.526;
+double ReverseFutilityStep = 91.184;
+double RazorMargin = 299.524;
 
 void* go(void* thread_data) {
     SearchArgs* args = (SearchArgs*)thread_data;
