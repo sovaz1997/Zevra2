@@ -157,6 +157,12 @@ int MCTSSearch(Board *board, TimeManager tm) {
             pvInterval = clock();
         }
 
+        for (int i = 0; i < root->childrenCount; ++i) {
+            char *mv = getMove(root->children[i]->move);
+            printf("%s: %f/%f\n", mv, root->children[i]->w, root->children[i]->n);
+            free(mv);
+        }
+
         if ((clock() - testAbortInterval) > 0.001 &&  testAbort(getTime(&timer), 0, &tm) || SEARCH_COMPLETE) {
             testAbortInterval = clock();
             setAbort(1);
@@ -180,11 +186,15 @@ void runSimulationsForNode(Board *board, MCTSNode *node) {
     node->children = malloc(sizeof(MCTSNode *) * movesCount);
     node->childrenCount = movesCount;
 
+    Undo undo;
     for (int i = 0; i < movesCount; ++i) {
+        U16 move = movesCash1[i];
         node->children[i] = createMCTSNode(movesCash1[i]);
-        double incW = simulate(board, movesCash2);
-
+        makeMove(board, move, &undo);
+        double incW = 1 - simulate(board, movesCash2);
         double incN = 1;
+        unmakeMove(board, move, &undo);
+
         node->children[i]->n += incN;
         node->children[i]->w += incW;
         node->children[i]->move = movesCash1[i];
