@@ -1,9 +1,14 @@
 #include "search.h"
 #include "uci.h"
+#include "mcts.h"
 
 void* go(void* thread_data) {
     SearchArgs* args = (SearchArgs*)thread_data;
-    iterativeDeeping(args->board, args->tm);
+    if (MCTSEnabled) {
+        MCTSSearch(args->board);
+    } else {
+        iterativeDeeping(args->board, args->tm);
+    }
     return 0;
 }
 

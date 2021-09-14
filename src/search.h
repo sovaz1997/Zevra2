@@ -57,6 +57,8 @@ static const int LmrPruningAllow = 1;
 static const int ReverseFutilityPruningAllow = 1;
 static const int RazoringPruningAllow = 1;
 
+static const int MCTSEnabled = 1;
+
 void* go(void* thread_data);
 SearchInfo iterativeDeeping(Board* board, TimeManager tm);
 int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth, int height);

@@ -24,8 +24,7 @@ int main() {
     gameInfo.moveCount = 0;
     board->gameInfo = &gameInfo;
 
-    MCTSSearch(board);
-
+    // MCTSSearch(board);
 
     SEARCH_COMPLETE = 1;
 

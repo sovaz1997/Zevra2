@@ -44,5 +44,6 @@ Move:
 void moveToString(U16 move, char* str);
 U16 stringToMove(Board* board, char* str);
 void printMove(U16 move);
+char* getMove(U16 move);
 
 #endif

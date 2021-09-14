@@ -32,3 +32,9 @@ void printMove(U16 move) {
     moveToString(move, moveStr);
     printf("%s\n", moveStr);
 }
+
+char* getMove(U16 move) {
+    char* moveStr = malloc(sizeof(char) * 6);
+    moveToString(move, moveStr);
+    return moveStr;
+}
