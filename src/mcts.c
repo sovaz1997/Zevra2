@@ -5,14 +5,14 @@
 
 struct MCTSNode {
     U16 move;
-    MCTSNode** children;
+    MCTSNode **children;
     int childrenCount;
     double w;
     double n;
 };
 
-MCTSNode* createMCTSNode(U16 move) {
-    MCTSNode* node = (MCTSNode*)malloc(sizeof(MCTSNode));
+MCTSNode *createMCTSNode(U16 move) {
+    MCTSNode *node = (MCTSNode *) malloc(sizeof(MCTSNode));
 
     node->move = move;
     node->n = 0;
@@ -25,14 +25,14 @@ MCTSNode* createMCTSNode(U16 move) {
 
 U16 movesCash1[512];
 U16 movesCash2[512];
-MCTSNode* nodesStack[65536];
+MCTSNode *nodesStack[65536];
 
 const double C = 1;
 
-MCTSNode* choseMaxChildren(MCTSNode* parent, int print) {
+MCTSNode *choseMaxChildren(MCTSNode *parent, int print) {
     assert(parent->children && parent->childrenCount);
 
-    MCTSNode * res = parent->children[0];
+    MCTSNode *res = parent->children[0];
 
     double maxWeight = 0;
     for (int i = 0; i < parent->childrenCount; ++i) {
@@ -41,7 +41,7 @@ MCTSNode* choseMaxChildren(MCTSNode* parent, int print) {
         double wght = w / n + C * sqrt(log(parent->n - n) / n);
 
         if (print) {
-            char* mv = getMove(parent->children[i]->move);
+            char *mv = getMove(parent->children[i]->move);
             printf("W/N: %f/%f, Weight: %f, Sibles: %f; MV: %s\n", w, n, wght, parent->n - n, mv);
             printf("%f >= %f\n", wght, maxWeight);
             free(mv);
@@ -50,13 +50,12 @@ MCTSNode* choseMaxChildren(MCTSNode* parent, int print) {
         if (wght >= maxWeight) {
             res = parent->children[i];
             maxWeight = wght;
-            // printf("%f/%f: %f %f\n", w, n, weight, sqrt(log(parent->n) / n));
         }
 
     }
 
     if (print) {
-        char* mv = getMove(res->move);
+        char *mv = getMove(res->move);
         printf("MV: %s\n", mv);
         free(mv);
     }
@@ -64,13 +63,34 @@ MCTSNode* choseMaxChildren(MCTSNode* parent, int print) {
     return res;
 }
 
-int MCTSSearch(Board* board) {
-    MCTSNode* root = createMCTSNode(0);
+MCTSNode *getBest(MCTSNode *node) {
+    double max = 0;
+    MCTSNode *res = NULL;
 
-    MCTSNode* current;
+    for (int i = 0; i < node->childrenCount; ++i) {
+        if (node->children[i]->n >= max) {
+            max = node->children[i]->n;
+            res = node->children[i];
+        }
+    }
+
+    return res;
+}
+
+int MCTSSearch(Board *board, TimeManager tm) {
+    MCTSNode *root = createMCTSNode(0);
+
+    MCTSNode *current;
     int stackIndex;
+    setAbort(0);
+    Timer timer;
+    startTimer(&timer);
 
-    while(1) {
+
+    clock_t pvInterval = clock();
+    clock_t testAbortInterval = clock();
+
+    while (1) {
         // Step 0: Preparation
         stackIndex = 1;
         current = root;
@@ -79,7 +99,7 @@ int MCTSSearch(Board* board) {
         // Step 1: Choosing
         while (current->childrenCount) {
             nodesStack[stackIndex] = current;
-            current = current == root ? choseMaxChildren(current, 0) : choseMaxChildren(current, 0);
+            current = choseMaxChildren(current, 0);
 
             ++stackIndex;
         }
@@ -95,7 +115,7 @@ int MCTSSearch(Board* board) {
         double n = current->n;
         double negativeW = n - w;
 
-        while(stackIndex >= 0) {
+        while (stackIndex >= 0) {
             nodesStack[stackIndex]->n += n;
             nodesStack[stackIndex]->w += negativeScore ? negativeW : w;
             stackIndex--;
@@ -104,29 +124,57 @@ int MCTSSearch(Board* board) {
 
         // Step 4: printing
 
-        for (int i = 0; i < root->childrenCount; ++i) {
-            char* mv = getMove(root->children[i]->move);
+        if ((clock() - pvInterval) / CLOCKS_PER_SEC > 0.5) {
+            MCTSNode *pvNode = root;
+
+            printf("info pv ");
+            while (pvNode) {
+                pvNode = getBest(pvNode);
+
+                if (pvNode) {
+                    char *mv = getMove(pvNode->move);
+                    printf("%s ", mv);
+                    free(mv);
+                }
+            }
+            printf("\n");
+            fflush(stdout);
+            pvInterval = clock();
+        }
+
+        /*for (int i = 0; i < root->childrenCount; ++i) {
+            char *mv = getMove(root->children[i]->move);
             printf("%s: %f/%f\n", mv, root->children[i]->w, root->children[i]->n);
             free(mv);
+        }*/
+
+        if ((clock() - testAbortInterval) > 0.001 &&  testAbort(getTime(&timer), 0, &tm) || SEARCH_COMPLETE) {
+            testAbortInterval = clock();
+            setAbort(1);
+
+            MCTSNode *best = getBest(root);
+            char *mv = getMove(best->move);
+            __sync_synchronize();
+            printf("bestmove %s\n", mv);
+            fflush(stdout);
+            SEARCH_COMPLETE = 1;
+            free(mv);
+
+            return 0;
         }
     }
-/*
-    runSimulationsForNode(board, root);
-
-    for (int i = 0; i < root->childrenCount; ++i) {
-        printf("%f\n", root->children[i]->w);
-    }*/
 }
 
-void runSimulationsForNode(Board* board, MCTSNode* node) {
+void runSimulationsForNode(Board *board, MCTSNode *node) {
     int movesCount = generatePossibleMoves(board, movesCash1);
 
-    node->children = malloc(sizeof(MCTSNode*) * movesCount);
+    node->children = malloc(sizeof(MCTSNode *) * movesCount);
     node->childrenCount = movesCount;
 
     for (int i = 0; i < movesCount; ++i) {
         node->children[i] = createMCTSNode(movesCash1[i]);
         double incW = simulate(board, movesCash2);
+
         double incN = 1;
         node->children[i]->n += incN;
         node->children[i]->w += incW;
@@ -136,7 +184,7 @@ void runSimulationsForNode(Board* board, MCTSNode* node) {
     }
 }
 
-double simulate(Board* board, U16* movesCash) {
+double simulate(Board *board, U16 *movesCash) {
     if (isDraw(board)) {
         return 0.5;
     }
@@ -158,18 +206,18 @@ double simulate(Board* board, U16* movesCash) {
     return res;
 }
 
-int generatePossibleMoves(Board* board, U16* moves) {
+int generatePossibleMoves(Board *board, U16 *moves) {
     movegen(board, moves);
 
-    U16* curMove = moves;
-    U16* possibleMove = curMove;
+    U16 *curMove = moves;
+    U16 *possibleMove = curMove;
     Undo undo;
 
     int movesCount = 0;
-    while(*curMove) {
+    while (*curMove) {
         makeMove(board, *curMove, &undo);
 
-        if(!inCheck(board, !board->color)) {
+        if (!inCheck(board, !board->color)) {
             possibleMove[movesCount] = *curMove;
             ++movesCount;
         }

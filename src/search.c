@@ -5,7 +5,7 @@
 void* go(void* thread_data) {
     SearchArgs* args = (SearchArgs*)thread_data;
     if (MCTSEnabled) {
-        MCTSSearch(args->board);
+        MCTSSearch(args->board, args->tm);
     } else {
         iterativeDeeping(args->board, args->tm);
     }
@@ -14,6 +14,8 @@ void* go(void* thread_data) {
 
 SearchInfo iterativeDeeping(Board* board, TimeManager tm) {
     ++ttAge;
+
+    Timer timer;
     SearchInfo searchInfo;
     char bestMove[6];
 
