@@ -44,11 +44,15 @@ enum {
 extern double FutilityStep;
 extern double ReverseFutilityStep;
 extern double RazorMargin;
+extern double aspirationWindowSize;
+extern double NullMoveBaseReductionDepth;
+extern double NullMoveFactorReductionDepth;
 
 U16 moves[MAX_PLY][256];
 int movePrice[MAX_PLY][256];
 int mvvLvaScores[7][7];
 int lmr[MAX_PLY][64];
+
 
 //Heuristics control
 static const int FutilityPruningAllow = 1;

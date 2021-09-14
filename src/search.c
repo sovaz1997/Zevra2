@@ -1,9 +1,12 @@
 #include "search.h"
 #include "uci.h"
 
-double FutilityStep = 88.526;
-double ReverseFutilityStep = 91.184;
-double RazorMargin = 299.524;
+double FutilityStep = 87;
+double ReverseFutilityStep = 87;
+double RazorMargin = 299;
+double aspirationWindowSize = 17;
+double NullMoveBaseReductionDepth = 6;
+double NullMoveFactorReductionDepth = 6;
 
 void* go(void* thread_data) {
     SearchArgs* args = (SearchArgs*)thread_data;
@@ -36,7 +39,7 @@ SearchInfo iterativeDeeping(Board* board, TimeManager tm) {
 }
 
 int aspirationWindow(Board* board, SearchInfo* searchInfo, int depth, int score) {
-    int delta = 15;
+    int delta = round(aspirationWindowSize);
     int alpha = max(-MATE_SCORE, score - delta);
     int beta = min(MATE_SCORE, score + delta);
 
@@ -142,7 +145,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
     //Null Move pruning
     
-    int R = 2 + depth / 4;
+    int R = NullMoveBaseReductionDepth + depth / NullMoveFactorReductionDepth;
     
     int pieceCount = popcount(board->colours[WHITE] | board->colours[BLACK]);
     if(NullMovePruningAllow && pieceCount > 7 && !pvNode && haveNoPawnMaterial(board) && !weInCheck && !root && !searchInfo->nullMoveSearch && depth > R && (staticEval >= beta || depth <= 4)) {

@@ -8,7 +8,7 @@ const int TUNING_ENABLED = 0;
 
 int main(int argc, char* argv[]) {
     if (argc > 2) {
-        if (strEquals(argv[1], "--search-params") && argc == 5) {
+        if (strEquals(argv[1], "--search-params") && argc == 8) {
             printf("info string Params installed: ");
 
             for (int i = 2; i < argc; ++i) {
@@ -19,12 +19,12 @@ int main(int argc, char* argv[]) {
             FutilityStep = atof(argv[2]);
             ReverseFutilityStep = atof(argv[3]);
             RazorMargin = atof(argv[4]);
+            aspirationWindowSize = atof(argv[5]);
+            NullMoveBaseReductionDepth = atof(argv[6]);
+            NullMoveFactorReductionDepth = atof(argv[7]);
         }
     }
-    for (int i = 0; i < argc; ++i) {
-        printf("%s ", argv[i]);
-    }
-    printf("\n");
+
 
 
     initOption();
