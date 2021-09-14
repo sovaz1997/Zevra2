@@ -26,3 +26,9 @@ U16 stringToMove(Board* board, char* str) {
 
     return 0;
 }
+
+void printMove(U16 move) {
+    char moveStr[6];
+    moveToString(move, moveStr);
+    printf("%s\n", moveStr);
+}

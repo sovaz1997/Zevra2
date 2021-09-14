@@ -1,5 +1,6 @@
 #include "uci.h"
 #include "tuning.h"
+#include "mcts.h"
 
 char startpos[] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 Option option;
@@ -17,12 +18,15 @@ int main() {
     printEngineInfo();
     setFen(board, startpos);
 
-
     char buff[65536];
 
     GameInfo gameInfo;
     gameInfo.moveCount = 0;
     board->gameInfo = &gameInfo;
+
+    MCTSSearch(board);
+
+
     SEARCH_COMPLETE = 1;
 
     // tuning
