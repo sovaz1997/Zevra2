@@ -26,6 +26,8 @@ MCTSNode *createMCTSNode(U16 move) {
 U16 movesCash1[512];
 U16 movesCash2[512];
 MCTSNode *nodesStack[65536];
+Undo undoStack[65536];
+U16 undoMove[65536];
 
 const double C = 1;
 
@@ -82,6 +84,7 @@ int MCTSSearch(Board *board, TimeManager tm) {
 
     MCTSNode *current;
     int stackIndex;
+    int undoStackIndex;
     setAbort(0);
     Timer timer;
     startTimer(&timer);
@@ -93,6 +96,7 @@ int MCTSSearch(Board *board, TimeManager tm) {
     while (1) {
         // Step 0: Preparation
         stackIndex = 1;
+        undoStackIndex = 0;
         current = root;
         nodesStack[0] = current;
 
@@ -100,6 +104,12 @@ int MCTSSearch(Board *board, TimeManager tm) {
         while (current->childrenCount) {
             nodesStack[stackIndex] = current;
             current = choseMaxChildren(current, 0);
+
+            if (current->move) {
+                makeMove(board, current->move, &undoStack[undoStackIndex]);
+                undoMove[undoStackIndex] = current->move;
+                undoStackIndex++;
+            }
 
             ++stackIndex;
         }
@@ -122,6 +132,11 @@ int MCTSSearch(Board *board, TimeManager tm) {
             negativeScore = !negativeScore;
         }
 
+        while(undoStackIndex > 0) {
+            undoStackIndex--;
+            unmakeMove(board, undoMove[undoStackIndex], &undoStack[undoStackIndex]);
+        }
+
         // Step 4: printing
 
         if ((clock() - pvInterval) / CLOCKS_PER_SEC > 0.5) {
@@ -141,12 +156,6 @@ int MCTSSearch(Board *board, TimeManager tm) {
             fflush(stdout);
             pvInterval = clock();
         }
-
-        /*for (int i = 0; i < root->childrenCount; ++i) {
-            char *mv = getMove(root->children[i]->move);
-            printf("%s: %f/%f\n", mv, root->children[i]->w, root->children[i]->n);
-            free(mv);
-        }*/
 
         if ((clock() - testAbortInterval) > 0.001 &&  testAbort(getTime(&timer), 0, &tm) || SEARCH_COMPLETE) {
             testAbortInterval = clock();
