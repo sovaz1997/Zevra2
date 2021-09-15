@@ -29,7 +29,7 @@ MCTSNode *nodesStack[65536];
 Undo undoStack[65536];
 U16 undoMove[65536];
 
-const double C = 1;
+const double C = 100;
 
 MCTSNode *choseMaxChildren(MCTSNode *parent, int print) {
     assert(parent->children && parent->childrenCount);
@@ -93,7 +93,12 @@ int MCTSSearch(Board *board, TimeManager tm) {
     clock_t pvInterval = clock();
     clock_t testAbortInterval = clock();
 
+    int iters = 0;
     while (1) {
+        ++iters;
+        /*if (iters > 1) {
+            break;
+        }*/
         // Step 0: Preparation
         stackIndex = 1;
         undoStackIndex = 0;
@@ -118,8 +123,8 @@ int MCTSSearch(Board *board, TimeManager tm) {
         // Step 2: Expansion
         runSimulationsForNode(board, current);
 
-        // Step 3: Backpropogation
-        int negativeScore = 0;
+        // Step 3: Backpropagation
+        int negativeScore = 1;
 
         double w = current->w;
         double n = current->n;
@@ -157,11 +162,11 @@ int MCTSSearch(Board *board, TimeManager tm) {
             pvInterval = clock();
         }
 
-        for (int i = 0; i < root->childrenCount; ++i) {
-            char *mv = getMove(root->children[i]->move);
-            printf("%s: %f/%f\n", mv, root->children[i]->w, root->children[i]->n);
-            free(mv);
-        }
+//        for (int i = 0; i < root->childrenCount; ++i) {
+//            char *mv = getMove(root->children[i]->move);
+//            printf("%s: %f/%f\n", mv, root->children[i]->w, root->children[i]->n);
+//            free(mv);
+//        }
 
         if ((clock() - testAbortInterval) > 0.001 &&  testAbort(getTime(&timer), 0, &tm) || SEARCH_COMPLETE) {
             testAbortInterval = clock();
@@ -178,10 +183,25 @@ int MCTSSearch(Board *board, TimeManager tm) {
             return 0;
         }
     }
+
+    SEARCH_COMPLETE = 1;
 }
 
 void runSimulationsForNode(Board *board, MCTSNode *node) {
+
     int movesCount = generatePossibleMoves(board, movesCash1);
+
+    if (isDraw(board)) {
+        node->n += 1;
+        node->w += 0.5;
+        return;
+    }
+
+    if (movesCount == 0) {
+        node->n += 1;
+        node->w += inCheck(board, board->color) ? 1 : 0.5;
+        return;
+    }
 
     node->children = malloc(sizeof(MCTSNode *) * movesCount);
     node->childrenCount = movesCount;
@@ -191,12 +211,12 @@ void runSimulationsForNode(Board *board, MCTSNode *node) {
         U16 move = movesCash1[i];
         node->children[i] = createMCTSNode(movesCash1[i]);
         makeMove(board, move, &undo);
-        double incW = 1 - simulate(board, movesCash2);
+        double incW = simulate(board, movesCash2);
         double incN = 1;
         unmakeMove(board, move, &undo);
 
         node->children[i]->n += incN;
-        node->children[i]->w += incW;
+        node->children[i]->w += (1 - incW);
         node->children[i]->move = movesCash1[i];
         node->n += incN;
         node->w += incW;
@@ -218,7 +238,6 @@ double simulate(Board *board, U16 *movesCash) {
 
     Undo undo;
     U16 move = movesCash[randMove];
-    // printMove(move);
     makeMove(board, move, &undo);
     double res = 1 - simulate(board, movesCash);
     unmakeMove(board, move, &undo);
@@ -229,7 +248,7 @@ int generatePossibleMoves(Board *board, U16 *moves) {
     movegen(board, moves);
 
     U16 *curMove = moves;
-    U16 *possibleMove = curMove;
+    U16 *possibleMove = moves;
     Undo undo;
 
     int movesCount = 0;
