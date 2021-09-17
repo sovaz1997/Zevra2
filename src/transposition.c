@@ -53,7 +53,7 @@ void replaceTranspositionEntry(Transposition* addr, TranspositionEntity* newEntr
         }
 
         if(newEntry->depth >= addr->entity[i].depth) {
-            if(newEntry->evalType == upperbound && addr->entity[i].evalType != upperbound && addr->entity[i].evalType != upperbound) {
+            if(newEntry->evalType == upperbound && addr->entity[i].evalType != upperbound) {
                 replacePriorities[i] = -1;
                 continue;
             }
