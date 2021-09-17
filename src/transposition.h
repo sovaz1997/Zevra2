@@ -41,7 +41,7 @@ int ttAge;
 void initTT(int size);
 void reallocTT(int size);
 void clearTT();
-void replaceTranspositionEntry(Transposition* addr, TranspositionEntity* newEntry);
+void replaceTranspositionEntry(Transposition* addr, TranspositionEntity* newEntry, U64 key);
 U64 sizeToTTCount(U64 size);
 int evalToTT(int eval, int height);
 int evalFromTT(int eval, int height);

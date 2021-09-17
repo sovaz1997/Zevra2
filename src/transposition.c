@@ -43,8 +43,14 @@ void clearTT() {
     ttFilledSize = 0;
 }
 
-void replaceTranspositionEntry(Transposition* addr, TranspositionEntity* newEntry) {
+void replaceTranspositionEntry(Transposition* addr, TranspositionEntity* newEntry, U64 key) {
     int replacePriorities[BUCKETS_N];
+
+    if (addr->key && key != addr->key) {
+        return;
+    }
+
+    addr->key = key;
 
     for (int i = 0; i < BUCKETS_N; ++i) {
         if(addr->entity[i].age + 5 < ttAge || !addr->entity[i].evalType) {

@@ -277,7 +277,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     new_tt.eval = evalToTT(alpha, height);
 
     // setTransposition(&new_tt, keyPosition, alpha, hashType, depth, curBestMove, ttAge, height);
-    replaceTranspositionEntry(ttEntry, &new_tt);
+    replaceTranspositionEntry(ttEntry, &new_tt, keyPosition);
 
     if(!movesCount) {
         if(inCheck(board, board->color))
