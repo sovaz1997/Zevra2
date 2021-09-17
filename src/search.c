@@ -132,7 +132,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         int ttEval = evalFromTT(bestEntity->eval, height);
         // printf("%d\n", ttEntry->key == keyPosition);
         //TT analysis
-        if (bestEntity->evalType && bestEntity->depth >= depth && !root /*&& ttEntry->key == keyPosition*/) {
+        if (bestEntity->evalType && bestEntity->depth >= depth && !root && ttEntry->key == keyPosition) {
             if ((bestEntity->evalType == lowerbound && ttEval >= beta && !mateScore(bestEntity->eval)) ||
                 (bestEntity->evalType == upperbound && ttEval <= alpha && !mateScore(bestEntity->eval)) ||
                 bestEntity->evalType == exact) {
