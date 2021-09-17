@@ -46,12 +46,6 @@ void clearTT() {
 void replaceTranspositionEntry(Transposition* addr, TranspositionEntity* newEntry, U64 key) {
     int replacePriorities[BUCKETS_N];
 
-    if (addr->key && key != addr->key) {
-        return;
-    }
-
-    addr->key = key;
-
     for (int i = 0; i < BUCKETS_N; ++i) {
         if(addr->entity[i].age + 5 < ttAge || !addr->entity[i].evalType) {
             replacePriorities[i] = MAX_PLY * 2 - addr->entity[i].depth;
@@ -116,12 +110,12 @@ int evalFromTT(int eval, int height) {
     return eval;
 }
 
-int getMaxDepthBucket(Transposition* entry) {
+int getMaxDepthBucket(Transposition* entry, U64 key) {
     uint32_t depth = 0;
     int result = -1;
 
     for (int i = 0; i < BUCKETS_N; ++i) {
-        if (entry->entity[i].depth > depth) {
+        if (entry->entity[i].depth > depth && key == entry->entity[i].key) {
             depth = entry->entity[i].depth;
             result = i;
         }

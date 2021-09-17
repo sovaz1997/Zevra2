@@ -234,7 +234,7 @@ void printPV(Board* board, int depth, U16 bestMove) {
     Transposition* cur = &tt[board->key & ttIndex];
     
     for(int i = 0; !isDraw(board) && i < depth + 20; ++i) {
-        int entityIndex = getMaxDepthBucket(cur);
+        int entityIndex = getMaxDepthBucket(cur, board->key);
 
         if (entityIndex == -1) {
             break;

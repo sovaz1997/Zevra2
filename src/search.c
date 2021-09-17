@@ -120,7 +120,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     U64 keyPosition = board->key;
     Transposition* ttEntry = &tt[keyPosition & ttIndex];
 
-    int bestEntityIndex = getMaxDepthBucket(ttEntry);
+    int bestEntityIndex = getMaxDepthBucket(ttEntry, keyPosition);
 
 
     TranspositionEntity* bestEntity = NULL;
@@ -132,7 +132,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         int ttEval = evalFromTT(bestEntity->eval, height);
         // printf("%d\n", ttEntry->key == keyPosition);
         //TT analysis
-        if (bestEntity->evalType && bestEntity->depth >= depth && !root && ttEntry->key == keyPosition) {
+        if (bestEntity->evalType && bestEntity->depth >= depth && !root) {
             if ((bestEntity->evalType == lowerbound && ttEval >= beta && !mateScore(bestEntity->eval)) ||
                 (bestEntity->evalType == upperbound && ttEval <= alpha && !mateScore(bestEntity->eval)) ||
                 bestEntity->evalType == exact) {
@@ -274,6 +274,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     new_tt.age = ttAge;
     new_tt.evalType = hashType;
     new_tt.move = curBestMove;
+    new_tt.key = keyPosition;
     new_tt.eval = evalToTT(alpha, height);
 
     // setTransposition(&new_tt, keyPosition, alpha, hashType, depth, curBestMove, ttAge, height);

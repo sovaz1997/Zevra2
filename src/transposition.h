@@ -19,10 +19,10 @@ struct TranspositionEntity {
     S8 age;
     U8 evalType;
     U16 move;
+    U64 key;
 };
 
 struct Transposition {
-    U64 key;
 //    S16 eval[BUCKETS_N];
 //    U8 depth[BUCKETS_N];
 //    S8 age[BUCKETS_N];
@@ -45,7 +45,6 @@ void replaceTranspositionEntry(Transposition* addr, TranspositionEntity* newEntr
 U64 sizeToTTCount(U64 size);
 int evalToTT(int eval, int height);
 int evalFromTT(int eval, int height);
-int getReplacedBucket(Transposition* entry);
-int getMaxDepthBucket(Transposition* entry);
+int getMaxDepthBucket(Transposition* entry, U64 key);
 
 #endif
