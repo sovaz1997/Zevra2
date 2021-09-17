@@ -10,13 +10,13 @@
 #include "bitboards.h"
 
 enum {
-    BUCKETS_N = 2,
+    BUCKETS_N = 4,
 };
 
 struct TranspositionEntity {
     S16 eval;
     U8 depth;
-    S8 age;
+    // S8 age;
     U8 evalType;
     U16 move;
     U64 key;
@@ -37,7 +37,6 @@ double ttFilledSize;
 U64 ttIndex;
 int ttAge;
 
-// void setTransposition(Transposition* entry, U64 key, int eval, int evalType, int depth, U16 move, int age, int height, int bucketIndex);
 void initTT(int size);
 void reallocTT(int size);
 void clearTT();

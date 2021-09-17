@@ -270,13 +270,11 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
     TranspositionEntity new_tt;
     new_tt.depth = depth;
-    new_tt.age = ttAge;
     new_tt.evalType = hashType;
     new_tt.move = curBestMove;
     new_tt.key = keyPosition;
     new_tt.eval = evalToTT(alpha, height);
 
-    // setTransposition(&new_tt, keyPosition, alpha, hashType, depth, curBestMove, ttAge, height);
     replaceTranspositionEntry(ttEntry, &new_tt, keyPosition);
 
     if(!movesCount) {
@@ -429,27 +427,33 @@ void moveOrdering(Board* board, U16* mvs, SearchInfo* searchInfo, int height, in
 
     U16* ptr = mvs;
     Transposition* ttEntry = &tt[board->key & ttIndex];
+    int ttIndex = getMaxDepthBucket(ttEntry, board->key);
+
+    TranspositionEntity* entity = ttIndex != -1 ? &ttEntry->entity[ttIndex] : NULL;
+
     int i;
 
     for(i = 0; *ptr; ++i) {
-        int isHashMove = 0;
+        // int isHashMove = 0;
         movePrice[height][i] = 0;
         U16 toPiece = pieceType(board->squares[MoveTo(*ptr)]);
 
-        for (int j = 0; j < BUCKETS_N; ++j) {
+        /*for (int j = 0; j < BUCKETS_N; ++j) {
             if (*ptr == ttEntry->entity[j].move && ttEntry->entity[j].key == board->key) {
                 movePrice[height][i] = 1000000000 + ttEntry->entity[j].depth;
                 isHashMove = 1;
                 break;
             }
-        }
+        }*/
 
-        if (isHashMove) {
+        /*if (isHashMove) {
             ++ptr;
             continue;
-        }
-        
-        if(toPiece)
+        }*/
+
+        if (entity && *ptr == entity->move) {
+            movePrice[height][i] = 1000000000;
+        } else if(toPiece)
             movePrice[height][i] = mvvLvaScores[pieceType(board->squares[MoveFrom(*ptr)])][toPiece] * 1000000;
         else if(depth < MAX_PLY && searchInfo->killer[height][0] == *ptr)
             movePrice[height][i] = 100000;

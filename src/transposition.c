@@ -1,21 +1,6 @@
 #include "transposition.h"
 #include "search.h"
 
-//void setTransposition(Transposition* entry, U64 key, int eval, int evalType, int depth, U16 move, int age, int height) {
-//    if (entry->key == 0 || entry->key == key) {
-//        entry->key = key;
-//
-//        int index = getBucketWithLessDepth(entry);
-//
-//        entry->entity[index].eval = evalToTT(eval, height);
-//        entry->entity[index].evalType = evalType;
-//        entry->entity[index].move = move;
-//        entry->entity[index].depth = depth;
-//        entry->entity[index].age = age;
-//    }
-//
-//}
-
 void initTT(int size) {
     ttSize = sizeToTTCount(size);
     tt = (Transposition*) malloc(sizeof(Transposition) * ttSize);
@@ -47,19 +32,12 @@ void replaceTranspositionEntry(Transposition* addr, TranspositionEntity* newEntr
     int replacePriorities[BUCKETS_N];
 
     for (int i = 0; i < BUCKETS_N; ++i) {
-        if(addr->entity[i].age + 5 < ttAge || !addr->entity[i].evalType) {
-            replacePriorities[i] = MAX_PLY * 2 - addr->entity[i].depth;
-            continue;
-        }
-
-        if(newEntry->depth >= addr->entity[i].depth) {
-            if(newEntry->evalType == upperbound && addr->entity[i].evalType != upperbound) {
+            if(key == newEntry->key && newEntry->evalType == upperbound && addr->entity[i].evalType != upperbound && addr->entity[i].evalType) {
                 replacePriorities[i] = -1;
                 continue;
             }
 
             replacePriorities[i] = MAX_PLY * 2 - addr->entity[i].depth;
-        }
     }
 
     int index = -1;
