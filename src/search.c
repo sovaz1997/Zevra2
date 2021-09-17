@@ -122,7 +122,6 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
     int bestEntityIndex = getMaxDepthBucket(ttEntry, keyPosition);
 
-
     TranspositionEntity* bestEntity = NULL;
     if (bestEntityIndex != -1) {
         bestEntity = &ttEntry->entity[bestEntityIndex];
@@ -130,7 +129,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
     if (bestEntity) {
         int ttEval = evalFromTT(bestEntity->eval, height);
-        // printf("%d\n", ttEntry->key == keyPosition);
+
         //TT analysis
         if (bestEntity->evalType && bestEntity->depth >= depth && !root) {
             if ((bestEntity->evalType == lowerbound && ttEval >= beta && !mateScore(bestEntity->eval)) ||
@@ -296,15 +295,23 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
     U64 keyPosition = board->key;
     Transposition* ttEntry = &tt[keyPosition & ttIndex];
 
-//    //TT analysis
-//    int ttEval = evalFromTT(ttEntry->eval, height);
-//    if(ttEntry->evalType && ttEntry->key == keyPosition && !TUNING_ENABLED) {
-//        if((ttEntry->evalType == lowerbound && ttEval >= beta && !mateScore(ttEntry->eval)) ||
-//           (ttEntry->evalType == upperbound && ttEval <= alpha && !mateScore(ttEntry->eval)) ||
-//           ttEntry->evalType == exact) {
-//               return ttEval;
-//        }
-//    }
+    int bestEntityIndex = getMaxDepthBucket(ttEntry, keyPosition);
+
+    TranspositionEntity* bestEntity = NULL;
+    if (bestEntityIndex != -1) {
+        bestEntity = &ttEntry->entity[bestEntityIndex];
+    }
+
+    if (bestEntity) {
+        int ttEval = evalFromTT(bestEntity->eval, height);
+        if (bestEntity->evalType) {
+            if ((bestEntity->evalType == lowerbound && ttEval >= beta && !mateScore(bestEntity->eval)) ||
+                (bestEntity->evalType == upperbound && ttEval <= alpha && !mateScore(bestEntity->eval)) ||
+                bestEntity->evalType == exact) {
+                return ttEval;
+            }
+        }
+    }
 
     if(height >= MAX_PLY - 1)
         return fullEval(board);
@@ -421,7 +428,6 @@ void moveOrdering(Board* board, U16* mvs, SearchInfo* searchInfo, int height, in
         depth = MAX_PLY - 1;
 
     U16* ptr = mvs;
-    // U16 hashMove = tt[board->key & ttIndex].move;
     Transposition* ttEntry = &tt[board->key & ttIndex];
     int i;
 
