@@ -1,5 +1,6 @@
 #include "search.h"
 #include "uci.h"
+#include "types.h"
 
 void* go(void* thread_data) {
     SearchArgs* args = (SearchArgs*)thread_data;
@@ -119,13 +120,24 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     U64 keyPosition = board->key;
     Transposition* ttEntry = &tt[keyPosition & ttIndex];
 
-    //TT analysis
-    int ttEval = evalFromTT(ttEntry->eval, height);
-    if(ttEntry->evalType && ttEntry->depth >= depth && !root && ttEntry->key == keyPosition) {
-        if((ttEntry->evalType == lowerbound && ttEval >= beta && !mateScore(ttEntry->eval)) ||
-           (ttEntry->evalType == upperbound && ttEval <= alpha && !mateScore(ttEntry->eval)) ||
-           ttEntry->evalType == exact) {
-               return ttEval;
+    int bestEntityIndex = getMaxDepthBucket(ttEntry);
+
+
+    TranspositionEntity* bestEntity = NULL;
+    if (bestEntityIndex != -1) {
+        bestEntity = &ttEntry->entity[bestEntityIndex];
+    }
+
+    if (bestEntity) {
+        int ttEval = evalFromTT(bestEntity->eval, height);
+        // printf("%d\n", ttEntry->key == keyPosition);
+        //TT analysis
+        if (bestEntity->evalType && bestEntity->depth >= depth && !root /*&& ttEntry->key == keyPosition*/) {
+            if ((bestEntity->evalType == lowerbound && ttEval >= beta && !mateScore(bestEntity->eval)) ||
+                (bestEntity->evalType == upperbound && ttEval <= alpha && !mateScore(bestEntity->eval)) ||
+                bestEntity->evalType == exact) {
+                return ttEval;
+            }
         }
     }
 
@@ -257,9 +269,15 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     if(ABORT)
         return 0;
 
-    Transposition new_tt;
-    setTransposition(&new_tt, keyPosition, alpha, hashType, depth, curBestMove, ttAge, height);
-    replaceTransposition(ttEntry, new_tt);
+    TranspositionEntity new_tt;
+    new_tt.depth = depth;
+    new_tt.age = ttAge;
+    new_tt.evalType = hashType;
+    new_tt.move = curBestMove;
+    new_tt.eval = evalToTT(alpha, height);
+
+    // setTransposition(&new_tt, keyPosition, alpha, hashType, depth, curBestMove, ttAge, height);
+    replaceTranspositionEntry(ttEntry, &new_tt);
 
     if(!movesCount) {
         if(inCheck(board, board->color))
@@ -277,15 +295,15 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
     U64 keyPosition = board->key;
     Transposition* ttEntry = &tt[keyPosition & ttIndex];
 
-    //TT analysis
-    int ttEval = evalFromTT(ttEntry->eval, height);
-    if(ttEntry->evalType && ttEntry->key == keyPosition && !TUNING_ENABLED) {
-        if((ttEntry->evalType == lowerbound && ttEval >= beta && !mateScore(ttEntry->eval)) ||
-           (ttEntry->evalType == upperbound && ttEval <= alpha && !mateScore(ttEntry->eval)) ||
-           ttEntry->evalType == exact) {
-               return ttEval;
-        }
-    }
+//    //TT analysis
+//    int ttEval = evalFromTT(ttEntry->eval, height);
+//    if(ttEntry->evalType && ttEntry->key == keyPosition && !TUNING_ENABLED) {
+//        if((ttEntry->evalType == lowerbound && ttEval >= beta && !mateScore(ttEntry->eval)) ||
+//           (ttEntry->evalType == upperbound && ttEval <= alpha && !mateScore(ttEntry->eval)) ||
+//           ttEntry->evalType == exact) {
+//               return ttEval;
+//        }
+//    }
 
     if(height >= MAX_PLY - 1)
         return fullEval(board);
@@ -402,16 +420,29 @@ void moveOrdering(Board* board, U16* mvs, SearchInfo* searchInfo, int height, in
         depth = MAX_PLY - 1;
 
     U16* ptr = mvs;
-    U16 hashMove = tt[board->key & ttIndex].move;
+    // U16 hashMove = tt[board->key & ttIndex].move;
+    Transposition* ttEntry = &tt[board->key & ttIndex];
     int i;
 
     for(i = 0; *ptr; ++i) {
+        int isHashMove = 0;
         movePrice[height][i] = 0;
         U16 toPiece = pieceType(board->squares[MoveTo(*ptr)]);
+
+        for (int j = 0; j < BUCKETS_N; ++j) {
+            if (*ptr == ttEntry->entity[j].move) {
+                movePrice[height][i] = 1000000000 + ttEntry->entity[j].depth;
+                isHashMove = 1;
+                break;
+            }
+        }
+
+        if (isHashMove) {
+            ++ptr;
+            continue;
+        }
         
-        if(hashMove == *ptr)
-            movePrice[height][i] = 1000000000;
-        else if(toPiece)
+        if(toPiece)
             movePrice[height][i] = mvvLvaScores[pieceType(board->squares[MoveFrom(*ptr)])][toPiece] * 1000000;
         else if(depth < MAX_PLY && searchInfo->killer[height][0] == *ptr)
             movePrice[height][i] = 100000;
@@ -429,7 +460,7 @@ void moveOrdering(Board* board, U16* mvs, SearchInfo* searchInfo, int height, in
 
         if(toPiece) {
             int seeScore = see(board, MoveTo(*ptr), board->squares[MoveTo(*ptr)], MoveFrom(*ptr), board->squares[MoveFrom(*ptr)]);
-            if(seeScore < 0 && hashMove != *ptr)
+            if(seeScore < 0 /*&& hashMove != *ptr*/)
                 movePrice[height][i] = seeScore;
         }
 
@@ -488,19 +519,6 @@ void resetSearchInfo(SearchInfo* info, TimeManager tm) {
     info->tm = tm;
     setAbort(0);
     compressHistory();
-}
-
-void replaceTransposition(Transposition* tr, Transposition new_tr) {
-    if(tr->age + 5 < ttAge || !tr->evalType) {
-        replaceTranspositionEntry(tr, &new_tr);
-        return;
-    }
-
-    if(new_tr.depth >= tr->depth) {
-        if(new_tr.evalType == upperbound && tr->evalType != upperbound)
-            return;
-        replaceTranspositionEntry(tr, &new_tr);
-    }
 }
 
 void setAbort(int val) {

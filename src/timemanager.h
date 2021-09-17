@@ -37,5 +37,6 @@ TimeManager createFixedNodesTm(int depth);
 TimeManager initTM();
 void setTournamentTime(TimeManager* tm, Board* board);
 int testAbort(U64 time, int nodesCount, TimeManager* tm);
+void replaceTranspositionEntry(Transposition* addr, TranspositionEntity* newEntry);
 
 #endif
