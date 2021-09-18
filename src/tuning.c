@@ -27,6 +27,8 @@ void makeTuning(Board *board) {
 
     double E = fun();
 
+    FILE* regression = fopen("regression.txt", "w");
+
     int stage = 1;
     while(1) {
         int improved = 0;
@@ -57,14 +59,26 @@ void makeTuning(Board *board) {
 
         char stageStr[10];
         itoa(stage, stageStr, 10);
-        char* rightFileName = strcat(stageStr, ".txt");
 
-        printParams(strcat("linear-weights-", rightFileName), strcat("weights-", rightFileName));
+        char linearFileName[256] = "";
+        char fileName[256] = "";
+
+        strcat(linearFileName, "linear-weights-");
+        strcat(fileName, "weights-");
+
+        strcat(linearFileName, stageStr);
+        strcat(fileName, stageStr);
+
+        strcat(linearFileName, ".txt");
+        strcat(fileName, ".txt");
+
+        printParams(fileName, linearFileName);
 
         printf("NewE: %.7f\n", E);
         printf("Iterations: %d/%d\n", iterations, PARAMS_COUNT);
 
         ++stage;
+        fprintf(regression, "%f\n", E);
 
         if (!improved) {
             break;
@@ -74,6 +88,8 @@ void makeTuning(Board *board) {
     for (int i = 0; i < PARAMS_COUNT; i++) {
         printf("%d ", evalParams[i]);
     }
+
+    fclose(regression);
 }
 
 int positionsCount = 0;
@@ -97,6 +113,9 @@ void loadPositions(Board *board) {
     linearEvals = malloc(sizeof(double) * N);
 
     while (1) {
+        if (positionsCount > 200) {
+            break;
+        }
         estr = fgets(buf, sizeof(buf), f);
 
         if (!estr) {
