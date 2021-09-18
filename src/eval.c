@@ -22,14 +22,14 @@ int QueenMobilityMG[QUEEN_MOBILITY_N] = {
 };
 int RookMobilityMG[ROOK_MOBILITY_N] = {-30, -20, -10, 0, 10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80};
 int BishopMobilityMG[BISHOP_MOBILITY_N] = {-30, -10, 5, 15, 20, 25, 35, 40, 45, 50, 55, 60, 65, 70};
-int KnightMobilityMG[KNIGHT_MOBILITY_N] = {-50, -25, -10, -2, 5, 10, 15, 25};
+int KnightMobilityMG[KNIGHT_MOBILITY_N] = {-50, -25, -10, -2, 5, 10, 15, 25, 30};
 int QueenMobilityEG[QUEEN_MOBILITY_N] = {
         -30, -20, -10, 0, 5, 10, 12, 15, 18, 20, 25, 30, 32, 35,
         40, 45, 50, 55, 57, 60, 63, 65, 70, 75, 80, 85, 90, 95
 };
 int RookMobilityEG[ROOK_MOBILITY_N] = {-30, -20, -10, 0, 10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80};
 int BishopMobilityEG[BISHOP_MOBILITY_N] = {-30, -10, 5, 15, 20, 25, 35, 40, 45, 50, 55, 60, 65, 70};
-int KnightMobilityEG[KNIGHT_MOBILITY_N] = {-50, -25, -10, -2, 5, 10, 15, 25};
+int KnightMobilityEG[KNIGHT_MOBILITY_N] = {-50, -25, -10, -2, 5, 10, 15, 25, 30};
 
 //additional bonuses and penalties
 int PassedPawnBonus[8] = {0, 0, 10, 20, 40, 80, 120, 0};
@@ -382,26 +382,26 @@ void initDependencyStagedEval(int st) {
         KingDanger[i] = kingDanger(i);
     }
 
-    PAWN_EVAL[stage] = getScore2(PAWN_EV_MG, PAWN_EV_EG, st);
-    KNIGHT_EVAL[stage] = getScore2(KNIGHT_EV_MG, KNIGHT_EV_EG, st);
-    BISHOP_EVAL[stage] = getScore2(BISHOP_EV_MG, BISHOP_EV_EG, st);
-    ROOK_EVAL[stage] = getScore2(ROOK_EV_MG, ROOK_EV_EG, st);
-    QUEEN_EVAL[stage] = getScore2(QUEEN_EV_MG, QUEEN_EV_EG, st);
+    PAWN_EVAL[st] = getScore2(PAWN_EV_MG, PAWN_EV_EG, st);
+    KNIGHT_EVAL[st] = getScore2(KNIGHT_EV_MG, KNIGHT_EV_EG, st);
+    BISHOP_EVAL[st] = getScore2(BISHOP_EV_MG, BISHOP_EV_EG, st);
+    ROOK_EVAL[st] = getScore2(ROOK_EV_MG, ROOK_EV_EG, st);
+    QUEEN_EVAL[st] = getScore2(QUEEN_EV_MG, QUEEN_EV_EG, st);
 
     for (int j = 0; j < QUEEN_MOBILITY_N; ++j) {
-        QueenMobility[stage][j] = getScore2(QueenMobilityMG[j], QueenMobilityEG[j], stage);
+        QueenMobility[st][j] = getScore2(QueenMobilityMG[j], QueenMobilityEG[j], st);
     }
 
     for (int j = 0; j < ROOK_MOBILITY_N; ++j) {
-        RookMobility[stage][j] = getScore2(RookMobilityMG[j], RookMobilityEG[j], stage);
+        RookMobility[st][j] = getScore2(RookMobilityMG[j], RookMobilityEG[j], st);
     }
 
     for (int j = 0; j < BISHOP_MOBILITY_N; ++j) {
-        BishopMobility[stage][j] = getScore2(BishopMobilityMG[j], BishopMobilityEG[j], stage);
+        BishopMobility[st][j] = getScore2(BishopMobilityMG[j], BishopMobilityEG[j], st);
     }
 
     for (int j = 0; j < KNIGHT_MOBILITY_N; ++j) {
-        KnightMobility[stage][j] = getScore2(KnightMobilityMG[j], KnightMobilityEG[j], stage);
+        KnightMobility[st][j] = getScore2(KnightMobilityMG[j], KnightMobilityEG[j], st);
     }
 
     //Isolated pawn hash init

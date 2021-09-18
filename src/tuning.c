@@ -7,7 +7,7 @@
 #include "search.h"
 
 double K = 0.9166;
-const int PARAMS_COUNT = 923;
+const int PARAMS_COUNT = 925;
 
 struct TuningPosition {
     char fen[512];
@@ -110,15 +110,12 @@ void loadPositions(Board *board) {
 
     int quiets = 0;
 
-    int N = 120000000;
+    int N = 12000000;
     positions = malloc(sizeof(TuningPosition) * N);
     linearEvalPositions = malloc(sizeof(double *) * N);
     linearEvals = malloc(sizeof(double) * N);
 
     while (1) {
-        if (positionsCount > 200) {
-            break;
-        }
         estr = fgets(buf, sizeof(buf), f);
 
         if (!estr) {
@@ -454,6 +451,12 @@ int *calculateLinear(Board *board, int positionNumber) {
     setValues(values, stage);
 
     double up = 1000;
+
+    int ev1 = fullEval(board);
+    if (ev1 > 0) {
+        printf("WRONG\n");
+        exit(0);
+    }
 
     int evalParamsCount = 0;
     for (int i = 0; i < PARAMS_COUNT; i++) {

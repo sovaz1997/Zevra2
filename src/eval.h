@@ -9,7 +9,7 @@ enum {
   QUEEN_MOBILITY_N = 28,
     ROOK_MOBILITY_N = 15,
     BISHOP_MOBILITY_N = 14,
-    KNIGHT_MOBILITY_N = 8,
+    KNIGHT_MOBILITY_N = 9,
 };
 
 //Piece weights
