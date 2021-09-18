@@ -30,6 +30,9 @@ void makeTuning(Board *board) {
     FILE* regression = fopen("regression.txt", "w");
 
     int stage = 1;
+
+    printParams("first-weights.txt", "first-linear-weights.txt");
+
     while(1) {
         int improved = 0;
         int iterations = 0;
