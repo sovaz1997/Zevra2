@@ -16,12 +16,18 @@ int ROOK_EV_EG = 643;
 int QUEEN_EV_EG = 1133;
 
 //Mobility bonuses
-int QueenMobility[28] = {
+int QueenMobilityMG[QUEEN_MOBILITY_N] = {
         -28, -20, -10, -1, 35, 34, 64, 70, 75, 83, 88, 100, 104, 113, 116, 122, 124, 125, 141, 134, 148, 146, 155, 156, 158, 173, 174, 175,
 };
-int RookMobility[15] = {-86, -48, -6, 0, 5, 13, 20, 26, 29, 37, 43, 45, 45, 44, 43, };
-int BishopMobility[14] = {-65, -55, -15, 2, 16, 26, 34, 42, 49, 56, 59, 61, 57, 69, };
-int KnightMobility[8] = {-153, -72, -46, -24, -7, 4, 13, 23, };
+int RookMobilityMG[ROOK_MOBILITY_N] = {-86, -48, -6, 0, 5, 13, 20, 26, 29, 37, 43, 45, 45, 44, 43, };
+int BishopMobilityMG[14] = {-65, -55, -15, 2, 16, 26, 34, 42, 49, 56, 59, 61, 57, 69, };
+int KnightMobilityMG[8] = {-153, -72, -46, -24, -7, 4, 13, 23, };
+int QueenMobilityEG[QUEEN_MOBILITY_N] = {
+        -28, -20, -10, -1, 35, 34, 64, 70, 75, 83, 88, 100, 104, 113, 116, 122, 124, 125, 141, 134, 148, 146, 155, 156, 158, 173, 174, 175,
+};
+int RookMobilityEG[ROOK_MOBILITY_N] = {-86, -48, -6, 0, 5, 13, 20, 26, 29, 37, 43, 45, 45, 44, 43, };
+int BishopMobilityEG[14] = {-65, -55, -15, 2, 16, 26, 34, 42, 49, 56, 59, 61, 57, 69, };
+int KnightMobilityEG[8] = {-153, -72, -46, -24, -7, 4, 13, 23, };
 
 //additional bonuses and penalties
 int PassedPawnBonus[8] = {0, -11, -10, 4, 35, 88, 127, 0, };
@@ -163,7 +169,7 @@ int mobilityAndKingDangerEval(Board *board, int color) {
         int from = firstOne(mask);
         U64 possibleMoves = rookPossibleMoves[from][getMagicIndex(occu & rookMagicMask[from] & unSquareBitboard[from],
                                                                   rookMagic[from], rookPossibleMovesSize[from])];
-        eval += RookMobility[popcount(possibleMoves & possibleSq)];
+        eval += RookMobility[stage][popcount(possibleMoves & possibleSq)];
 
         kingDangerValue += 3 * popcount(possibleMoves & enemyKingDangerCells);
 
@@ -178,7 +184,7 @@ int mobilityAndKingDangerEval(Board *board, int color) {
         U64 possibleMoves = bishopPossibleMoves[from][getMagicIndex(
                 occu & bishopMagicMask[from] & unSquareBitboard[from], bishopMagic[from],
                 bishopPossibleMovesSize[from])];
-        eval += BishopMobility[popcount(possibleMoves & possibleSq)];
+        eval += BishopMobility[stage][popcount(possibleMoves & possibleSq)];
 
         kingDangerValue += 2 * popcount(possibleMoves & enemyKingDangerCells);
 
@@ -196,7 +202,7 @@ int mobilityAndKingDangerEval(Board *board, int color) {
                 | (bishopPossibleMoves[from][getMagicIndex(occu & bishopMagicMask[from] & unSquareBitboard[from],
                                                            bishopMagic[from], bishopPossibleMovesSize[from])])
         );
-        eval += QueenMobility[popcount(possibleMoves & possibleSq)];
+        eval += QueenMobility[stage][popcount(possibleMoves & possibleSq)];
 
         kingDangerValue += 5 * popcount(possibleMoves & enemyKingDangerCells);
 
@@ -209,7 +215,7 @@ int mobilityAndKingDangerEval(Board *board, int color) {
     while (mask) {
         int from = firstOne(mask);
         U64 possibleMoves = knightAttacks[from];
-        eval += KnightMobility[popcount(possibleMoves & possibleSq)];
+        eval += KnightMobility[stage][popcount(possibleMoves & possibleSq)];
 
         kingDangerValue += 2 * popcount(possibleMoves & enemyKingDangerCells);
 
@@ -318,6 +324,22 @@ void initDependencyEval() {
         BISHOP_EVAL[i] = getScore2(BISHOP_EV_MG, BISHOP_EV_EG, i);
         ROOK_EVAL[i] = getScore2(ROOK_EV_MG, ROOK_EV_EG, i);
         QUEEN_EVAL[i] = getScore2(QUEEN_EV_MG, QUEEN_EV_EG, i);
+
+        for (int j = 0; j < QUEEN_MOBILITY_N; ++j) {
+            QueenMobility[i][j] = getScore2(QueenMobilityMG[j], QueenMobilityEG[j], i);
+        }
+
+        for (int j = 0; j < ROOK_MOBILITY_N; ++j) {
+            RookMobility[i][j] = getScore2(RookMobilityMG[j], RookMobilityEG[j], i);
+        }
+
+        for (int j = 0; j < BISHOP_MOBILITY_N; ++j) {
+            BishopMobility[i][j] = getScore2(BishopMobilityMG[j], BishopMobilityEG[j], i);
+        }
+
+        for (int j = 0; j < KNIGHT_MOBILITY_N; ++j) {
+            KnightMobility[i][j] = getScore2(KnightMobilityMG[j], KnightMobilityEG[j], i);
+        }
     }
 
     for (int i = 0; i < 100; i++) {
@@ -363,6 +385,22 @@ void initDependencyStagedEval(int st) {
     BISHOP_EVAL[stage] = getScore2(BISHOP_EV_MG, BISHOP_EV_EG, st);
     ROOK_EVAL[stage] = getScore2(ROOK_EV_MG, ROOK_EV_EG, st);
     QUEEN_EVAL[stage] = getScore2(QUEEN_EV_MG, QUEEN_EV_EG, st);
+
+    for (int j = 0; j < QUEEN_MOBILITY_N; ++j) {
+        QueenMobility[stage][j] = getScore2(QueenMobilityMG[j], QueenMobilityEG[j], stage);
+    }
+
+    for (int j = 0; j < ROOK_MOBILITY_N; ++j) {
+        RookMobility[stage][j] = getScore2(RookMobilityMG[j], RookMobilityEG[j], stage);
+    }
+
+    for (int j = 0; j < BISHOP_MOBILITY_N; ++j) {
+        BishopMobility[stage][j] = getScore2(BishopMobilityMG[j], BishopMobilityEG[j], stage);
+    }
+
+    for (int j = 0; j < KNIGHT_MOBILITY_N; ++j) {
+        KnightMobility[stage][j] = getScore2(KnightMobilityMG[j], KnightMobilityEG[j], stage);
+    }
 
     //Isolated pawn hash init
     for (int i = 0; i < 256; ++i) {

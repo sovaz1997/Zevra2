@@ -7,7 +7,7 @@
 #include "search.h"
 
 double K = 0.9166;
-const int PARAMS_COUNT = 858;
+const int PARAMS_COUNT = 923;
 
 struct TuningPosition {
     char fen[512];
@@ -27,6 +27,7 @@ void makeTuning(Board *board) {
 
     double E = fun();
 
+    int stage = 1;
     while(1) {
         int improved = 0;
         int iterations = 0;
@@ -53,10 +54,17 @@ void makeTuning(Board *board) {
                 }
             }
         }
-        printParams();
+
+        char stageStr[10];
+        itoa(stage, stageStr, 10);
+        char* rightFileName = strcat(stageStr, ".txt");
+
+        printParams(strcat("linear-weights-", rightFileName), strcat("weights-", rightFileName));
 
         printf("NewE: %.7f\n", E);
         printf("Iterations: %d/%d\n", iterations, PARAMS_COUNT);
+
+        ++stage;
 
         if (!improved) {
             break;
@@ -236,10 +244,14 @@ void setValues(int *values, int stage) {
     transferPST(&values[curIndex], egKingPST, &curIndex);
 
     // Mobility
-    transfer(&values[curIndex], QueenMobility, &curIndex, 28);
-    transfer(&values[curIndex], RookMobility, &curIndex, 15);
-    transfer(&values[curIndex], BishopMobility, &curIndex, 14);
-    transfer(&values[curIndex], KnightMobility, &curIndex, 8);
+    transfer(&values[curIndex], QueenMobilityMG, &curIndex, QUEEN_MOBILITY_N);
+    transfer(&values[curIndex], RookMobilityMG, &curIndex, ROOK_MOBILITY_N);
+    transfer(&values[curIndex], BishopMobilityMG, &curIndex, BISHOP_MOBILITY_N);
+    transfer(&values[curIndex], KnightMobilityMG, &curIndex, KNIGHT_MOBILITY_N);
+    transfer(&values[curIndex], QueenMobilityEG, &curIndex, QUEEN_MOBILITY_N);
+    transfer(&values[curIndex], RookMobilityEG, &curIndex, ROOK_MOBILITY_N);
+    transfer(&values[curIndex], BishopMobilityEG, &curIndex, BISHOP_MOBILITY_N);
+    transfer(&values[curIndex], KnightMobilityEG, &curIndex, KNIGHT_MOBILITY_N);
 
 
     transfer(&values[curIndex], PassedPawnBonus, &curIndex, 8);
@@ -300,10 +312,14 @@ int *getValues() {
     transferPST(egKingPST, &res[curIndex], &curIndex);
 
     // Mobility
-    transfer(QueenMobility, &res[curIndex], &curIndex, 28);
-    transfer(RookMobility, &res[curIndex], &curIndex, 15);
-    transfer(BishopMobility, &res[curIndex], &curIndex, 14);
-    transfer(KnightMobility, &res[curIndex], &curIndex, 8);
+    transfer(QueenMobilityMG, &res[curIndex], &curIndex, QUEEN_MOBILITY_N);
+    transfer(RookMobilityMG, &res[curIndex], &curIndex, ROOK_MOBILITY_N);
+    transfer(BishopMobilityMG, &res[curIndex], &curIndex, BISHOP_MOBILITY_N);
+    transfer(KnightMobilityMG, &res[curIndex], &curIndex, KNIGHT_MOBILITY_N);
+    transfer(QueenMobilityEG, &res[curIndex], &curIndex, QUEEN_MOBILITY_N);
+    transfer(RookMobilityEG, &res[curIndex], &curIndex, ROOK_MOBILITY_N);
+    transfer(BishopMobilityEG, &res[curIndex], &curIndex, BISHOP_MOBILITY_N);
+    transfer(KnightMobilityEG, &res[curIndex], &curIndex, KNIGHT_MOBILITY_N);
 
     transfer(PassedPawnBonus, &res[curIndex], &curIndex, 8);
 
@@ -325,15 +341,27 @@ void incParam(int *arr, int n, int value) {
     }
 }
 
-void printParams() {
+void printParams(char* filename, char* linearFileName) {
     int *params = evalParams;
 
     int curIndex = 0;
 
     FILE *f;
-    char name[] = "weights.txt";
 
-    if ((f = fopen(name, "w")) == NULL) {
+    // Linear
+    if ((f = fopen(linearFileName, "w")) == NULL) {
+        printf("Не удалось открыть файл");
+        return;
+    }
+
+    for (int i = 0; i < PARAMS_COUNT; ++i) {
+        fprintf(f, "%d ", params[i]);
+    }
+
+    fclose(f);
+
+    // Standard
+    if ((f = fopen(filename, "w")) == NULL) {
         printf("Не удалось открыть файл");
         return;
     }
@@ -364,10 +392,14 @@ void printParams() {
     printPST("egKingPST", &params[curIndex], &curIndex, f);
 
     // Mobility
-    printArray("QueenMobility", &params[curIndex], &curIndex, 28, f);
-    printArray("RookMobility", &params[curIndex], &curIndex, 15, f);
-    printArray("BishopMobility", &params[curIndex], &curIndex, 14, f);
-    printArray("KnightMobility", &params[curIndex], &curIndex, 8, f);
+    printArray("QueenMobilityMG", &params[curIndex], &curIndex, QUEEN_MOBILITY_N, f);
+    printArray("RookMobilityMG", &params[curIndex], &curIndex, ROOK_MOBILITY_N, f);
+    printArray("BishopMobilityMG", &params[curIndex], &curIndex, BISHOP_MOBILITY_N, f);
+    printArray("KnightMobilityMG", &params[curIndex], &curIndex, KNIGHT_MOBILITY_N, f);
+    printArray("QueenMobilityEG", &params[curIndex], &curIndex, QUEEN_MOBILITY_N, f);
+    printArray("RookMobilityEG", &params[curIndex], &curIndex, ROOK_MOBILITY_N, f);
+    printArray("BishopMobilityEG", &params[curIndex], &curIndex, BISHOP_MOBILITY_N, f);
+    printArray("KnightMobilityEG", &params[curIndex], &curIndex, KNIGHT_MOBILITY_N, f);
 
     printArray("PassedPawnsBonus", &params[curIndex], &curIndex, 8, f);
 

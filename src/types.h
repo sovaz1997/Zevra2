@@ -31,13 +31,12 @@ enum {
 //Search limits
 enum {
     MAX_PLY = 128,
-    MATE_SCORE = 30000
+    MATE_SCORE = 30000,
+    STAGE_N = 99,
 };
 
 //Piece chars
 static const char PieceName[2][7] = {" PNBRQK", " pnbrqk"};
-
-static const int STAGE_N = 99;
 
 //Types
 typedef uint64_t U64;
