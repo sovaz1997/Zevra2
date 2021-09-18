@@ -2,11 +2,11 @@
 #include "uci.h"
 
 double FutilityStep = 61;
-double ReverseFutilityStep = 62;
-double RazorMargin = 308;
-double aspirationWindowSize = 19;
-double NullMoveBaseReductionDepth = 7;
-double NullMoveFactorReductionDepth = 6;
+double ReverseFutilityStep = 82;
+double RazorMargin = 291;
+double aspirationWindowSize = 15;
+double NullMoveBaseReductionDepth = 2;
+double NullMoveFactorReductionDepth = 5;
 
 void* go(void* thread_data) {
     SearchArgs* args = (SearchArgs*)thread_data;
