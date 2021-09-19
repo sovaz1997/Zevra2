@@ -4,7 +4,7 @@
 char startpos[] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 Option option;
 
-const int TUNING_ENABLED = 0;
+const int TUNING_ENABLED = 1;
 
 int main() {
 
@@ -177,7 +177,7 @@ int main() {
 }
 
 void printEngineInfo() {
-    printf("id name Zevra v2.4 r380\nid author Oleg Smirnov\n");
+    printf("id name Zevra v2.5 r480 beta\nid author Oleg Smirnov\n");
 }
 
 void readyok() {

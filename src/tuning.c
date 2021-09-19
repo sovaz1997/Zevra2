@@ -452,12 +452,6 @@ int *calculateLinear(Board *board, int positionNumber) {
 
     double up = 1000;
 
-    int ev1 = fullEval(board);
-    if (ev1 > 0) {
-        printf("WRONG\n");
-        exit(0);
-    }
-
     int evalParamsCount = 0;
     for (int i = 0; i < PARAMS_COUNT; i++) {
         values[i] = up;
