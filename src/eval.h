@@ -5,6 +5,13 @@
 #include "psqt.h"
 #include "score.h"
 
+enum {
+  QUEEN_MOBILITY_N = 28,
+    ROOK_MOBILITY_N = 15,
+    BISHOP_MOBILITY_N = 14,
+    KNIGHT_MOBILITY_N = 9,
+};
+
 //Piece weights
 extern int PAWN_EV_MG;
 extern int KNIGHT_EV_MG;
@@ -27,10 +34,20 @@ int* QUEEN_EVAL;
 int pVal(Board* b, int n);
 
 //Mobility bonuses
-extern int QueenMobility[28];
-extern int RookMobility[15];
-extern int BishopMobility[14];
-extern int KnightMobility[8];
+extern int QueenMobilityMG[QUEEN_MOBILITY_N];
+extern int RookMobilityMG[ROOK_MOBILITY_N];
+extern int BishopMobilityMG[BISHOP_MOBILITY_N];
+extern int KnightMobilityMG[KNIGHT_MOBILITY_N];
+
+extern int QueenMobilityEG[QUEEN_MOBILITY_N];
+extern int RookMobilityEG[ROOK_MOBILITY_N];
+extern int BishopMobilityEG[BISHOP_MOBILITY_N];
+extern int KnightMobilityEG[KNIGHT_MOBILITY_N];
+
+int QueenMobility[STAGE_N][QUEEN_MOBILITY_N];
+int RookMobility[STAGE_N][ROOK_MOBILITY_N];
+int BishopMobility[STAGE_N][BISHOP_MOBILITY_N];
+int KnightMobility[STAGE_N][KNIGHT_MOBILITY_N];
 
 //additional bonuses and penalties
 extern int PassedPawnBonus[8];
