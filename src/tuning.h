@@ -16,3 +16,4 @@ void loadPositions(Board* board);
 char** str_split(char* a_str, const char a_delim);
 int* calculateLinear(Board* board, int positionNumber);
 void incParam(int* arr, int n, int value);
+void loadWeights(char* filename);

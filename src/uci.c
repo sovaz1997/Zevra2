@@ -6,13 +6,18 @@ Option option;
 
 const int TUNING_ENABLED = 0;
 
-int main() {
+int main(int argc, char** argv) {
 
     initOption();
     initEngine();
 
     Board* board = (Board*) malloc(sizeof(Board));
 
+    if (argc > 2) {
+        if (strEquals(argv[1], "--weights-file")) {
+            loadWeights(argv[2]);
+        }
+    }
 
     printEngineInfo();
     setFen(board, startpos);

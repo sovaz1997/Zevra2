@@ -285,7 +285,11 @@ void setValues(int *values, int stage) {
 
 
     // re-init due to dependent eval
-    initDependencyStagedEval(stage);
+    if (stage != -1) {
+        initDependencyStagedEval(stage);
+    } else {
+        initDependencyEval();
+    }
 }
 
 int *transfer(int *from, int *to, int *curIndex, int length) {
@@ -508,4 +512,17 @@ void printArray(char *name, int *arr, int *curIndex, int length, FILE *f) {
     }
 
     fprintf(f, "\n");
+}
+
+void loadWeights(char* filename) {
+    FILE* f = fopen(filename, "r");
+
+    int params[PARAMS_COUNT];
+    for (int i = 0; i < PARAMS_COUNT; ++i) {
+        fscanf(f, "%d", &params[i]);
+    }
+
+    setValues(params, -1);
+
+    fclose(f);
 }
