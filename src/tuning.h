@@ -1,6 +1,7 @@
 #include "board.h"
 
 typedef struct TuningPosition TuningPosition;
+typedef struct ParameterInfluencePositionList ParameterInfluencePositionList;
 
 double fun();
 void makeTuning(Board* board);

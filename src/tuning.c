@@ -7,7 +7,7 @@
 #include "search.h"
 
 double K = 0.9166;
-const int PARAMS_COUNT = 925;
+enum { PARAMS_COUNT = 925 };
 
 struct TuningPosition {
     char fen[512];
@@ -16,9 +16,15 @@ struct TuningPosition {
     int mul;
 };
 
+struct ParameterInfluencePositionList {
+    int positionsCount;
+    int* positionsList;
+};
+
 double **linearEvalPositions;
 double *linearEvals;
 int *evalParams;
+ParameterInfluencePositionList* paramsInfluence;
 
 void makeTuning(Board *board) {
     loadPositions(board);
@@ -114,8 +120,12 @@ void loadPositions(Board *board) {
     positions = malloc(sizeof(TuningPosition) * N);
     linearEvalPositions = malloc(sizeof(double *) * N);
     linearEvals = malloc(sizeof(double) * N);
+    paramsInfluence = malloc(sizeof(struct ParameterInfluencePositionList) * PARAMS_COUNT);
 
     while (1) {
+        if (positionsCount >= 10000) {
+            break;
+        }
         estr = fgets(buf, sizeof(buf), f);
 
         if (!estr) {
@@ -164,6 +174,22 @@ void loadPositions(Board *board) {
 
         free(res);
     }
+
+
+    for (int i = 0; i < PARAMS_COUNT; ++i) {
+        paramsInfluence[i].positionsList = malloc(sizeof(int) * 10000000);
+        int currentEvalPositionsCount = 0;
+        for (int j = 0; j < positionsCount; ++j) {
+            if (linearEvalPositions[j][i] != 0) {
+                paramsInfluence[i].positionsList[currentEvalPositionsCount] = j;
+                currentEvalPositionsCount++;
+            }
+        }
+        paramsInfluence[i].positionsCount = currentEvalPositionsCount;
+        paramsInfluence[i].positionsList = realloc(paramsInfluence[i].positionsList, sizeof(int) * currentEvalPositionsCount);
+        // printf("Param %d; Count: %d\n", i, sum);
+    }
+
     printf("Pos count: %d; quiets count: %d\n", positionsCount, quiets);
 
     fclose(f);
@@ -211,6 +237,10 @@ char **str_split(char *a_str, const char a_delim) {
 
 double r(double eval) {
     return 1. / (1. + pow(10, -K * eval / 400.));
+}
+
+double getErrorFromPosition(int posNumber) {
+
 }
 
 double fun() {
@@ -355,9 +385,14 @@ int *getValues() {
 
 void incParam(int *arr, int n, int value) {
     (*(arr + n)) += value;
-    for (int i = 0; i < positionsCount; i++) {
+    /*for (int i = 0; i < positionsCount; i++) {
         linearEvals[i] += linearEvalPositions[i][n] * value;
+    }*/
+    for (int i = 0; i < paramsInfluence[n].positionsCount; i++) {
+        linearEvals[paramsInfluence[n].positionsList[i]] += linearEvalPositions[paramsInfluence[n].positionsList[i]][n] * value;
     }
+
+    printf("%d\n", paramsInfluence[n].positionsCount);
 }
 
 void printParams(char* filename, char* linearFileName) {
