@@ -55,6 +55,7 @@ typedef struct SearchInfo SearchInfo;
 typedef struct GameInfo GameInfo;
 typedef struct Timer Timer;
 typedef struct TimeManager TimeManager;
+typedef struct TranspositionEntity TranspositionEntity;
 typedef struct Transposition Transposition;
 typedef struct SearchArgs SearchArgs;
 typedef struct Option Option;

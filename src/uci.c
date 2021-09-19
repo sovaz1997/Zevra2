@@ -233,11 +233,21 @@ void printPV(Board* board, int depth, U16 bestMove) {
 
     Transposition* cur = &tt[board->key & ttIndex];
     
-    for(int i = 0; (cur->evalType == lowerbound || cur->evalType == exact) && !isDraw(board) && i < depth + 20; ++i) {
-        moveToString(cur->move, mv);
+    for(int i = 0; !isDraw(board) && i < depth + 20; ++i) {
+        int entityIndex = getMaxDepthBucket(cur, board->key);
+
+        if (entityIndex == -1) {
+            break;
+        }
+
+        TranspositionEntity entity = cur->entity[entityIndex];
+
+        // (cur->evalType == lowerbound || cur->evalType == exact) &&
+
+        moveToString(entity.move, mv);
 
         if(findMove(mv, board)) {
-            makeMove(board, cur->move, &undo);
+            makeMove(board, entity.move, &undo);
             if(inCheck(board, !board->color))
                 break;
             printf("%s ", mv);
