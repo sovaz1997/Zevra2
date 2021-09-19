@@ -4,42 +4,40 @@
 
 //Material
 int PAWN_EV_MG = 100;
-int KNIGHT_EV_MG = 300;
-int BISHOP_EV_MG = 330;
-int ROOK_EV_MG = 550;
-int QUEEN_EV_MG = 1000;
+int KNIGHT_EV_MG = 337;
+int BISHOP_EV_MG = 338;
+int ROOK_EV_MG = 467;
+int QUEEN_EV_MG = 1083;
 
-int PAWN_EV_EG = 100;
-int KNIGHT_EV_EG = 300;
-int BISHOP_EV_EG = 330;
-int ROOK_EV_EG = 550;
-int QUEEN_EV_EG = 1000;
+int PAWN_EV_EG = 158;
+int KNIGHT_EV_EG = 334;
+int BISHOP_EV_EG = 380;
+int ROOK_EV_EG = 601;
+int QUEEN_EV_EG = 1083;
 
 //Mobility bonuses
 int QueenMobilityMG[QUEEN_MOBILITY_N] = {
-        -30, -20, -10, 0, 5, 10, 12, 15, 18, 20, 25, 30, 32, 35,
-        40, 45, 50, 55, 57, 60, 63, 65, 70, 75, 80, 85, 90, 95
+        -30, -20, 73, 83, 84, 55, 73, 76, 78, 85, 83, 98, 101, 110, 112, 115, 116, 120, 140, 143, 146, 148, 153, 158, 163, 168, 173, 178,
 };
-int RookMobilityMG[ROOK_MOBILITY_N] = {-30, -20, -10, 0, 10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80};
-int BishopMobilityMG[BISHOP_MOBILITY_N] = {-30, -10, 5, 15, 20, 25, 35, 40, 45, 50, 55, 60, 65, 70};
-int KnightMobilityMG[KNIGHT_MOBILITY_N] = {-50, -25, -10, -2, 5, 10, 15, 25, 30};
+int RookMobilityMG[ROOK_MOBILITY_N] = {-98, -103, -36, -39, -43, -37, -34, -29, -21, -13, -1, 10, 21, 27, 32, };
+int BishopMobilityMG[BISHOP_MOBILITY_N] = {33, -65, -11, -1, 16, 25, 32, 40, 41, 52, 64, 66, 70, 74, };
+int KnightMobilityMG[KNIGHT_MOBILITY_N] = {-133, -40, -19, 3, 24, 30, 44, 59, 71, };
 int QueenMobilityEG[QUEEN_MOBILITY_N] = {
-        -30, -20, -10, 0, 5, 10, 12, 15, 18, 20, 25, 30, 32, 35,
-        40, 45, 50, 55, 57, 60, 63, 65, 70, 75, 80, 85, 90, 95
+        -85, -82, -79, -76, -54, -34, 23, 39, 57, 74, 108, 109, 114, 118, 123, 128, 133, 138, 140, 143, 146, 148, 153, 158, 162, 168, 173, 178,
 };
-int RookMobilityEG[ROOK_MOBILITY_N] = {-30, -20, -10, 0, 10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80};
-int BishopMobilityEG[BISHOP_MOBILITY_N] = {-30, -10, 5, 15, 20, 25, 35, 40, 45, 50, 55, 60, 65, 70};
-int KnightMobilityEG[KNIGHT_MOBILITY_N] = {-50, -25, -10, -2, 5, 10, 15, 25, 30};
+int RookMobilityEG[ROOK_MOBILITY_N] = {-12, -9, -7, 30, 71, 86, 99, 107, 103, 108, 109, 111, 113, 115, 107, };
+int BishopMobilityEG[BISHOP_MOBILITY_N] = {-113, -29, -11, 28, 32, 43, 53, 61, 73, 74, 75, 77, 86, 93, };
+int KnightMobilityEG[KNIGHT_MOBILITY_N] = {-89, 1, 24, 45, 56, 78, 76, 78, 80, };
 
 //additional bonuses and penalties
-int PassedPawnBonus[8] = {0, 0, 10, 20, 40, 80, 120, 0};
-int DoublePawnsPenalty = -15;
-int IsolatedPawnPenalty = -5;
-int RookOnOpenFileBonus = 20;
-int RookOnPartOpenFileBonus = 10;
-int KingDangerFactor = 600;
-int DoubleBishopsBonusMG = 30;
-int DoubleBishopsBonusEG = 20;
+int PassedPawnBonus[8] = {0, -12, -11, 2, 32, 82, 138, 0, };
+int DoublePawnsPenalty = -35;
+int IsolatedPawnPenalty = -7;
+int RookOnOpenFileBonus = 31;
+int RookOnPartOpenFileBonus = 27;
+int KingDangerFactor = 683;
+int DoubleBishopsBonusMG = 34;
+int DoubleBishopsBonusEG = 76;
 
 int DoubleBishopsBonus() {
     return getScore2(DoubleBishopsBonusMG, DoubleBishopsBonusEG, stage);
