@@ -182,7 +182,7 @@ int main(int argc, char** argv) {
 }
 
 void printEngineInfo() {
-    printf("id name Zevra v2.5 r400 beta\nid author Oleg Smirnov\n");
+    printf("id name Zevra v2.5\nid author Oleg Smirnov\n");
 }
 
 void readyok() {
