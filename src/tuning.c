@@ -7,7 +7,7 @@
 #include "search.h"
 
 double K = 0.9166;
-const int PARAMS_COUNT = 858;
+const int PARAMS_COUNT = 925;
 
 struct TuningPosition {
     char fen[512];
@@ -26,6 +26,12 @@ void makeTuning(Board *board) {
     evalParams = getValues();
 
     double E = fun();
+
+    FILE* regression = fopen("regression.txt", "w");
+
+    int stage = 1;
+
+    printParams("first-weights.txt", "first-linear-weights.txt");
 
     while(1) {
         int improved = 0;
@@ -53,10 +59,29 @@ void makeTuning(Board *board) {
                 }
             }
         }
-        printParams();
+
+        char stageStr[10];
+        itoa(stage, stageStr, 10);
+
+        char linearFileName[256] = "";
+        char fileName[256] = "";
+
+        strcat(linearFileName, "linear-weights-");
+        strcat(fileName, "weights-");
+
+        strcat(linearFileName, stageStr);
+        strcat(fileName, stageStr);
+
+        strcat(linearFileName, ".txt");
+        strcat(fileName, ".txt");
+
+        printParams(fileName, linearFileName);
 
         printf("NewE: %.7f\n", E);
         printf("Iterations: %d/%d\n", iterations, PARAMS_COUNT);
+
+        ++stage;
+        fprintf(regression, "%f\n", E);
 
         if (!improved) {
             break;
@@ -66,6 +91,8 @@ void makeTuning(Board *board) {
     for (int i = 0; i < PARAMS_COUNT; i++) {
         printf("%d ", evalParams[i]);
     }
+
+    fclose(regression);
 }
 
 int positionsCount = 0;
@@ -83,7 +110,7 @@ void loadPositions(Board *board) {
 
     int quiets = 0;
 
-    int N = 120000000;
+    int N = 12000000;
     positions = malloc(sizeof(TuningPosition) * N);
     linearEvalPositions = malloc(sizeof(double *) * N);
     linearEvals = malloc(sizeof(double) * N);
@@ -236,10 +263,14 @@ void setValues(int *values, int stage) {
     transferPST(&values[curIndex], egKingPST, &curIndex);
 
     // Mobility
-    transfer(&values[curIndex], QueenMobility, &curIndex, 28);
-    transfer(&values[curIndex], RookMobility, &curIndex, 15);
-    transfer(&values[curIndex], BishopMobility, &curIndex, 14);
-    transfer(&values[curIndex], KnightMobility, &curIndex, 8);
+    transfer(&values[curIndex], QueenMobilityMG, &curIndex, QUEEN_MOBILITY_N);
+    transfer(&values[curIndex], RookMobilityMG, &curIndex, ROOK_MOBILITY_N);
+    transfer(&values[curIndex], BishopMobilityMG, &curIndex, BISHOP_MOBILITY_N);
+    transfer(&values[curIndex], KnightMobilityMG, &curIndex, KNIGHT_MOBILITY_N);
+    transfer(&values[curIndex], QueenMobilityEG, &curIndex, QUEEN_MOBILITY_N);
+    transfer(&values[curIndex], RookMobilityEG, &curIndex, ROOK_MOBILITY_N);
+    transfer(&values[curIndex], BishopMobilityEG, &curIndex, BISHOP_MOBILITY_N);
+    transfer(&values[curIndex], KnightMobilityEG, &curIndex, KNIGHT_MOBILITY_N);
 
 
     transfer(&values[curIndex], PassedPawnBonus, &curIndex, 8);
@@ -254,7 +285,11 @@ void setValues(int *values, int stage) {
 
 
     // re-init due to dependent eval
-    initDependencyStagedEval(stage);
+    if (stage != -1) {
+        initDependencyStagedEval(stage);
+    } else {
+        initDependencyEval();
+    }
 }
 
 int *transfer(int *from, int *to, int *curIndex, int length) {
@@ -300,10 +335,14 @@ int *getValues() {
     transferPST(egKingPST, &res[curIndex], &curIndex);
 
     // Mobility
-    transfer(QueenMobility, &res[curIndex], &curIndex, 28);
-    transfer(RookMobility, &res[curIndex], &curIndex, 15);
-    transfer(BishopMobility, &res[curIndex], &curIndex, 14);
-    transfer(KnightMobility, &res[curIndex], &curIndex, 8);
+    transfer(QueenMobilityMG, &res[curIndex], &curIndex, QUEEN_MOBILITY_N);
+    transfer(RookMobilityMG, &res[curIndex], &curIndex, ROOK_MOBILITY_N);
+    transfer(BishopMobilityMG, &res[curIndex], &curIndex, BISHOP_MOBILITY_N);
+    transfer(KnightMobilityMG, &res[curIndex], &curIndex, KNIGHT_MOBILITY_N);
+    transfer(QueenMobilityEG, &res[curIndex], &curIndex, QUEEN_MOBILITY_N);
+    transfer(RookMobilityEG, &res[curIndex], &curIndex, ROOK_MOBILITY_N);
+    transfer(BishopMobilityEG, &res[curIndex], &curIndex, BISHOP_MOBILITY_N);
+    transfer(KnightMobilityEG, &res[curIndex], &curIndex, KNIGHT_MOBILITY_N);
 
     transfer(PassedPawnBonus, &res[curIndex], &curIndex, 8);
 
@@ -325,15 +364,27 @@ void incParam(int *arr, int n, int value) {
     }
 }
 
-void printParams() {
+void printParams(char* filename, char* linearFileName) {
     int *params = evalParams;
 
     int curIndex = 0;
 
     FILE *f;
-    char name[] = "weights.txt";
 
-    if ((f = fopen(name, "w")) == NULL) {
+    // Linear
+    if ((f = fopen(linearFileName, "w")) == NULL) {
+        printf("Не удалось открыть файл");
+        return;
+    }
+
+    for (int i = 0; i < PARAMS_COUNT; ++i) {
+        fprintf(f, "%d ", params[i]);
+    }
+
+    fclose(f);
+
+    // Standard
+    if ((f = fopen(filename, "w")) == NULL) {
         printf("Не удалось открыть файл");
         return;
     }
@@ -364,10 +415,14 @@ void printParams() {
     printPST("egKingPST", &params[curIndex], &curIndex, f);
 
     // Mobility
-    printArray("QueenMobility", &params[curIndex], &curIndex, 28, f);
-    printArray("RookMobility", &params[curIndex], &curIndex, 15, f);
-    printArray("BishopMobility", &params[curIndex], &curIndex, 14, f);
-    printArray("KnightMobility", &params[curIndex], &curIndex, 8, f);
+    printArray("QueenMobilityMG", &params[curIndex], &curIndex, QUEEN_MOBILITY_N, f);
+    printArray("RookMobilityMG", &params[curIndex], &curIndex, ROOK_MOBILITY_N, f);
+    printArray("BishopMobilityMG", &params[curIndex], &curIndex, BISHOP_MOBILITY_N, f);
+    printArray("KnightMobilityMG", &params[curIndex], &curIndex, KNIGHT_MOBILITY_N, f);
+    printArray("QueenMobilityEG", &params[curIndex], &curIndex, QUEEN_MOBILITY_N, f);
+    printArray("RookMobilityEG", &params[curIndex], &curIndex, ROOK_MOBILITY_N, f);
+    printArray("BishopMobilityEG", &params[curIndex], &curIndex, BISHOP_MOBILITY_N, f);
+    printArray("KnightMobilityEG", &params[curIndex], &curIndex, KNIGHT_MOBILITY_N, f);
 
     printArray("PassedPawnsBonus", &params[curIndex], &curIndex, 8, f);
 
@@ -457,4 +512,17 @@ void printArray(char *name, int *arr, int *curIndex, int length, FILE *f) {
     }
 
     fprintf(f, "\n");
+}
+
+void loadWeights(char* filename) {
+    FILE* f = fopen(filename, "r");
+
+    int params[PARAMS_COUNT];
+    for (int i = 0; i < PARAMS_COUNT; ++i) {
+        fscanf(f, "%d", &params[i]);
+    }
+
+    setValues(params, -1);
+
+    fclose(f);
 }

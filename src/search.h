@@ -20,7 +20,7 @@ struct SearchArgs {
     TimeManager tm;
 };
 
-int history[2][64][64];
+long long history[2][64][64];
 
 struct SearchInfo {
     U64 nodesCount;
@@ -46,7 +46,7 @@ static const int ReverseFutilityStep = 90;
 static const int RazorMargin = 300;
 
 U16 moves[MAX_PLY][256];
-int movePrice[MAX_PLY][256];
+long long movePrice[MAX_PLY][256];
 int mvvLvaScores[7][7];
 int lmr[MAX_PLY][64];
 
@@ -68,7 +68,6 @@ void* perftThreads(void* perftArgs);
 void moveOrdering(Board* board, U16* mvs, SearchInfo* searchInfo, int height, int depth);
 void initSearch();
 void resetSearchInfo(SearchInfo* info, TimeManager tm);
-void replaceTransposition(Transposition* tr, Transposition new_tr);
 void setAbort(int val);
 void clearHistory();
 void compressHistory();
