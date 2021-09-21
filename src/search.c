@@ -438,7 +438,7 @@ void moveOrdering(Board* board, U16* mvs, SearchInfo* searchInfo, int height, in
 
         for (int j = 0; j < BUCKETS_N; ++j) {
             if (*ptr == ttEntry->entity[j].move && ttEntry->entity[j].key == board->key) {
-                movePrice[height][i] = 1000000000 + ttEntry->entity[j].depth;
+                movePrice[height][i] = 1000000000000000llu + ttEntry->entity[j].depth;
                 isHashMove = 1;
                 break;
             }
@@ -450,44 +450,48 @@ void moveOrdering(Board* board, U16* mvs, SearchInfo* searchInfo, int height, in
         }
         
         if(toPiece)
-            movePrice[height][i] = mvvLvaScores[pieceType(board->squares[MoveFrom(*ptr)])][toPiece] * 1000000;
+            movePrice[height][i] = mvvLvaScores[pieceType(board->squares[MoveFrom(*ptr)])][toPiece] * 1000000000000llu;
         else if(depth < MAX_PLY && searchInfo->killer[height][0] == *ptr)
-            movePrice[height][i] = 100000;
+            movePrice[height][i] = 100000000000llu;
         else if(depth >= 2 && depth < MAX_PLY && searchInfo->killer[height - 2][0] == *ptr)
-            movePrice[height][i] = 99999;
+            movePrice[height][i] = 99999000000llu;
         else if(depth < MAX_PLY && searchInfo->killer[height][1] == *ptr)
-            movePrice[height][i] = 99998;
+            movePrice[height][i] = 99998000000llu;
         else if(depth >= 2 && depth < MAX_PLY && searchInfo->killer[height - 2][1] == *ptr)
-            movePrice[height][i] = 99997;
-        else if(!toPiece)
+            movePrice[height][i] = 99997000000llu;
+        else {
             movePrice[height][i] = history[board->color][MoveFrom(*ptr)][MoveTo(*ptr)];
+        }
 
         if(MoveType(*ptr) == ENPASSANT_MOVE)
-            movePrice[height][i] = mvvLvaScores[PAWN][PAWN] * 1000000;
+            movePrice[height][i] = mvvLvaScores[PAWN][PAWN] * 1000000000000llu;
 
         if(toPiece) {
             int seeScore = see(board, MoveTo(*ptr), board->squares[MoveTo(*ptr)], MoveFrom(*ptr), board->squares[MoveFrom(*ptr)]);
-            if(seeScore < 0 /*&& hashMove != *ptr*/)
+
+            if(seeScore < 0) {
                 movePrice[height][i] = seeScore;
+            }
         }
 
         
         if(MoveType(*ptr) == PROMOTION_MOVE) {
-            if(MovePromotionPiece(*ptr) == QUEEN)
-                movePrice[height][i] = 999999999;
-            else
+            if(MovePromotionPiece(*ptr) == QUEEN) {
+                movePrice[height][i] = 999999999000000llu;
+            } else {
                 movePrice[height][i] = 0;
+            }
         } 
         
         if(searchInfo->bestMove == *ptr && !height)
-            movePrice[height][i] = 1000000000;
+            movePrice[height][i] = 10000000000000000llu;
 
         ++ptr;
     }
 }
 
 void movePick(int moveNumber, int height) {
-    int bestPrice = movePrice[height][moveNumber];
+    long long bestPrice = movePrice[height][moveNumber];
     int bestNumber = moveNumber;
 
     for(int i = moveNumber + 1; moves[height][i]; ++i) {
@@ -501,7 +505,7 @@ void movePick(int moveNumber, int height) {
     moves[height][moveNumber] = moves[height][bestNumber];
     moves[height][bestNumber] = tmpMove;
 
-    int tmpPrice = movePrice[height][moveNumber];
+    long long tmpPrice = movePrice[height][moveNumber];
     movePrice[height][moveNumber] = movePrice[height][bestNumber];
     movePrice[height][bestNumber] = tmpPrice;
 }
