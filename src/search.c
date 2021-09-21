@@ -175,7 +175,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
 
     int iidDepthReduction = 7;
-    if (depth > iidDepthReduction && !root && !ttEntry->evalType) {
+    if (depth > iidDepthReduction && !root && (!bestEntity || !bestEntity->evalType)) {
         int eval = search(board, searchInfo, alpha, beta, depth - iidDepthReduction, height);
         Transposition new_tt;
         int iidHashType;
@@ -188,9 +188,15 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
         }
 
         if (eval >= beta) {
-            setTransposition(&new_tt, keyPosition, alpha, iidHashType, depth - iidDepthReduction, searchInfo->bestMove,
-                             ttAge, height);
-            replaceTransposition(ttEntry, new_tt);
+            TranspositionEntity new_tt;
+            new_tt.depth = depth - iidDepthReduction;
+            new_tt.age = ttAge;
+            new_tt.evalType = iidHashType;
+            new_tt.move = searchInfo->bestMove;
+            new_tt.key = keyPosition;
+            new_tt.eval = evalToTT(alpha, height);
+
+            replaceTranspositionEntry(ttEntry, &new_tt, keyPosition);
         }
     }
 
