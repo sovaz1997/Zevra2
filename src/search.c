@@ -458,15 +458,17 @@ void moveOrdering(Board* board, U16* mvs, SearchInfo* searchInfo, int height, in
         else if(depth < MAX_PLY && searchInfo->killer[height][0] == *ptr)
             movePrice[height][i] = 100000000000llu;
         else if(depth >= 2 && depth < MAX_PLY && searchInfo->killer[height - 2][0] == *ptr)
-            movePrice[height][i] = 99999000000llu;
-        else if(depth < MAX_PLY && searchInfo->killer[height][1] == *ptr)
             movePrice[height][i] = 99998000000llu;
+        else if(depth < MAX_PLY && searchInfo->killer[height][1] == *ptr)
+            movePrice[height][i] = 99999000000llu;
         else if(depth >= 2 && depth < MAX_PLY && searchInfo->killer[height - 2][1] == *ptr)
             movePrice[height][i] = 99997000000llu;
-        else if (countermove[MoveFrom(*ptr)][MoveTo(*ptr)] == *ptr) {
-            movePrice[height][i] = 99996000000llu;
-        } else {
+        else {
             movePrice[height][i] = history[board->color][MoveFrom(*ptr)][MoveTo(*ptr)];
+        }
+
+        if (countermove[MoveFrom(searchInfo->prevMove[height])][MoveTo(searchInfo->prevMove[height])] == *ptr) {
+            movePrice[height][i] += 10;
         }
 
         if(MoveType(*ptr) == ENPASSANT_MOVE)

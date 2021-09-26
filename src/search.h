@@ -21,7 +21,7 @@ struct SearchArgs {
 };
 
 long long history[2][64][64];
-long long countermove[64][64];
+U16 countermove[64][64];
 
 struct SearchInfo {
     U64 nodesCount;
