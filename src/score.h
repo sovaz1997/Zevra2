@@ -4,6 +4,7 @@
 #include "types.h"
 
 int getScore(int score, int stageGame);
+int getScore2(int mg, int eg, int stageGame);
 
 #define CreateScore(mg, eg) (((mg) << 16) + (eg))
 #define S(mg, eg) CreateScore((mg), (eg))

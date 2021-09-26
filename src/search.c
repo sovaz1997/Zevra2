@@ -1,4 +1,6 @@
 #include "search.h"
+#include "uci.h"
+#include "types.h"
 
 void* go(void* thread_data) {
     SearchArgs* args = (SearchArgs*)thread_data;
@@ -21,7 +23,7 @@ SearchInfo iterativeDeeping(Board* board, TimeManager tm) {
             break;
     }
 
-    printf("info nodes %lu time %lu\n", searchInfo.nodesCount, getTime(&searchInfo.timer));
+    printf("info nodes %llu time %llu\n", searchInfo.nodesCount, getTime(&searchInfo.timer));
     SEARCH_COMPLETE = 1;
     __sync_synchronize();
     printf("bestmove %s\n", bestMove);
@@ -118,13 +120,23 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     U64 keyPosition = board->key;
     Transposition* ttEntry = &tt[keyPosition & ttIndex];
 
-    //TT analysis
-    int ttEval = evalFromTT(ttEntry->eval, height);
-    if(ttEntry->evalType && ttEntry->depth >= depth && !root && ttEntry->key == keyPosition) {
-        if((ttEntry->evalType == lowerbound && ttEval >= beta && !mateScore(ttEntry->eval)) ||
-           (ttEntry->evalType == upperbound && ttEval <= alpha && !mateScore(ttEntry->eval)) ||
-           ttEntry->evalType == exact) {
-               return ttEval;
+    int bestEntityIndex = getMaxDepthBucket(ttEntry, keyPosition);
+
+    TranspositionEntity* bestEntity = NULL;
+    if (bestEntityIndex != -1) {
+        bestEntity = &ttEntry->entity[bestEntityIndex];
+    }
+
+    if (bestEntity) {
+        int ttEval = evalFromTT(bestEntity->eval, height);
+
+        //TT analysis
+        if (bestEntity->evalType && bestEntity->depth >= depth && !root) {
+            if ((bestEntity->evalType == lowerbound && ttEval >= beta && !mateScore(bestEntity->eval)) ||
+                (bestEntity->evalType == upperbound && ttEval <= alpha && !mateScore(bestEntity->eval)) ||
+                bestEntity->evalType == exact) {
+                return ttEval;
+            }
         }
     }
 
@@ -202,7 +214,7 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
 
         //Fulility pruning
         if(!pvNode && depth < 7 && !extensions && !root && FutilityPruningAllow) {
-            if(staticEval + FutilityStep * depth + pVal[pieceType(undo.capturedPiece)] <= alpha) {
+            if(staticEval + FutilityStep * depth + pVal(board, pieceType(undo.capturedPiece)) <= alpha) {
                 unmakeMove(board, *curMove, &undo);
                 ++curMove;
                 continue;
@@ -237,29 +249,20 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
                 searchInfo->bestMove = *curMove;
 
             hashType = exact;
+        }
+        if(alpha >= beta) {
+            hashType = lowerbound;
 
             if(!undo.capturedPiece) {
                 if(searchInfo->killer[height][0])
                     searchInfo->killer[height][1] = searchInfo->killer[height][0];
-                
+
                 searchInfo->killer[height][0] = *curMove;
                 history[board->color][MoveFrom(*curMove)][MoveTo(*curMove)] += (depth * depth);
 
-                if (!undo.capturedPiece) {
-//                    printf("Start\n");
-//                    printMove(searchInfo->prevMove[height]);
-//                    printMove(curBestMove);
-//                    printBoard(board);
-//                    printf("a: %d; b: %d\n", alpha, beta);
-//                    printf("End\n");
-
-                    U16 mv = searchInfo->prevMove[height];
-                    countermove[MoveFrom(mv)][MoveTo(mv)] = curBestMove;
-                }
+                U16 mv = searchInfo->prevMove[height];
+                countermove[MoveFrom(mv)][MoveTo(mv)] = curBestMove;
             }
-        }
-        if(alpha >= beta) {
-            hashType = lowerbound;
 
             break;
         }
@@ -269,9 +272,16 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
     if(ABORT)
         return 0;
 
-    Transposition new_tt;
-    setTransposition(&new_tt, keyPosition, alpha, hashType, depth, curBestMove, ttAge, height);
-    replaceTransposition(ttEntry, new_tt);
+    TranspositionEntity new_tt;
+    new_tt.depth = depth;
+    new_tt.age = ttAge;
+    new_tt.evalType = hashType;
+    new_tt.move = curBestMove;
+    new_tt.key = keyPosition;
+    new_tt.eval = evalToTT(alpha, height);
+
+    // setTransposition(&new_tt, keyPosition, alpha, hashType, depth, curBestMove, ttAge, height);
+    replaceTranspositionEntry(ttEntry, &new_tt, keyPosition);
 
     if(!movesCount) {
         if(inCheck(board, board->color))
@@ -289,13 +299,21 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
     U64 keyPosition = board->key;
     Transposition* ttEntry = &tt[keyPosition & ttIndex];
 
-    //TT analysis
-    int ttEval = evalFromTT(ttEntry->eval, height);
-    if(ttEntry->evalType && ttEntry->key == keyPosition) {
-        if((ttEntry->evalType == lowerbound && ttEval >= beta && !mateScore(ttEntry->eval)) ||
-           (ttEntry->evalType == upperbound && ttEval <= alpha && !mateScore(ttEntry->eval)) ||
-           ttEntry->evalType == exact) {
-               return ttEval;
+    int bestEntityIndex = getMaxDepthBucket(ttEntry, keyPosition);
+
+    TranspositionEntity* bestEntity = NULL;
+    if (bestEntityIndex != -1) {
+        bestEntity = &ttEntry->entity[bestEntityIndex];
+    }
+
+    if (bestEntity) {
+        int ttEval = evalFromTT(bestEntity->eval, height);
+        if (bestEntity->evalType) {
+            if ((bestEntity->evalType == lowerbound && ttEval >= beta && !mateScore(bestEntity->eval)) ||
+                (bestEntity->evalType == upperbound && ttEval <= alpha && !mateScore(bestEntity->eval)) ||
+                bestEntity->evalType == exact) {
+                return ttEval;
+            }
         }
     }
 
@@ -309,9 +327,9 @@ int quiesceSearch(Board* board, SearchInfo* searchInfo, int alpha, int beta, int
     if(val >= beta)
         return beta;
 
-    int delta = QUEEN_EV;
+    int delta = QUEEN_EV_MG;
     if(havePromotionPawn(board))
-        delta += (QUEEN_EV - 200);
+        delta += (QUEEN_EV_MG - 200);
 
     if(val < alpha - delta)
         return val;
@@ -384,7 +402,7 @@ U64 perftTest(Board* board, int depth, int height) {
                 for(int i = 0; i < height; ++i)
                     printf(" ");
 
-                printf("%s: %lu\n", mv, count);
+                printf("%s: %llu\n", mv, count);
             }
         }
 
@@ -405,7 +423,7 @@ void perft(Board* board, int depth) {
         if(!(end - start))
             end = start + 1;
         
-        printf("Perft %d: %lu; speed: %lu; time: %.3fs\n", i, nodes, nodes / (end - start), (end - start) / 1000.);
+        printf("Perft %d: %llu; speed: %llu; time: %.3fs\n", i, nodes, nodes / (end - start), (end - start) / 1000.);
     }
 }
 
@@ -414,61 +432,72 @@ void moveOrdering(Board* board, U16* mvs, SearchInfo* searchInfo, int height, in
         depth = MAX_PLY - 1;
 
     U16* ptr = mvs;
-    U16 hashMove = tt[board->key & ttIndex].move;
+    Transposition* ttEntry = &tt[board->key & ttIndex];
     int i;
 
     for(i = 0; *ptr; ++i) {
+        int isHashMove = 0;
         movePrice[height][i] = 0;
         U16 toPiece = pieceType(board->squares[MoveTo(*ptr)]);
 
-        /*if (countermove[MoveFrom(*ptr)][MoveTo(*ptr)] == *ptr) {
-            printf("Countermove\n");
-        }*/
-
-        if(hashMove == *ptr)
-            movePrice[height][i] = 1000000000;
-        else if(toPiece)
-            movePrice[height][i] = mvvLvaScores[pieceType(board->squares[MoveFrom(*ptr)])][toPiece] * 1000000;
-        else if(depth < MAX_PLY && searchInfo->killer[height][0] == *ptr)
-            movePrice[height][i] = 100000;
-        else if(depth >= 2 && depth < MAX_PLY && searchInfo->killer[height - 2][0] == *ptr)
-            movePrice[height][i] = 99999;
-        else if(depth < MAX_PLY && searchInfo->killer[height][1] == *ptr)
-            movePrice[height][i] = 99998;
-        else if(depth >= 2 && depth < MAX_PLY && searchInfo->killer[height - 2][1] == *ptr)
-            movePrice[height][i] = 99997;
-        else if (countermove[MoveFrom(*ptr)][MoveTo(*ptr)] == *ptr) {
-            movePrice[height][i] = 99996;
+        for (int j = 0; j < BUCKETS_N; ++j) {
+            if (*ptr == ttEntry->entity[j].move && ttEntry->entity[j].key == board->key) {
+                movePrice[height][i] = 1000000000000000llu + ttEntry->entity[j].depth;
+                isHashMove = 1;
+                break;
+            }
         }
-        else if(!toPiece)
+
+        if (isHashMove) {
+            ++ptr;
+            continue;
+        }
+
+        if(toPiece)
+            movePrice[height][i] = mvvLvaScores[pieceType(board->squares[MoveFrom(*ptr)])][toPiece] * 1000000000000llu;
+        else if(depth < MAX_PLY && searchInfo->killer[height][0] == *ptr)
+            movePrice[height][i] = 100000000000llu;
+        else if(depth >= 2 && depth < MAX_PLY && searchInfo->killer[height - 2][0] == *ptr)
+            movePrice[height][i] = 99999000000llu;
+        else if(depth < MAX_PLY && searchInfo->killer[height][1] == *ptr)
+            movePrice[height][i] = 99998000000llu;
+        else if(depth >= 2 && depth < MAX_PLY && searchInfo->killer[height - 2][1] == *ptr)
+            movePrice[height][i] = 99997000000llu;
+        else if (countermove[MoveFrom(*ptr)][MoveTo(*ptr)] == *ptr) {
+            movePrice[height][i] = 99996000000llu;
+        } else {
             movePrice[height][i] = history[board->color][MoveFrom(*ptr)][MoveTo(*ptr)];
+        }
 
         if(MoveType(*ptr) == ENPASSANT_MOVE)
-            movePrice[height][i] = mvvLvaScores[PAWN][PAWN] * 1000000;
+            movePrice[height][i] = mvvLvaScores[PAWN][PAWN] * 1000000000000llu;
 
         if(toPiece) {
             int seeScore = see(board, MoveTo(*ptr), board->squares[MoveTo(*ptr)], MoveFrom(*ptr), board->squares[MoveFrom(*ptr)]);
-            if(seeScore < 0 && hashMove != *ptr)
+
+            if(seeScore < 0) {
                 movePrice[height][i] = seeScore;
+            }
         }
 
         
         if(MoveType(*ptr) == PROMOTION_MOVE) {
-            if(MovePromotionPiece(*ptr) == QUEEN)
-                movePrice[height][i] = 999999999;
-            else
+            if(MovePromotionPiece(*ptr) == QUEEN) {
+                movePrice[height][i] = 999999999000000llu;
+            } else {
                 movePrice[height][i] = 0;
-        } 
+            }
+        }
         
         if(searchInfo->bestMove == *ptr && !height)
-            movePrice[height][i] = 1000000000;
+            movePrice[height][i] = 10000000000000000llu;
 
         ++ptr;
     }
 }
 
 void movePick(int moveNumber, int height) {
-    int bestPrice = movePrice[height][moveNumber];
+    long long bestPrice = movePrice[height][moveNumber];
     int bestNumber = moveNumber;
 
     for(int i = moveNumber + 1; moves[height][i]; ++i) {
@@ -482,7 +511,7 @@ void movePick(int moveNumber, int height) {
     moves[height][moveNumber] = moves[height][bestNumber];
     moves[height][bestNumber] = tmpMove;
 
-    int tmpPrice = movePrice[height][moveNumber];
+    long long tmpPrice = movePrice[height][moveNumber];
     movePrice[height][moveNumber] = movePrice[height][bestNumber];
     movePrice[height][bestNumber] = tmpPrice;
 }
@@ -493,9 +522,10 @@ void initSearch() {
             mvvLvaScores[attacker][victim] = 64 * victim - attacker;
     }
 
-    for(int i = 0; i < MAX_PLY; ++i) {
-        for(int j = 0; j < 64; ++j)
-            lmr[i][j]  = 0.75 + log(i) * log(j) / 2.25;
+    for(int i = 1; i < MAX_PLY; ++i) {
+        for(int j = 1; j < 64; ++j) {
+            lmr[i][j] = 0.75 + log(i) * log(j) / 2.25;
+        }
     }
 
     clearHistory();
@@ -506,19 +536,6 @@ void resetSearchInfo(SearchInfo* info, TimeManager tm) {
     info->tm = tm;
     setAbort(0);
     compressHistory();
-}
-
-void replaceTransposition(Transposition* tr, Transposition new_tr) {
-    if(tr->age + 5 < ttAge || !tr->evalType) {
-        replaceTranspositionEntry(tr, &new_tr);
-        return;
-    }
-
-    if(new_tr.depth >= tr->depth) {
-        if(new_tr.evalType == upperbound && tr->evalType != upperbound)
-            return;
-        replaceTranspositionEntry(tr, &new_tr);
-    }
 }
 
 void setAbort(int val) {

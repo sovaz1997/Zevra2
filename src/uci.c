@@ -1,14 +1,23 @@
 #include "uci.h"
+#include "tuning.h"
 
 char startpos[] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 Option option;
 
-int main() {
+const int TUNING_ENABLED = 0;
+
+int main(int argc, char** argv) {
+
     initOption();
     initEngine();
 
-    Board* board = (Board*) malloc(sizeof(Board)); 
+    Board* board = (Board*) malloc(sizeof(Board));
 
+    if (argc > 2) {
+        if (strEquals(argv[1], "--weights-file")) {
+            loadWeights(argv[2]);
+        }
+    }
 
     printEngineInfo();
     setFen(board, startpos);
@@ -20,6 +29,11 @@ int main() {
     gameInfo.moveCount = 0;
     board->gameInfo = &gameInfo;
     SEARCH_COMPLETE = 1;
+
+    // tuning
+    if (TUNING_ENABLED) {
+        makeTuning(board);
+    }
 
     TimeManager tm = initTM();
 
@@ -163,11 +177,12 @@ int main() {
         free(str);
     }
 
+    destroyEval();
     free(board);
 }
 
 void printEngineInfo() {
-    printf("id name Zevra v2.1.2 r248\nid author Oleg Smirnov\n");
+    printf("id name Zevra v2.5\nid author Oleg Smirnov\n");
 }
 
 void readyok() {
@@ -192,7 +207,7 @@ void printSearchInfo(SearchInfo* info, Board* board, int depth, int eval, int ev
     int speed = (searchTime < 1 ? 0 : (info->nodesCount / (searchTime / 1000.)));
     int hashfull = (double)ttFilledSize  / (double)ttSize * 1000;
     
-    printf("info depth %d seldepth %d nodes %lu time %lu nps %d hashfull %d ", depth, info->selDepth, info->nodesCount, searchTime, speed, hashfull);
+    printf("info depth %d seldepth %d nodes %llu time %llu nps %d hashfull %d ", depth, info->selDepth, info->nodesCount, searchTime, speed, hashfull);
     printScore(eval);
     printf(evalType == lowerbound ? " lowerbound pv " : evalType == upperbound ? " upperbound pv " : " pv ");
     printPV(board, depth, info->bestMove);
@@ -223,11 +238,21 @@ void printPV(Board* board, int depth, U16 bestMove) {
 
     Transposition* cur = &tt[board->key & ttIndex];
     
-    for(int i = 0; (cur->evalType == lowerbound || cur->evalType == exact) && !isDraw(board) && i < depth + 20; ++i) {
-        moveToString(cur->move, mv);
+    for(int i = 0; !isDraw(board) && i < depth + 20; ++i) {
+        int entityIndex = getMaxDepthBucket(cur, board->key);
+
+        if (entityIndex == -1) {
+            break;
+        }
+
+        TranspositionEntity entity = cur->entity[entityIndex];
+
+        // (cur->evalType == lowerbound || cur->evalType == exact) &&
+
+        moveToString(entity.move, mv);
 
         if(findMove(mv, board)) {
-            makeMove(board, cur->move, &undo);
+            makeMove(board, entity.move, &undo);
             if(inCheck(board, !board->color))
                 break;
             printf("%s ", mv);

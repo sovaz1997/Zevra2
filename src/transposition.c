@@ -1,13 +1,20 @@
 #include "transposition.h"
+#include "search.h"
 
-void setTransposition(Transposition* entry, U64 key, int eval, int evalType, int depth, U16 move, int age, int height) {
-    entry->key = key;
-    entry->eval = evalToTT(eval, height);
-    entry->evalType = evalType;
-    entry->move = move;
-    entry->depth = depth;
-    entry->age = age;
-}
+//void setTransposition(Transposition* entry, U64 key, int eval, int evalType, int depth, U16 move, int age, int height) {
+//    if (entry->key == 0 || entry->key == key) {
+//        entry->key = key;
+//
+//        int index = getBucketWithLessDepth(entry);
+//
+//        entry->entity[index].eval = evalToTT(eval, height);
+//        entry->entity[index].evalType = evalType;
+//        entry->entity[index].move = move;
+//        entry->entity[index].depth = depth;
+//        entry->entity[index].age = age;
+//    }
+//
+//}
 
 void initTT(int size) {
     ttSize = sizeToTTCount(size);
@@ -36,10 +43,42 @@ void clearTT() {
     ttFilledSize = 0;
 }
 
-void replaceTranspositionEntry(Transposition* addr, Transposition* newEntry) {
-    if(!addr->evalType)
-        ++ttFilledSize;
-    *addr = *newEntry;
+void replaceTranspositionEntry(Transposition* addr, TranspositionEntity* newEntry, U64 key) {
+    int replacePriorities[BUCKETS_N];
+
+    for (int i = 0; i < BUCKETS_N; ++i) {
+        if(addr->entity[i].age + 5 < ttAge || !addr->entity[i].evalType) {
+            replacePriorities[i] = MAX_PLY * 2 - addr->entity[i].depth;
+            continue;
+        }
+
+        if(newEntry->depth >= addr->entity[i].depth) {
+            if(newEntry->evalType == upperbound && addr->entity[i].evalType != upperbound) {
+                replacePriorities[i] = -1;
+                continue;
+            }
+
+            replacePriorities[i] = MAX_PLY * 2 - addr->entity[i].depth;
+        }
+    }
+
+    int index = -1;
+    int maxPriority = -1;
+
+    for (int i = 0; i < BUCKETS_N; ++i) {
+        if (replacePriorities[i] > maxPriority) {
+            index = i;
+            maxPriority = replacePriorities[i];
+        }
+    }
+
+    if (index != -1) {
+        if (!addr->entity[index].evalType) {
+            ttFilledSize += 1. / BUCKETS_N;
+        }
+
+        addr->entity[index] = *newEntry;
+    }
 }
 
 U64 sizeToTTCount(U64 size) {
@@ -69,4 +108,18 @@ int evalFromTT(int eval, int height) {
         return eval + height;
         
     return eval;
+}
+
+int getMaxDepthBucket(Transposition* entry, U64 key) {
+    uint32_t depth = 0;
+    int result = -1;
+
+    for (int i = 0; i < BUCKETS_N; ++i) {
+        if (entry->entity[i].depth > depth && key == entry->entity[i].key) {
+            depth = entry->entity[i].depth;
+            result = i;
+        }
+    }
+
+    return result;
 }
