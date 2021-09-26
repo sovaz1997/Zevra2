@@ -258,10 +258,12 @@ int search(Board* board, SearchInfo* searchInfo, int alpha, int beta, int depth,
                     searchInfo->killer[height][1] = searchInfo->killer[height][0];
 
                 searchInfo->killer[height][0] = *curMove;
-                history[board->color][MoveFrom(*curMove)][MoveTo(*curMove)] += (depth * depth);
 
-                U16 mv = searchInfo->prevMove[height];
-                countermove[MoveFrom(mv)][MoveTo(mv)] = curBestMove;
+                U16 prevMove = searchInfo->prevMove[height];
+                int moveTo = MoveTo(prevMove);
+                U8 piece = board->squares[moveTo];
+
+                history[piece][moveTo][MoveFrom(*curMove)][MoveTo(*curMove)] += (depth * depth);
             }
 
             break;
@@ -458,17 +460,16 @@ void moveOrdering(Board* board, U16* mvs, SearchInfo* searchInfo, int height, in
         else if(depth < MAX_PLY && searchInfo->killer[height][0] == *ptr)
             movePrice[height][i] = 100000000000llu;
         else if(depth >= 2 && depth < MAX_PLY && searchInfo->killer[height - 2][0] == *ptr)
-            movePrice[height][i] = 99998000000llu;
-        else if(depth < MAX_PLY && searchInfo->killer[height][1] == *ptr)
             movePrice[height][i] = 99999000000llu;
+        else if(depth < MAX_PLY && searchInfo->killer[height][1] == *ptr)
+            movePrice[height][i] = 99998000000llu;
         else if(depth >= 2 && depth < MAX_PLY && searchInfo->killer[height - 2][1] == *ptr)
             movePrice[height][i] = 99997000000llu;
         else {
-            movePrice[height][i] = history[board->color][MoveFrom(*ptr)][MoveTo(*ptr)];
-        }
-
-        if (countermove[MoveFrom(searchInfo->prevMove[height])][MoveTo(searchInfo->prevMove[height])] == *ptr) {
-            movePrice[height][i] += 10;
+            U16 prevMove = searchInfo->prevMove[height];
+            int moveTo = MoveTo(prevMove);
+            U8 piece = board->squares[moveTo];
+            movePrice[height][i] = history[piece][moveTo][MoveFrom(*ptr)][MoveTo(*ptr)];
         }
 
         if(MoveType(*ptr) == ENPASSANT_MOVE)
@@ -547,13 +548,16 @@ void setAbort(int val) {
 }
 
 void clearHistory() {
-    memset(history, 0, 2*64*64 * sizeof(int));
+    memset(history, 0, 16*64*64*64 * sizeof(long long));
 }
 void compressHistory() {
-    for(int i = 0; i < 64; ++i) {
+    for(int i = 0; i < 16; ++i) {
         for(int j = 0; j < 64; ++j) {
-            history[WHITE][i][j] /= 100;
-            history[BLACK][i][j] /= 100;
+            for (int k = 0; k < 64; ++k) {
+                for (int m = 0; m < 64; ++m) {
+                    history[i][j][k][m] /= 100;
+                }
+            }
         }   
     }
 }

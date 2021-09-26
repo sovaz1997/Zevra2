@@ -20,8 +20,8 @@ struct SearchArgs {
     TimeManager tm;
 };
 
-long long history[2][64][64];
-U16 countermove[64][64];
+long long history[16][64][64][64];
+// U16 countermove[64][64];
 
 struct SearchInfo {
     U64 nodesCount;
