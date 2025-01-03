@@ -60,5 +60,6 @@ typedef struct Transposition Transposition;
 typedef struct SearchArgs SearchArgs;
 typedef struct Option Option;
 typedef struct Score Score;
+typedef struct NNUE NNUE;
 
 #endif
