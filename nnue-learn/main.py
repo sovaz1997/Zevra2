@@ -1,6 +1,10 @@
+import math
+
 import chess
 import chess.pgn
 import chess.engine
+
+
 
 
 def process_large_pgn(file_path, output_file):
@@ -65,42 +69,46 @@ def calculate_nnue_input_layer(board: chess.Board):
                         and board.piece_at(square).color == color):
                     nnue_input[calculate_nnue_index(color, piece, square)] = 1
 
-    sum = 0
-
-    for i in range(len(nnue_input)):
-        if nnue_input[i] == 1:
-            sum += i
-            print(f"Index: {i}, Value: 1")
-
-    print(f"Sum: {sum}")
+    return nnue_input
 
 
-def evaluate_positions():
-    with chess.engine.SimpleEngine.popen_uci("./zevra") as engine:
-        board = chess.Board()
-
-        # Печатаем текущую позицию
-        print("Current position:")
-        print(board)
-
-        # Запрашиваем лучший ход
+def analyse_position(board: chess.Board, engine: chess.engine.SimpleEngine):
+    try:
         result = engine.analyse(board, chess.engine.Limit(nodes=10000))
-        evaluation = result["score"].white()
-        print(evaluation)
-        # print bitboard
-        print_bitboard(board.bishops & board.occupied_co[chess.WHITE])
+        score = result["score"].white().score(mate_score=100000)
+        return score
+    except Exception as e:
+        engine.quit()
+        print("Analyzing position")
+        return None
 
-        calculate_nnue_input_layer(board)
+def read_fens(file_path: str):
+    with open(file_path, 'r') as file:
+        for line in file:
+            yield line.strip()
 
-        for square in range(0, 64):
-            if (chess.BB_SQUARES[square] & board.bishops & board.occupied_co[chess.WHITE]):
-                print(f"Bishop on square {square} is on white's turn.")
+
+def evaluate_positions(file_path: str):
+    board = chess.Board()
+
+    engine = chess.engine.SimpleEngine.popen_uci("./zevra")
+
+    positions_count = 0
+    for fen in read_fens(file_path):
+        try:
+            board.set_fen(fen)
+            eval = analyse_position(board, engine)
+            # nnue_input = calculate_nnue_input_layer(board)
+            positions_count += 1
+            if positions_count % 100 == 0:
+                print(f"Processed positions: {positions_count}", flush=True)
+            # print(f"FEN: {fen}, Evaluation: {eval}")
+        except Exception as e:
+            print(e)
+            engine.close()
+            engine = chess.engine.SimpleEngine.popen_uci("./zevra")
 
 
 if __name__ == '__main__':
     print('Starting')
-    evaluate_positions()
-    # export pgn to fen
-    # file_path = "ccrl.pgn"
-    # output_file = "ccrl_positions.txt"
-    # process_large_pgn(file_path, output_file)
+    evaluate_positions("ccrl_positions.txt")
