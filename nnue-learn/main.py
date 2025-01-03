@@ -1,10 +1,12 @@
 import math
+from typing import Generator
 
 import chess
 import chess.pgn
 import chess.engine
+import csv
 
-
+DATASET_POSITIONS_COUNT = 300
 
 
 def process_large_pgn(file_path, output_file):
@@ -79,7 +81,6 @@ def analyse_position(board: chess.Board, engine: chess.engine.SimpleEngine):
         return score
     except Exception as e:
         engine.quit()
-        print("Analyzing position")
         return None
 
 def read_fens(file_path: str):
@@ -87,28 +88,36 @@ def read_fens(file_path: str):
         for line in file:
             yield line.strip()
 
-
-def evaluate_positions(file_path: str):
+def evaluate_positions(file_path: str, output_csv_path: str):
     board = chess.Board()
 
     engine = chess.engine.SimpleEngine.popen_uci("./zevra")
 
     positions_count = 0
-    for fen in read_fens(file_path):
-        try:
-            board.set_fen(fen)
-            eval = analyse_position(board, engine)
-            # nnue_input = calculate_nnue_input_layer(board)
-            positions_count += 1
-            if positions_count % 100 == 0:
-                print(f"Processed positions: {positions_count}", flush=True)
-            # print(f"FEN: {fen}, Evaluation: {eval}")
-        except Exception as e:
-            print(e)
-            engine.close()
-            engine = chess.engine.SimpleEngine.popen_uci("./zevra")
+    with open(output_csv_path, 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(["FEN", "Score"])
+
+        for fen in read_fens(file_path):
+            try:
+                board.set_fen(fen)
+                eval = analyse_position(board, engine)
+                # nnue_input = calculate_nnue_input_layer(board)
+                positions_count += 1
+                if positions_count % 100 == 0:
+                    print(f"Processed positions: {positions_count}", flush=True)
+                # print(f"FEN: {fen}, Evaluation: {eval}")
+                if eval is not None:
+                    writer.writerow([fen, eval])
+                if positions_count > DATASET_POSITIONS_COUNT:
+                    engine.close()
+                    return
+            except Exception as e:
+                # print(e)
+                engine.close()
+                engine = chess.engine.SimpleEngine.popen_uci("./zevra")
 
 
 if __name__ == '__main__':
     print('Starting')
-    evaluate_positions("ccrl_positions.txt")
+    evaluate_positions("ccrl_positions.txt", "dataset.csv")
