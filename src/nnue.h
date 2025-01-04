@@ -4,15 +4,17 @@
 #include "board.h"
 
 static const int INPUTS_COUNT = 768;
-static const int INNER_LAYER_COUNT = 256;
+static const int INNER_LAYER_COUNT = 8;
 // int isNNUEEnabled = 0;
 
 
 struct NNUE {
     double inputs[INPUTS_COUNT];
     double weights_1[INNER_LAYER_COUNT][INPUTS_COUNT];
-    double weights_2[INNER_LAYER_COUNT];
+    double weights_2[INNER_LAYER_COUNT][INNER_LAYER_COUNT];
+    double weights_3[INNER_LAYER_COUNT];
     double accumulators[INNER_LAYER_COUNT];
+    double accumulators2[INNER_LAYER_COUNT];
     double eval;
 };
 
@@ -25,11 +27,11 @@ void setNNUEInput(NNUE* nnue, int index);
 void resetNNUE(NNUE* nnue);
 void resetNNUEInput(NNUE* nnue, int index);
 void modifyNnue(NNUE* nnue, Board* board, int color, int piece);
-void initNNUEWeights();
+//void initNNUEWeights();
 void initNNUEPosition(NNUE* nnue, Board* board);
 void loadNNUEWeights();
 void debug_nnue_calculation(struct NNUE *nnue);
 TimeManager createFixNodesTm(int nodes);
-void dataset_gen(Board* board);
+void dataset_gen(Board* board, int from, int to, char* filename);
 
 #endif

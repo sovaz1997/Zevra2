@@ -6,7 +6,7 @@
 #include "eval.h"
 #include "types.h"
 
-extern const int SHOULD_GENERATE_DATASET;
+extern int SHOULD_GENERATE_DATASET;
 extern int NNUE_ENABLED;
 extern int SHOULD_HIDE_SEARCH_INFO_LOGS;
 
