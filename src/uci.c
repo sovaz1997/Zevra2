@@ -1,11 +1,10 @@
 #include "uci.h"
-#include "tuning.h"
-#include "nnue.h"
 
 char startpos[] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 Option option;
 
 const int TUNING_ENABLED = 0;
+
 
 int main(int argc, char** argv) {
 
@@ -13,18 +12,21 @@ int main(int argc, char** argv) {
     initEngine();
 
     Board* board = (Board*) malloc(sizeof(Board));
+    nnue = (NNUE*) malloc(sizeof(NNUE));
 
-    if (argc > 2) {
-        if (strEquals(argv[1], "--weights-file")) {
-            loadWeights(argv[2]);
-        }
-    }
+//    if (argc > 2) {
+//        if (strEquals(argv[1], "--weights-file")) {
+//            loadWeights(argv[2]);
+//        }
+//    }
+
+    NNUE* nnue = (NNUE*) malloc(sizeof(NNUE));
+    loadNNUEWeights();
 
     printEngineInfo();
     setFen(board, startpos);
 
-    createNNUE(board);
-
+    // initNNUEPosition(nnue, board);
 
     char buff[65536];
 
@@ -34,9 +36,9 @@ int main(int argc, char** argv) {
     SEARCH_COMPLETE = 1;
 
     // tuning
-    if (TUNING_ENABLED) {
-        makeTuning(board);
-    }
+//    if (TUNING_ENABLED) {
+//        makeTuning(board);
+//    }
 
     TimeManager tm = initTM();
 

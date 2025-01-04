@@ -72,6 +72,7 @@ void clearBoard(Board* board) {
     board->gameInfo = gameInfo;
     board->enpassantSquare = 0;
     board->eval = 0;
+    resetNNUE(nnue);
 }
 
 void printBoard(Board* board) {
@@ -109,6 +110,8 @@ void setPiece(Board* board, int piece, int color, int sq) {
     setBit(&board->colours[color], sq);
     board->squares[sq] = makePiece(piece, color);
     board->key ^= zobristKeys[board->squares[sq]][sq];
+
+    setNNUEInput(nnue, getInputIndexOf(color, piece, sq));
 }
 
 void clearPiece(Board* board, int sq) {
@@ -118,13 +121,21 @@ void clearPiece(Board* board, int sq) {
     U8 piece = board->squares[sq];
     board->key ^= zobristKeys[board->squares[sq]][sq];
 
-    clearBit(&board->pieces[pieceType(piece)], sq);
-    clearBit(&board->colours[pieceColor(piece)], sq);
+    int type = pieceType(piece);
+    int color = pieceColor(piece);
+    clearBit(&board->pieces[type], sq);
+    clearBit(&board->colours[color], sq);
     board->squares[sq] = 0;
+
+    resetNNUEInput(nnue, getInputIndexOf(color, type, sq));
+
 }
 
 void movePiece(Board* board, int sq1, int sq2) {
-    setPiece(board, pieceType(board->squares[sq1]), pieceColor(board->squares[sq1]), sq2);
+    int type = pieceType(board->squares[sq1]);
+    int color = pieceColor(board->squares[sq1]);
+
+    setPiece(board, type, color, sq2);
     clearPiece(board, sq1);
 }
 

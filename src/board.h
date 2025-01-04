@@ -11,6 +11,7 @@
 #include "move.h"
 #include "zobrist.h"
 #include "eval.h"
+#include "nnue.h"
 
 struct GameInfo {
     U64 moveHistory[8192];
