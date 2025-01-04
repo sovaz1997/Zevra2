@@ -9,11 +9,11 @@ int NNUE_ENABLED = 1;
 int SHOULD_HIDE_SEARCH_INFO_LOGS = 0;
 
 int main(int argc, char** argv) {
+    nnue = (NNUE*) malloc(sizeof(NNUE));
     initOption();
     initEngine();
 
     Board* board = (Board*) malloc(sizeof(Board));
-    nnue = (NNUE*) malloc(sizeof(NNUE));
 
 //    if (argc > 2) {
 //        if (strEquals(argv[1], "--weights-file")) {
@@ -21,16 +21,15 @@ int main(int argc, char** argv) {
 //        }
 //    }
 
-    NNUE* nnue = (NNUE*) malloc(sizeof(NNUE));
-    if (NNUE_ENABLED) {
-        loadNNUEWeights();
-    }
 
     printEngineInfo();
     setFen(board, startpos);
 
 
-    initNNUEPosition(nnue, board);
+    if (NNUE_ENABLED) {
+        loadNNUEWeights();
+        initNNUEPosition(nnue, board);
+    }
 
     char buff[65536];
 

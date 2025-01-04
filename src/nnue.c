@@ -31,20 +31,9 @@ void setNNUEInput(NNUE* nnue, int index) {
 
     nnue->eval = 0;
 
-    // init array
     for (int i = 0; i < INNER_LAYER_COUNT; ++i) {
-        nnue->accumulators2[i] = 0;
+        nnue->eval += ReLU(nnue->accumulators[i]) * nnue->weights_2[i];
     }
-    for (int i = 0; i < INNER_LAYER_COUNT; ++i) {
-        for(int j = 0; j < INNER_LAYER_COUNT; ++j) {
-            nnue->accumulators2[i] += ReLU(nnue->accumulators[j]) * nnue->weights_2[i][j];
-        }
-    }
-
-    for (int i = 0; i < INNER_LAYER_COUNT; ++i) {
-        nnue->eval += ReLU(nnue->accumulators2[i]) * nnue->weights_3[i];
-    }
-    //printf("Eval: %f\n", nnue->eval);
 }
 
 void resetNNUEInput(NNUE* nnue, int index) {
@@ -63,18 +52,8 @@ void resetNNUEInput(NNUE* nnue, int index) {
 
     nnue->eval = 0;
 
-    // init array
     for (int i = 0; i < INNER_LAYER_COUNT; ++i) {
-        nnue->accumulators2[i] = 0;
-    }
-    for (int i = 0; i < INNER_LAYER_COUNT; ++i) {
-      for(int j = 0; j < INNER_LAYER_COUNT; ++j) {
-          nnue->accumulators2[i] += ReLU(nnue->accumulators[j]) * nnue->weights_2[i][j];
-      }
-    }
-
-    for (int i = 0; i < INNER_LAYER_COUNT; ++i) {
-        nnue->eval += ReLU(nnue->accumulators2[i]) * nnue->weights_3[i];
+        nnue->eval += ReLU(nnue->accumulators[i]) * nnue->weights_2[i];
     }
 }
 
@@ -118,6 +97,7 @@ void loadNNUEWeights() {
             }
         }
     }
+
     fclose(file);
 
     file = fopen("./fc2.weights.csv", "r");
@@ -128,26 +108,7 @@ void loadNNUEWeights() {
     }
 
     for (int i = 0; i < INNER_LAYER_COUNT; i++) {
-      for (int j = 0; j < INNER_LAYER_COUNT; j++) {
-          if (fscanf(file, "%lf,", &nnue->weights_2[i][j]) != 1) {
-              perror("Error reading file");
-              fclose(file);
-              exit(1);
-          }
-      }
-    }
-
-    fclose(file);
-
-    file = fopen("./fc3.weights.csv", "r");
-
-    if (file == NULL) {
-        perror("Unable to open file");
-        exit(1);
-    }
-
-    for (int i = 0; i < INNER_LAYER_COUNT; i++) {
-        if (fscanf(file, "%lf,", &nnue->weights_3[i]) != 1) {
+        if (fscanf(file, "%lf,", &nnue->weights_2[i]) != 1) {
             perror("Error reading file");
             fclose(file);
             exit(1);
@@ -228,15 +189,24 @@ void dataset_gen(Board* board, int from, int to, char* filename) {
         setFen(board, fen);
         SearchInfo info = iterativeDeeping(board, tm);
         int absoluteEval = board->color == WHITE ? info.eval : -info.eval;
-        printf("Eval: %d\n", absoluteEval);
+        int staticEval = fullEval(board);
+        int absoluteStaticEval = board->color == WHITE ? staticEval : -staticEval;
+        int qEval = quiesceSearch(board, &info, -MATE_SCORE, MATE_SCORE, 0);
+        int absoluteQEval = board->color == WHITE ? qEval : -qEval;
+
+        if (
+            abs(absoluteStaticEval - absoluteEval) > 70
+            || abs(absoluteStaticEval - absoluteQEval) > 60
+        ) {
+            continue;
+        }
+
+
+//        printf("Eval: %d\n", absoluteEval);
+//        printf("Quies: %d\n", absoluteEval);
+//        printf("Static: %d\n", absoluteEval);
         fprintf(outputFile, "%s,%d\n", fen, absoluteEval);
     }
-
-
-//    setFen(board, "rnbqkbnr/8/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 0 1");
-//    SearchInfo info = iterativeDeeping(board, tm);
-//    int absoluteEval = board->color == WHITE ? info.eval : -info.eval;
-//    printf("Eval: %d\n", absoluteEval);
 
     fclose(inputFile);
     fclose(outputFile);

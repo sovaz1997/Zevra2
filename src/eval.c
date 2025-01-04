@@ -44,9 +44,18 @@ int DoubleBishopsBonus() {
     return getScore2(DoubleBishopsBonusMG, DoubleBishopsBonusEG, stage);
 }
 
+int MATE_LIMIT = 29000;
+
 int fullEval(Board *board) {
     if (NNUE_ENABLED) {
-        int eval = nnue->eval * 1000;
+        int eval = nnue->eval;
+
+        if(eval > MATE_LIMIT) {
+            eval = MATE_LIMIT;
+        } else if(eval < -MATE_LIMIT) {
+            eval = -MATE_LIMIT;
+        }
+
         return (board->color == WHITE ? eval : -eval);
     }
     int eval = board->eval;
