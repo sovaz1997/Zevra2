@@ -44,7 +44,6 @@ def print_bitboard(bitboard):
             else:
                 line += ". "
         print(line)
-    print()
 
 
 def calculate_nnue_index(color: bool, piece: int, square: int):
@@ -238,10 +237,10 @@ def debug_nnue_calculation(model: nn.Module, input_vector: torch.Tensor):
         input_vector = input_vector.squeeze(0)  # [768]
 
     # Инпуты
-    print("\n=== Входной вектор ===")
-    for i in range(768):
-        if input_vector[i] != 0.0:
-            print(f"input[{i}] = {input_vector[i].item()}")
+    # print("\n=== Входной вектор ===")
+    # for i in range(768):
+    #     if input_vector[i] != 0.0:
+    #         print(f"input[{i}] = {input_vector[i].item()}")
 
     with torch.no_grad():
         # ---------------------------
@@ -265,7 +264,6 @@ def debug_nnue_calculation(model: nn.Module, input_vector: torch.Tensor):
                 x_i = input_vector[i].item()
                 if x_i != 0.0:
                     w_ji = fc1_weights[j, i].item()
-                    print(fc1_weights[j, i])
 
                     contrib = x_i * w_ji
                     if contrib != 0.0:
@@ -334,7 +332,7 @@ if __name__ == '__main__':
 
     print(model)
     print(evaluate_test_fen(model, "1qqqk3/1qqqp3/1qqq4/1qqq4/8/R7/3Q4/3QK3 w HAha - 0 1"))
-    # print(evaluate_test_fen(model, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"))
+    print(evaluate_test_fen(model, "rnbqkbnr/ppp3pp/8/4p3/3pNp2/3P1N2/PPP1PPPP/R1BQKB1R b KQkq - 1 6"))
 
     while True:
         model.train()
