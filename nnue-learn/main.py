@@ -140,7 +140,7 @@ class ChessDataset(Dataset):
 
 
 class NNUE(nn.Module):
-    def __init__(self, input_size=768, hidden_size=8, output_size=1):
+    def __init__(self, input_size=768, hidden_size=256, output_size=1):
         super(NNUE, self).__init__()
         self.fc1 = nn.Linear(input_size, hidden_size)
         self.relu = nn.ReLU()
@@ -149,14 +149,13 @@ class NNUE(nn.Module):
 
     def forward(self, x):
         x = self.relu(self.fc1(x))
-        x = self.relu(self.fc2(x))
+        # x = self.relu(self.fc2(x))
         x = self.fc3(x)
         return x
 
 
 def save_layer_weights(weights: nn.Linear, filename):
     with open(filename, 'w') as file:
-        # weights = weights.weight.cpu().data.numpy()
         weights = weights.weight.data.numpy()
         for row in weights:
             file.write(','.join([str(x) for x in row]) + '\n')

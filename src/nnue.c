@@ -9,25 +9,127 @@ int getInputIndexOf(int color, int piece, int sq) {
     return color * 64 * 6 + (piece - 1) * 64 + sq;
 }
 
-void setNNUEInput(NNUE* nnue, int index, int value) {
-    int difference = value - nnue->inputs[index];
-    nnue->inputs[index] += value;
-
-    // TODO: recompute eval
+double ReLU(double x) {
+    return x > 0 ? x : 0;
 }
+
+int counter = 0;
+
+void setNNUEInput(NNUE* nnue, int index) {
+    if (nnue->inputs[index] == 1) {
+        return;
+    }
+
+    nnue->inputs[index] = 1;
+
+    // Update eval
+    for (int i = 0; i < INNER_LAYER_COUNT; ++i) {
+        nnue->accumulators[i] += nnue->weights_1[i][index];
+        nnue->accumulators[i] = ReLU(nnue->accumulators[i]);
+    }
+
+    nnue->eval = 0;
+
+    for (int i = 0; i < INNER_LAYER_COUNT; ++i) {
+        nnue->eval += nnue->accumulators[i] * nnue->weights_2[i];
+    }
+}
+
+void resetNNUEInput(NNUE* nnue, int index) {
+    if (!nnue->inputs[index]) {
+        return;
+    }
+
+    nnue->inputs[index] = 0;
+
+    counter--;
+
+    // Update eval
+    for (int i = 0; i < INNER_LAYER_COUNT; ++i) {
+        nnue->accumulators[i] -= nnue->weights_1[i][index];
+        nnue->accumulators[i] = ReLU(nnue->accumulators[i]);
+    }
+
+    nnue->eval = 0;
+
+    for (int i = 0; i < INNER_LAYER_COUNT; ++i) {
+        nnue->eval += nnue->accumulators[i] * nnue->weights_2[i];
+    }
+}
+
+void resetNNUE(NNUE* nnue) {
+    for (int i = 0; i < INPUTS_COUNT; ++i) {
+        nnue->inputs[i] = 0;
+    }
+
+    for (int i = 0; i < INNER_LAYER_COUNT; ++i) {
+        nnue->accumulators[i] = 0;
+    }
+
+    nnue->eval = 0;
+}
+
 
 void modifyNnue(NNUE* nnue, Board* board, int color, int piece) {
     for(int sq = 0; sq < 64; ++sq) {
         int weight = isExists(board, color, piece, sq);
-        setNNUEInput(nnue, getInputIndexOf(color, piece, sq), weight);
+        if (weight) {
+            setNNUEInput(nnue, getInputIndexOf(color, piece, sq));
+        } else {
+            resetNNUEInput(nnue, getInputIndexOf(color, piece, sq));
+        }
     }
 }
 
-NNUE* createNNUE(Board* board) {
-    NNUE* nnue = (NNUE*) malloc(sizeof(NNUE));
+void loadNNUEWeights() {
+    FILE* file = fopen("./fc1.weights.csv", "r");
+    if (file == NULL) {
+        perror("Unable to open file");
+        exit(1);
+    }
 
+    for (int i = 0; i < INNER_LAYER_COUNT; i++) {
+        for (int j = 0; j < INPUTS_COUNT; j++) {
+            if (fscanf(file, "%lf,", &nnue->weights_1[i][j]) != 1) {
+                perror("Error reading file");
+                fclose(file);
+                exit(1);
+            }
+        }
+    }
+    fclose(file);
+
+    file = fopen("./fc2.weights.csv", "r");
+
+    if (file == NULL) {
+        perror("Unable to open file");
+        exit(1);
+    }
+
+    for (int i = 0; i < INNER_LAYER_COUNT; i++) {
+        if (fscanf(file, "%lf,", &nnue->weights_2[i]) != 1) {
+            perror("Error reading file");
+            fclose(file);
+            exit(1);
+        }
+    }
+
+    fclose(file);
+
+    resetNNUE(nnue);
+}
+
+void initNNUEWeights() {
+    // load file with weights
+}
+
+void initNNUEPosition(NNUE* nnue, Board* board) {
     for (int i = 0; i < INPUTS_COUNT; ++i) {
         nnue->inputs[i] = 0;
+    }
+
+    for (int i = 0; i < INNER_LAYER_COUNT; ++i) {
+        nnue->accumulators[i] = 0;
     }
 
     nnue->eval = 0;
@@ -45,15 +147,8 @@ NNUE* createNNUE(Board* board) {
     modifyNnue(nnue, board, WHITE, KING);
     modifyNnue(nnue, board, BLACK, KING);
 
-    int sum = 0;
-    for (int i = 0; i < INPUTS_COUNT; ++i) {
-        if (nnue->inputs[i] > 0) {
-          // print index
-          sum += i;
-          printf("%d\n", i);
-        }
-    }
-    printf("Sum: %d\n", sum);
+}
 
-    return nnue;
+void enableNNUE(Board* board) {
+
 }
