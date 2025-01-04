@@ -1,5 +1,4 @@
-import math
-from typing import Generator
+import os
 
 from torch.utils.data import Dataset, DataLoader
 
@@ -10,8 +9,6 @@ import csv
 import torch
 import torch.nn as nn
 import pandas as pd
-import numpy as np
-import torch.optim as optim
 
 
 DATASET_POSITIONS_COUNT = 250000
@@ -110,7 +107,6 @@ def evaluate_positions(file_path: str, output_csv_path: str):
             try:
                 board.set_fen(fen)
                 eval = analyse_position(board, engine)
-                # nnue_input = calculate_nnue_input_layer(board)
                 positions_count += 1
                 if positions_count % 100 == 0:
                     print(f"Processed positions: {positions_count}", flush=True)
@@ -126,7 +122,6 @@ def evaluate_positions(file_path: str, output_csv_path: str):
                 engine = chess.engine.SimpleEngine.popen_uci("./zevra")
 
 
-# Создание датасета из CSV
 class ChessDataset(Dataset):
     def __init__(self, file_path):
         self.data = pd.read_csv(file_path)
@@ -161,6 +156,7 @@ class NNUE(nn.Module):
 
 def save_layer_weights(weights: nn.Linear, filename):
     with open(filename, 'w') as file:
+        # weights = weights.weight.cpu().data.numpy()
         weights = weights.weight.data.numpy()
         for row in weights:
             file.write(','.join([str(x) for x in row]) + '\n')
@@ -172,9 +168,38 @@ def save_nnue_weights(net: NNUE):
     save_layer_weights(net.fc3, "fc3.weights.csv")
 
 
+def save_checkpoint(
+        model,
+        optimizer,
+        scheduler,
+        epoch,
+        filename="checkpoint.pth"):
+    checkpoint = {
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict(),
+        'scheduler_state_dict': scheduler.state_dict(),
+        'epoch': epoch
+    }
+    torch.save(checkpoint, filename)
+    print(f"Checkpoint saved at epoch {epoch}")
+
+
+def load_checkpoint(
+        model,
+        optimizer,
+        scheduler,
+        filename="checkpoint.pth"):
+    if not os.path.exists(filename):
+        return 1
+    checkpoint = torch.load(filename, weights_only=True)
+    model.load_state_dict(checkpoint['model_state_dict'])
+    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+    scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
+    return checkpoint['epoch']
+
+
 if __name__ == '__main__':
     model = NNUE()
-    print(model)
 
     dataset = ChessDataset("dataset.csv")
     dataloader = DataLoader(dataset, batch_size=128, shuffle=True, num_workers=8)
@@ -182,14 +207,9 @@ if __name__ == '__main__':
     criterion = nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', patience=2, factor=0.5)
-    # num_epochs = 10
-    epoch = 0
-    print(len(model.fc1.weight[0]))
-    print(len(model.fc2.weight[0]))
-    print(len(model.fc3.weight[0]))
+    epoch = load_checkpoint(model, optimizer, scheduler)
 
     while True:
-        epoch += 1
         model.train()
         running_loss = 0.0
         index = 0
@@ -202,46 +222,17 @@ if __name__ == '__main__':
             optimizer.step()
 
             running_loss += loss.item()
-            # print(f"Batch loss: {loss.item()}", flush=True)
-            if index % 100 == 0:
+            if index % 10 == 0:
                 print(f"Learning: {index}")
         loss = running_loss / len(dataloader)
+        scheduler.step(loss)
         save_nnue_weights(model)
         print(f"Epoch [{epoch}], Loss: {running_loss / len(dataloader):.4f}", flush=True)
-
-        # for name, param in model.fc1():
-        #     if "weight" in name:
-        #         np.savetxt(f"{name}_weights.csv", param.data.numpy(), delimiter=",")
+        save_checkpoint(model, optimizer, scheduler, epoch)
+        epoch += 1
 
 
         if loss < 0.2:
             break
         # print LR
         print(optimizer.param_groups[0]['lr'])
-
-
-
-
-
-    # for i, (batch_inputs, batch_scores) in enumerate(dataloader):
-    #     print(f"Batch {i + 1}:")
-    #     print("Inputs:", batch_inputs)
-    #     print("Scores:", batch_scores)
-    #     print("Batch inputs shape:", batch_inputs.shape)
-    #     print("Batch scores shape:", batch_scores.shape)
-    #     print("-" * 50)
-    #
-    #     # Ограничиваем количество выводимых батчей
-    #     if i >= 0:  # Печатаем только 2 батча
-    #         break
-
-
-    # for batch_inputs, batch_scores in dataloader:
-    #     print("Batch inputs shape:", batch_inputs.shape)
-    #     print("Batch scores shape:", batch_scores.shape)
-    #     break
-
-    # example_input = torch.rand((32, 768))
-    # output = model(example_input)
-    # print("Output shape:", output.shape)
-    # evaluate_positions("ccrl_positions.txt", "dataset.csv")
