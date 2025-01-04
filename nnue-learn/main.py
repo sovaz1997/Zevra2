@@ -10,6 +10,7 @@ import csv
 import torch
 import torch.nn as nn
 import pandas as pd
+import numpy as np
 import torch.optim as optim
 
 
@@ -158,18 +159,35 @@ class NNUE(nn.Module):
         return x
 
 
+def save_layer_weights(weights: nn.Linear, filename):
+    with open(filename, 'w') as file:
+        weights = weights.weight.data.numpy()
+        for row in weights:
+            file.write(','.join([str(x) for x in row]) + '\n')
+
+
+def save_nnue_weights(net: NNUE):
+    save_layer_weights(net.fc1, "fc1.weights.csv")
+    save_layer_weights(net.fc2, "fc2.weights.csv")
+    save_layer_weights(net.fc3, "fc3.weights.csv")
+
+
 if __name__ == '__main__':
     model = NNUE()
     print(model)
 
     dataset = ChessDataset("dataset.csv")
-    dataloader = DataLoader(dataset, batch_size=32, shuffle=True, num_workers=4)
+    dataloader = DataLoader(dataset, batch_size=128, shuffle=True, num_workers=8)
 
     criterion = nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', patience=2, factor=0.5)
     # num_epochs = 10
     epoch = 0
+    print(len(model.fc1.weight[0]))
+    print(len(model.fc2.weight[0]))
+    print(len(model.fc3.weight[0]))
+
     while True:
         epoch += 1
         model.train()
@@ -188,7 +206,14 @@ if __name__ == '__main__':
             if index % 100 == 0:
                 print(f"Learning: {index}")
         loss = running_loss / len(dataloader)
+        save_nnue_weights(model)
         print(f"Epoch [{epoch}], Loss: {running_loss / len(dataloader):.4f}", flush=True)
+
+        # for name, param in model.fc1():
+        #     if "weight" in name:
+        #         np.savetxt(f"{name}_weights.csv", param.data.numpy(), delimiter=",")
+
+
         if loss < 0.2:
             break
         # print LR
