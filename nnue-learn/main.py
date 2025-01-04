@@ -169,9 +169,9 @@ def save_layer_weights(weights: nn.Linear, filename):
         file.write('\n')
 
 
-def save_nnue_weights(net: NNUE):
-    save_layer_weights(net.fc1, "fc1.weights.csv")
-    save_layer_weights(net.fc2, "fc2.weights.csv")
+def save_nnue_weights(net: NNUE, epoch: int):
+    save_layer_weights(net.fc1, f"fc1.{epoch}.weights.csv")
+    save_layer_weights(net.fc2, f"fc2.{epoch}.weights.csv")
     # save_layer_weights(net.fc3, "fc3.weights.csv")
 
 
@@ -321,7 +321,7 @@ def debug_nnue_calculation(model: nn.Module, input_vector: torch.Tensor):
 if __name__ == '__main__':
     model = NNUE()
 
-    dataset = ChessDataset("filtered_dataset.csv")
+    dataset = ChessDataset("fitered_10millions.csv")
     dataloader = DataLoader(dataset, batch_size=128, shuffle=True, num_workers=8)
 
     criterion = nn.MSELoss()
@@ -353,7 +353,7 @@ if __name__ == '__main__':
                 # print(f"Learning: {index}")
         loss = running_loss / len(dataloader)
         scheduler.step(loss)
-        save_nnue_weights(model)
+        save_nnue_weights(model, epoch)
         print(f"Epoch [{epoch}], Loss: {running_loss / len(dataloader):.4f}", flush=True)
         save_checkpoint(model, optimizer, scheduler, epoch)
         epoch += 1
