@@ -31,6 +31,7 @@ struct SearchInfo {
     int nullMoveSearch;
     int searchTime;
     int selDepth;
+    int eval;
 };
 
 //Eval type

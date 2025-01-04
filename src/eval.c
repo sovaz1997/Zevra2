@@ -1,6 +1,7 @@
 #include "eval.h"
 #include "score.h"
 #include <math.h>
+#include "uci.h"
 
 //Material
 int PAWN_EV_MG = 100;
@@ -44,7 +45,9 @@ int DoubleBishopsBonus() {
 }
 
 int fullEval(Board *board) {
-    return nnue->eval * 1000;
+    if (NNUE_ENABLED) {
+        return nnue->eval * 1000;
+    }
     int eval = board->eval;
     stage = stageGame(board);
 

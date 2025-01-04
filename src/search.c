@@ -16,8 +16,11 @@ SearchInfo iterativeDeeping(Board *board, TimeManager tm) {
     resetSearchInfo(&searchInfo, tm);
     startTimer(&searchInfo.timer);
     int eval = 0;
+    int prevEval = 0;
     for (int i = 1; i <= tm.depth; ++i) {
+        prevEval = eval;
         eval = aspirationWindow(board, &searchInfo, i, eval);
+
         moveToString(searchInfo.bestMove, bestMove);
         if (ABORT && i > 1)
             break;
@@ -28,6 +31,8 @@ SearchInfo iterativeDeeping(Board *board, TimeManager tm) {
     __sync_synchronize();
     printf("bestmove %s\n", bestMove);
     fflush(stdout);
+
+    searchInfo.eval = prevEval;
 
     return searchInfo;
 }
@@ -209,8 +214,10 @@ int search(Board *board, SearchInfo *searchInfo, int alpha, int beta, int depth,
         if (root && depth > 12) {
             char moveStr[6];
             moveToString(*curMove, moveStr);
-            printf("info currmove %s currmovenumber %d\n", moveStr, movesCount);
-            fflush(stdout);
+            if (!SHOULD_HIDE_SEARCH_INFO_LOGS) {
+                printf("info currmove %s currmovenumber %d\n", moveStr, movesCount);
+                fflush(stdout);
+            }
         }
 
         //Fulility pruning

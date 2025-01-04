@@ -1,4 +1,5 @@
 #include "board.h"
+#include "uci.h"
 
 void setFen(Board* board, char* fen) {
     clearBoard(board);
@@ -55,7 +56,9 @@ void setFen(Board* board, char* fen) {
         board->key ^= otherSideKey;
 
 
-    initNNUEPosition(nnue, board);
+    if (NNUE_ENABLED) {
+        initNNUEPosition(nnue, board);
+    }
 }
 
 void setMovesRange(Board* board, char* moves) {
@@ -114,7 +117,9 @@ void setPiece(Board* board, int piece, int color, int sq) {
     board->squares[sq] = makePiece(piece, color);
     board->key ^= zobristKeys[board->squares[sq]][sq];
 
-    setNNUEInput(nnue, getInputIndexOf(color, piece, sq));
+    if (NNUE_ENABLED) {
+        setNNUEInput(nnue, getInputIndexOf(color, piece, sq));
+    }
 }
 
 void clearPiece(Board* board, int sq) {

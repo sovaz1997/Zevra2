@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include "nnue.h"
+#include "timemanager.h"
+#include "search.h"
 
 int isExists(Board* board, int color, int piece, int sq) {
     return !!(board->pieces[piece] & board->colours[color] & bitboardCell(sq));
@@ -136,4 +138,59 @@ void initNNUEPosition(NNUE* nnue, Board* board) {
     modifyNnue(nnue, board, BLACK, QUEEN);
     modifyNnue(nnue, board, WHITE, KING);
     modifyNnue(nnue, board, BLACK, KING);
+}
+
+TimeManager createFixNodesTm(int nodes) {
+    TimeManager tm = initTM();
+    tm.nodes = nodes;
+    tm.depth = 100;
+    tm.searchType = FixedNodes;
+    return tm;
+}
+
+int MAX_FEN_LENGTH = 1000;
+
+void dataset_gen(Board* board) {
+    TimeManager tm = createFixNodesTm(10000);
+    FILE *inputFile = fopen("ccrl_positions.txt", "r");
+    FILE *outputFile = fopen("dataset.csv", "w");
+
+    if (inputFile == NULL || outputFile == NULL) {
+        perror("Ошибка открытия файла");
+        exit(1);
+    }
+
+    char fen[MAX_FEN_LENGTH];
+    int lineNumber = 0;
+
+    while (fgets(fen, MAX_FEN_LENGTH, inputFile) != NULL) {
+        lineNumber++;
+
+        if (lineNumber > 1000000) {
+            return;
+        }
+
+        char *newline = strchr(fen, '\n');
+        if (newline) {
+            *newline = '\0';
+        }
+
+        // Обрабатываем FEN-позицию
+        printf("Позиция #%d: %s\n", lineNumber, fen);
+
+        setFen(board, fen);
+        SearchInfo info = iterativeDeeping(board, tm);
+        int absoluteEval = board->color == WHITE ? info.eval : -info.eval;
+        printf("Eval: %d\n", absoluteEval);
+        fprintf(outputFile, "%s,%d\n", fen, absoluteEval);
+    }
+
+
+//    setFen(board, "rnbqkbnr/8/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 0 1");
+//    SearchInfo info = iterativeDeeping(board, tm);
+//    int absoluteEval = board->color == WHITE ? info.eval : -info.eval;
+//    printf("Eval: %d\n", absoluteEval);
+
+    fclose(inputFile);
+    fclose(outputFile);
 }

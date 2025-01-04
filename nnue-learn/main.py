@@ -10,7 +10,6 @@ import torch
 import torch.nn as nn
 import pandas as pd
 
-
 DATASET_POSITIONS_COUNT = 250000
 
 
@@ -87,10 +86,12 @@ def analyse_position(board: chess.Board, engine: chess.engine.SimpleEngine):
         engine.quit()
         return None
 
+
 def read_fens(file_path: str):
     with open(file_path, 'r') as file:
         for line in file:
             yield line.strip()
+
 
 def evaluate_positions(file_path: str, output_csv_path: str):
     board = chess.Board()
@@ -135,7 +136,6 @@ class ChessDataset(Dataset):
         self.board.set_fen(fen)
         inputs = calculate_nnue_input_layer(self.board)
         return torch.tensor(inputs, dtype=torch.float32), torch.tensor(score, dtype=torch.float32)
-
 
 
 class NNUE(nn.Module):
@@ -217,11 +217,9 @@ def evaluate_test_fen(model, test_fen: str):
         output = model(nnue_input_tensor)
         score = output.item() * 1000
 
-
     debug_nnue_calculation(model, nnue_input_tensor.squeeze(0))
 
     return score
-
 
 
 def debug_nnue_calculation(model: nn.Module, input_vector: torch.Tensor):
@@ -251,8 +249,8 @@ def debug_nnue_calculation(model: nn.Module, input_vector: torch.Tensor):
         fc1_weights = model.fc1.weight  # shape = [256, 768]
 
         # Подготовим массив (или список) для хранения выхода скрытого слоя до ReLU
-        hidden_raw = [0.0]*256
-        hidden = [0.0]*256      # после ReLU
+        hidden_raw = [0.0] * 256
+        hidden = [0.0] * 256  # после ReLU
 
         print("=== Скрытый слой (fc1 -> ReLU) ===")
         for j in range(256):
@@ -295,7 +293,7 @@ def debug_nnue_calculation(model: nn.Module, input_vector: torch.Tensor):
         # Суммируем вклад от каждого нейрона скрытого слоя
         for j in range(256):
             h_j = hidden[j]  # выход j-го нейрона после ReLU
-            if h_j != 0.0:   # если нейрон не затух
+            if h_j != 0.0:  # если нейрон не затух
                 w_j = fc2_weights[j].item()
                 c = h_j * w_j
                 if c != 0.0:
@@ -315,8 +313,6 @@ def debug_nnue_calculation(model: nn.Module, input_vector: torch.Tensor):
 
         print(f"\nИтоговый выход (сырое) = {sum_out:.4f}")
         print(f"Итоговая оценка (умножено на 1000) = {scaled_out:.1f} cp\n")
-
-
 
 
 if __name__ == '__main__':
@@ -356,8 +352,7 @@ if __name__ == '__main__':
         save_checkpoint(model, optimizer, scheduler, epoch)
         epoch += 1
 
-
-        if loss < 0.2:
+        if loss < 0.05:
             break
         # print LR
         print(optimizer.param_groups[0]['lr'])
