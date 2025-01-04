@@ -4,10 +4,11 @@ char startpos[] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 Option option;
 
 const int TUNING_ENABLED = 0;
-
+const int SHOULD_GENERATE_DATASET = 0;
+int NNUE_ENABLED = 1;
+int SHOULD_HIDE_SEARCH_INFO_LOGS = 0;
 
 int main(int argc, char** argv) {
-
     initOption();
     initEngine();
 
@@ -21,12 +22,15 @@ int main(int argc, char** argv) {
 //    }
 
     NNUE* nnue = (NNUE*) malloc(sizeof(NNUE));
-    loadNNUEWeights();
+    if (NNUE_ENABLED) {
+        loadNNUEWeights();
+    }
 
     printEngineInfo();
     setFen(board, startpos);
 
-    // initNNUEPosition(nnue, board);
+
+    initNNUEPosition(nnue, board);
 
     char buff[65536];
 
@@ -34,11 +38,12 @@ int main(int argc, char** argv) {
     gameInfo.moveCount = 0;
     board->gameInfo = &gameInfo;
     SEARCH_COMPLETE = 1;
+    if (SHOULD_GENERATE_DATASET) {
+        SHOULD_HIDE_SEARCH_INFO_LOGS = 1;
+        NNUE_ENABLED = 0;
+        dataset_gen(board);
+    }
 
-    // tuning
-//    if (TUNING_ENABLED) {
-//        makeTuning(board);
-//    }
 
     TimeManager tm = initTM();
 
@@ -208,6 +213,10 @@ void printScore(int score) {
 }
 
 void printSearchInfo(SearchInfo* info, Board* board, int depth, int eval, int evalType) {
+      if (SHOULD_HIDE_SEARCH_INFO_LOGS) {
+        return;
+      }
+
     U64 searchTime = getTime(&info->timer);
     int speed = (searchTime < 1 ? 0 : (info->nodesCount / (searchTime / 1000.)));
     int hashfull = (double)ttFilledSize  / (double)ttSize * 1000;

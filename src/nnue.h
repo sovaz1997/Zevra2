@@ -29,5 +29,7 @@ void initNNUEWeights();
 void initNNUEPosition(NNUE* nnue, Board* board);
 void loadNNUEWeights();
 void debug_nnue_calculation(struct NNUE *nnue);
+TimeManager createFixNodesTm(int nodes);
+void dataset_gen(Board* board);
 
 #endif
