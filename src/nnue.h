@@ -20,7 +20,6 @@ NNUE* nnue;
 
 double ReLU(double x);
 int isExists(Board* board, int color, int piece, int sq);
-void enableNNUE(Board* board);
 int getInputIndexOf(int color, int piece, int sq);
 void setNNUEInput(NNUE* nnue, int index);
 void resetNNUE(NNUE* nnue);
@@ -29,5 +28,6 @@ void modifyNnue(NNUE* nnue, Board* board, int color, int piece);
 void initNNUEWeights();
 void initNNUEPosition(NNUE* nnue, Board* board);
 void loadNNUEWeights();
+void debug_nnue_calculation(struct NNUE *nnue);
 
 #endif

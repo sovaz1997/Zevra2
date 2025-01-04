@@ -25,13 +25,12 @@ void setNNUEInput(NNUE* nnue, int index) {
     // Update eval
     for (int i = 0; i < INNER_LAYER_COUNT; ++i) {
         nnue->accumulators[i] += nnue->weights_1[i][index];
-        nnue->accumulators[i] = ReLU(nnue->accumulators[i]);
     }
 
     nnue->eval = 0;
 
     for (int i = 0; i < INNER_LAYER_COUNT; ++i) {
-        nnue->eval += nnue->accumulators[i] * nnue->weights_2[i];
+        nnue->eval += ReLU(nnue->accumulators[i]) * nnue->weights_2[i];
     }
 }
 
@@ -47,13 +46,12 @@ void resetNNUEInput(NNUE* nnue, int index) {
     // Update eval
     for (int i = 0; i < INNER_LAYER_COUNT; ++i) {
         nnue->accumulators[i] -= nnue->weights_1[i][index];
-        nnue->accumulators[i] = ReLU(nnue->accumulators[i]);
     }
 
     nnue->eval = 0;
 
     for (int i = 0; i < INNER_LAYER_COUNT; ++i) {
-        nnue->eval += nnue->accumulators[i] * nnue->weights_2[i];
+        nnue->eval += ReLU(nnue->accumulators[i]) * nnue->weights_2[i];
     }
 }
 
@@ -124,15 +122,7 @@ void initNNUEWeights() {
 }
 
 void initNNUEPosition(NNUE* nnue, Board* board) {
-    for (int i = 0; i < INPUTS_COUNT; ++i) {
-        nnue->inputs[i] = 0;
-    }
-
-    for (int i = 0; i < INNER_LAYER_COUNT; ++i) {
-        nnue->accumulators[i] = 0;
-    }
-
-    nnue->eval = 0;
+    resetNNUE(nnue);
 
     modifyNnue(nnue, board, WHITE, PAWN);
     modifyNnue(nnue, board, BLACK, PAWN);
@@ -146,9 +136,4 @@ void initNNUEPosition(NNUE* nnue, Board* board) {
     modifyNnue(nnue, board, BLACK, QUEEN);
     modifyNnue(nnue, board, WHITE, KING);
     modifyNnue(nnue, board, BLACK, KING);
-
-}
-
-void enableNNUE(Board* board) {
-
 }

@@ -142,29 +142,35 @@ class ChessDataset(Dataset):
 class NNUE(nn.Module):
     def __init__(self, input_size=768, hidden_size=256, output_size=1):
         super(NNUE, self).__init__()
-        self.fc1 = nn.Linear(input_size, hidden_size)
+        self.fc1 = nn.Linear(input_size, hidden_size, bias=False)
         self.relu = nn.ReLU()
-        self.fc2 = nn.Linear(hidden_size, hidden_size)
-        self.fc3 = nn.Linear(hidden_size, output_size)
+        self.fc2 = nn.Linear(hidden_size, output_size, bias=False)
 
     def forward(self, x):
         x = self.relu(self.fc1(x))
-        # x = self.relu(self.fc2(x))
-        x = self.fc3(x)
+        x = self.fc2(x)
         return x
 
 
+# def save_layer_weights(weights: nn.Linear, filename):
+#     with open(filename, 'w') as file:
+#         weights = weights.weight.data.numpy()
+#         for row in weights:
+#             file.write(','.join([str(x) for x in row]) + '\n')
+
 def save_layer_weights(weights: nn.Linear, filename):
+    weight_matrix = weights.weight.data.numpy()  # shape [out_features, in_features]
+
+    flat_weights = weight_matrix.flatten()  # shape [out_features * in_features]
+
     with open(filename, 'w') as file:
-        weights = weights.weight.data.numpy()
-        for row in weights:
-            file.write(','.join([str(x) for x in row]) + '\n')
+        file.write(','.join(str(x) for x in flat_weights))
+        file.write('\n')
 
 
 def save_nnue_weights(net: NNUE):
     save_layer_weights(net.fc1, "fc1.weights.csv")
     save_layer_weights(net.fc2, "fc2.weights.csv")
-    save_layer_weights(net.fc3, "fc3.weights.csv")
 
 
 def save_checkpoint(
@@ -197,6 +203,124 @@ def load_checkpoint(
     return checkpoint['epoch']
 
 
+def evaluate_test_fen(model, test_fen: str):
+    board = chess.Board(test_fen)
+    # print board
+    print(board)
+
+    # Превращаем доску в входные данные
+    nnue_input = calculate_nnue_input_layer(board)  # Это ваш метод из кода
+    nnue_input_tensor = torch.tensor(nnue_input, dtype=torch.float32).unsqueeze(0)
+
+    # Переключаем модель в режим оценки
+    model.eval()
+    with torch.no_grad():
+        output = model(nnue_input_tensor)
+        score = output.item() * 1000
+
+
+    debug_nnue_calculation(model, nnue_input_tensor.squeeze(0))
+
+    return score
+
+
+
+def debug_nnue_calculation(model: nn.Module, input_vector: torch.Tensor):
+    """
+    Выводит пошаговый расчёт сети с архитектурой:
+      fc1(768->256, bias=False) -> ReLU -> fc2(256->1, bias=False).
+    model        : уже инициализированная модель NNUE (weights загружены)
+    input_vector : 1D-тензор формы [768], содержащий вход (чаще всего 0/1)
+    """
+
+    # Если input_vector имеет размер [1, 768], можно привести к [768]:
+    if input_vector.dim() == 2 and input_vector.shape[0] == 1:
+        input_vector = input_vector.squeeze(0)  # [768]
+
+    # Инпуты
+    print("\n=== Входной вектор ===")
+    for i in range(768):
+        if input_vector[i] != 0.0:
+            print(f"input[{i}] = {input_vector[i].item()}")
+
+    with torch.no_grad():
+        # ---------------------------
+        # 1) Скрытый слой: fc1 -> ReLU
+        # ---------------------------
+        # Форма матрицы weight у fc1: [256, 768]
+        # т.е. fc1.weight[j, i] это вес к j-му нейрону от i-го входа
+        fc1_weights = model.fc1.weight  # shape = [256, 768]
+
+        # Подготовим массив (или список) для хранения выхода скрытого слоя до ReLU
+        hidden_raw = [0.0]*256
+        hidden = [0.0]*256      # после ReLU
+
+        print("=== Скрытый слой (fc1 -> ReLU) ===")
+        for j in range(256):
+            sum_val = 0.0
+            partial_contribs = []
+
+            # Считаем вклад только тех i, где input[i] != 0
+            for i in range(768):
+                x_i = input_vector[i].item()
+                if x_i != 0.0:
+                    w_ji = fc1_weights[j, i].item()
+                    print(fc1_weights[j, i])
+
+                    contrib = x_i * w_ji
+                    if contrib != 0.0:
+                        sum_val += contrib
+                        partial_contribs.append((i, x_i, w_ji, contrib))
+
+            hidden_raw[j] = sum_val
+            # Применяем ReLU
+            relu_val = max(0.0, sum_val)
+            hidden[j] = relu_val
+
+            # Если после ReLU что-то осталось > 0, распечатаем подробнее
+            if relu_val > 0.0:
+                print(f"\n[Нейрон {j}] Сумма до ReLU = {sum_val:.4f}, после ReLU = {relu_val:.4f}")
+                print("  Вклады (i, input[i], weight, contrib):")
+                for (i_idx, x_val, w_val, c_val) in partial_contribs:
+                    print(f"    i={i_idx}, x={x_val:.1f}, w={w_val:.4f}, contrib={c_val:.4f}")
+
+        # ---------------------------
+        # 2) Выходной слой: fc2
+        # ---------------------------
+        # Форма weight у fc2: [1, 256]
+        fc2_weights = model.fc2.weight[0]  # shape = [256], т.к. output_size=1
+
+        sum_out = 0.0
+        partial_out = []
+
+        print("\n=== Выходной слой (fc2) ===")
+        # Суммируем вклад от каждого нейрона скрытого слоя
+        for j in range(256):
+            h_j = hidden[j]  # выход j-го нейрона после ReLU
+            if h_j != 0.0:   # если нейрон не затух
+                w_j = fc2_weights[j].item()
+                c = h_j * w_j
+                if c != 0.0:
+                    sum_out += c
+                    partial_out.append((j, h_j, w_j, c))
+
+        print(f"Сумма на выходе (до умножения на 1000): {sum_out:.4f}")
+
+        if len(partial_out) > 0:
+            print("  Вклады активных нейронов скрытого слоя (j, hidden[j], weight, contrib):")
+            for (j_idx, h_val, w_val, c_val) in partial_out:
+                print(f"    j={j_idx}, hidden={h_val:.4f}, w={w_val:.4f}, contrib={c_val:.4f}")
+
+        # Предположим, что при обучении лейблы делились на 1000
+        # Тогда умножаем выход, чтобы получить "сантипешки".
+        scaled_out = sum_out * 1000.0
+
+        print(f"\nИтоговый выход (сырое) = {sum_out:.4f}")
+        print(f"Итоговая оценка (умножено на 1000) = {scaled_out:.1f} cp\n")
+
+
+
+
 if __name__ == '__main__':
     model = NNUE()
 
@@ -207,6 +331,10 @@ if __name__ == '__main__':
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', patience=2, factor=0.5)
     epoch = load_checkpoint(model, optimizer, scheduler)
+
+    print(model)
+    print(evaluate_test_fen(model, "1qqqk3/1qqqp3/1qqq4/1qqq4/8/R7/3Q4/3QK3 w HAha - 0 1"))
+    # print(evaluate_test_fen(model, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"))
 
     while True:
         model.train()

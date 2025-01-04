@@ -44,7 +44,7 @@ int DoubleBishopsBonus() {
 }
 
 int fullEval(Board *board) {
-    return nnue->eval;
+    return nnue->eval * 1000;
     int eval = board->eval;
     stage = stageGame(board);
 
