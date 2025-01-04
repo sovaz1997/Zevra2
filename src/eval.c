@@ -46,7 +46,8 @@ int DoubleBishopsBonus() {
 
 int fullEval(Board *board) {
     if (NNUE_ENABLED) {
-        return nnue->eval * 1000;
+        int eval = nnue->eval * 1000;
+        return (board->color == WHITE ? eval : -eval);
     }
     int eval = board->eval;
     stage = stageGame(board);

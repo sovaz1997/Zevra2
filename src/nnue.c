@@ -31,9 +31,20 @@ void setNNUEInput(NNUE* nnue, int index) {
 
     nnue->eval = 0;
 
+    // init array
     for (int i = 0; i < INNER_LAYER_COUNT; ++i) {
-        nnue->eval += ReLU(nnue->accumulators[i]) * nnue->weights_2[i];
+        nnue->accumulators2[i] = 0;
     }
+    for (int i = 0; i < INNER_LAYER_COUNT; ++i) {
+        for(int j = 0; j < INNER_LAYER_COUNT; ++j) {
+            nnue->accumulators2[i] += ReLU(nnue->accumulators[j]) * nnue->weights_2[i][j];
+        }
+    }
+
+    for (int i = 0; i < INNER_LAYER_COUNT; ++i) {
+        nnue->eval += ReLU(nnue->accumulators2[i]) * nnue->weights_3[i];
+    }
+    //printf("Eval: %f\n", nnue->eval);
 }
 
 void resetNNUEInput(NNUE* nnue, int index) {
@@ -52,8 +63,18 @@ void resetNNUEInput(NNUE* nnue, int index) {
 
     nnue->eval = 0;
 
+    // init array
     for (int i = 0; i < INNER_LAYER_COUNT; ++i) {
-        nnue->eval += ReLU(nnue->accumulators[i]) * nnue->weights_2[i];
+        nnue->accumulators2[i] = 0;
+    }
+    for (int i = 0; i < INNER_LAYER_COUNT; ++i) {
+      for(int j = 0; j < INNER_LAYER_COUNT; ++j) {
+          nnue->accumulators2[i] += ReLU(nnue->accumulators[j]) * nnue->weights_2[i][j];
+      }
+    }
+
+    for (int i = 0; i < INNER_LAYER_COUNT; ++i) {
+        nnue->eval += ReLU(nnue->accumulators2[i]) * nnue->weights_3[i];
     }
 }
 
@@ -107,7 +128,26 @@ void loadNNUEWeights() {
     }
 
     for (int i = 0; i < INNER_LAYER_COUNT; i++) {
-        if (fscanf(file, "%lf,", &nnue->weights_2[i]) != 1) {
+      for (int j = 0; j < INNER_LAYER_COUNT; j++) {
+          if (fscanf(file, "%lf,", &nnue->weights_2[i][j]) != 1) {
+              perror("Error reading file");
+              fclose(file);
+              exit(1);
+          }
+      }
+    }
+
+    fclose(file);
+
+    file = fopen("./fc3.weights.csv", "r");
+
+    if (file == NULL) {
+        perror("Unable to open file");
+        exit(1);
+    }
+
+    for (int i = 0; i < INNER_LAYER_COUNT; i++) {
+        if (fscanf(file, "%lf,", &nnue->weights_3[i]) != 1) {
             perror("Error reading file");
             fclose(file);
             exit(1);
@@ -119,9 +159,9 @@ void loadNNUEWeights() {
     resetNNUE(nnue);
 }
 
-void initNNUEWeights() {
-    // load file with weights
-}
+//void initNNUEWeights() {
+//    // load file with weights
+//}
 
 void initNNUEPosition(NNUE* nnue, Board* board) {
     resetNNUE(nnue);
@@ -150,10 +190,10 @@ TimeManager createFixNodesTm(int nodes) {
 
 int MAX_FEN_LENGTH = 1000;
 
-void dataset_gen(Board* board) {
+void dataset_gen(Board* board, int from, int to, char* filename) {
     TimeManager tm = createFixNodesTm(10000);
     FILE *inputFile = fopen("ccrl_positions.txt", "r");
-    FILE *outputFile = fopen("dataset.csv", "w");
+    FILE *outputFile = fopen(filename, "w");
 
     if (inputFile == NULL || outputFile == NULL) {
         perror("Ошибка открытия файла");
@@ -166,7 +206,14 @@ void dataset_gen(Board* board) {
     while (fgets(fen, MAX_FEN_LENGTH, inputFile) != NULL) {
         lineNumber++;
 
-        if (lineNumber > 1000000) {
+        if (lineNumber < from) {
+            continue;
+        }
+
+        if (lineNumber >= to) {
+            fclose(inputFile);
+            fclose(outputFile);
+            exit(0);
             return;
         }
 
@@ -193,4 +240,5 @@ void dataset_gen(Board* board) {
 
     fclose(inputFile);
     fclose(outputFile);
+    exit(0);
 }

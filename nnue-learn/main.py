@@ -143,10 +143,12 @@ class NNUE(nn.Module):
         super(NNUE, self).__init__()
         self.fc1 = nn.Linear(input_size, hidden_size, bias=False)
         self.relu = nn.ReLU()
+        # self.fc2 = nn.Linear(hidden_size, hidden_size, bias=False)
         self.fc2 = nn.Linear(hidden_size, output_size, bias=False)
 
     def forward(self, x):
         x = self.relu(self.fc1(x))
+        # x = self.relu(self.fc2(x))
         x = self.fc2(x)
         return x
 
@@ -170,6 +172,7 @@ def save_layer_weights(weights: nn.Linear, filename):
 def save_nnue_weights(net: NNUE):
     save_layer_weights(net.fc1, "fc1.weights.csv")
     save_layer_weights(net.fc2, "fc2.weights.csv")
+    save_layer_weights(net.fc3, "fc3.weights.csv")
 
 
 def save_checkpoint(
@@ -217,7 +220,7 @@ def evaluate_test_fen(model, test_fen: str):
         output = model(nnue_input_tensor)
         score = output.item() * 1000
 
-    debug_nnue_calculation(model, nnue_input_tensor.squeeze(0))
+    # debug_nnue_calculation(model, nnue_input_tensor.squeeze(0))
 
     return score
 
@@ -329,6 +332,7 @@ if __name__ == '__main__':
     print(model)
     print(evaluate_test_fen(model, "1qqqk3/1qqqp3/1qqq4/1qqq4/8/R7/3Q4/3QK3 w HAha - 0 1"))
     print(evaluate_test_fen(model, "rnbqkbnr/ppp3pp/8/4p3/3pNp2/3P1N2/PPP1PPPP/R1BQKB1R b KQkq - 1 6"))
+    print(evaluate_test_fen(model, "rnbqkbn1/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQq - 0 1"))
 
     while True:
         model.train()
@@ -343,8 +347,8 @@ if __name__ == '__main__':
             optimizer.step()
 
             running_loss += loss.item()
-            if index % 10 == 0:
-                print(f"Learning: {index}")
+            # if index % 10 == 0:
+                # print(f"Learning: {index}")
         loss = running_loss / len(dataloader)
         scheduler.step(loss)
         save_nnue_weights(model)

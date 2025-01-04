@@ -4,7 +4,7 @@ char startpos[] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 Option option;
 
 const int TUNING_ENABLED = 0;
-const int SHOULD_GENERATE_DATASET = 0;
+int SHOULD_GENERATE_DATASET = 0;
 int NNUE_ENABLED = 1;
 int SHOULD_HIDE_SEARCH_INFO_LOGS = 0;
 
@@ -38,11 +38,25 @@ int main(int argc, char** argv) {
     gameInfo.moveCount = 0;
     board->gameInfo = &gameInfo;
     SEARCH_COMPLETE = 1;
-    if (SHOULD_GENERATE_DATASET) {
-        SHOULD_HIDE_SEARCH_INFO_LOGS = 1;
-        NNUE_ENABLED = 0;
-        dataset_gen(board);
+
+
+
+
+
+    if (argc > 4) {
+        if (strEquals(argv[1], "--generate-dataset")) {
+          printf("Generating dataset...\n");
+          SHOULD_HIDE_SEARCH_INFO_LOGS = 1;
+          NNUE_ENABLED = 0;
+          dataset_gen(board, atoi(argv[2]), atoi(argv[3]), argv[4]);
+        }
     }
+
+//    if (SHOULD_GENERATE_DATASET) {
+//        SHOULD_HIDE_SEARCH_INFO_LOGS = 1;
+//        NNUE_ENABLED = 0;
+//        dataset_gen(board);
+//    }
 
 
     TimeManager tm = initTM();
