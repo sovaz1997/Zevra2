@@ -132,7 +132,7 @@ class ChessDataset(Dataset):
 
     def __getitem__(self, idx):
         fen = self.data.iloc[idx, 0]
-        score = self.data.iloc[idx, 1] / 1000
+        score = self.data.iloc[idx, 1] # / 1000
         self.board.set_fen(fen)
         inputs = calculate_nnue_input_layer(self.board)
         return torch.tensor(inputs, dtype=torch.float32), torch.tensor(score, dtype=torch.float32)
@@ -172,7 +172,7 @@ def save_layer_weights(weights: nn.Linear, filename):
 def save_nnue_weights(net: NNUE):
     save_layer_weights(net.fc1, "fc1.weights.csv")
     save_layer_weights(net.fc2, "fc2.weights.csv")
-    save_layer_weights(net.fc3, "fc3.weights.csv")
+    # save_layer_weights(net.fc3, "fc3.weights.csv")
 
 
 def save_checkpoint(
@@ -321,7 +321,7 @@ def debug_nnue_calculation(model: nn.Module, input_vector: torch.Tensor):
 if __name__ == '__main__':
     model = NNUE()
 
-    dataset = ChessDataset("dataset.csv")
+    dataset = ChessDataset("filtered_dataset.csv")
     dataloader = DataLoader(dataset, batch_size=128, shuffle=True, num_workers=8)
 
     criterion = nn.MSELoss()
@@ -340,6 +340,8 @@ if __name__ == '__main__':
         index = 0
         for (batch_inputs, batch_scores) in dataloader:
             index += 1
+            if index % 1000 == 0:
+                print(f"Learning: {index}")
             optimizer.zero_grad()
             outputs = model(batch_inputs)
             loss = criterion(outputs.squeeze(), batch_scores)

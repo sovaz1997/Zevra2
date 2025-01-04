@@ -4,17 +4,14 @@
 #include "board.h"
 
 static const int INPUTS_COUNT = 768;
-static const int INNER_LAYER_COUNT = 8;
-// int isNNUEEnabled = 0;
+static const int INNER_LAYER_COUNT = 256;
 
 
 struct NNUE {
     double inputs[INPUTS_COUNT];
     double weights_1[INNER_LAYER_COUNT][INPUTS_COUNT];
-    double weights_2[INNER_LAYER_COUNT][INNER_LAYER_COUNT];
-    double weights_3[INNER_LAYER_COUNT];
+    double weights_2[INNER_LAYER_COUNT];
     double accumulators[INNER_LAYER_COUNT];
-    double accumulators2[INNER_LAYER_COUNT];
     double eval;
 };
 
