@@ -322,7 +322,7 @@ if __name__ == '__main__':
     model = NNUE()
 
     dataset = ChessDataset("fitered_10millions.csv")
-    dataloader = DataLoader(dataset, batch_size=128, shuffle=True, num_workers=8)
+    dataloader = DataLoader(dataset, batch_size=128, shuffle=True, num_workers=2)
 
     criterion = nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
@@ -354,6 +354,7 @@ if __name__ == '__main__':
         loss = running_loss / len(dataloader)
         scheduler.step(loss)
         save_nnue_weights(model, epoch)
+
         print(f"Epoch [{epoch}], Loss: {running_loss / len(dataloader):.4f}", flush=True)
         save_checkpoint(model, optimizer, scheduler, epoch)
         epoch += 1
