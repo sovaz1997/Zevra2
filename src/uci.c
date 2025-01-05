@@ -51,13 +51,6 @@ int main(int argc, char** argv) {
         }
     }
 
-//    if (SHOULD_GENERATE_DATASET) {
-//        SHOULD_HIDE_SEARCH_INFO_LOGS = 1;
-//        NNUE_ENABLED = 0;
-//        dataset_gen(board);
-//    }
-
-
     TimeManager tm = initTM();
 
     while(1) {
@@ -273,8 +266,6 @@ void printPV(Board* board, int depth, U16 bestMove) {
         }
 
         TranspositionEntity entity = cur->entity[entityIndex];
-
-        // (cur->evalType == lowerbound || cur->evalType == exact) &&
 
         moveToString(entity.move, mv);
 
