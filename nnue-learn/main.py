@@ -77,6 +77,7 @@ def calculate_nnue_input_layer(board: chess.Board):
     return nnue_input
 
 
+
 def analyse_position(board: chess.Board, engine: chess.engine.SimpleEngine):
     try:
         result = engine.analyse(board, chess.engine.Limit(nodes=10000))
@@ -129,27 +130,32 @@ class ChessDataset(IterableDataset):
         self.file_path = file_path
 
     def __iter__(self):
+        worker_info = torch.utils.data.get_worker_info()
+
+        if worker_info is None:
+            start = 0
+            step = 1
+        else:
+            # Split workload among workers
+            start = worker_info.id
+            step = worker_info.num_workers
+
         with open(self.file_path, 'r') as f:
             reader = csv.reader(f)
-            for row in reader:
-                fen, score = row
-                board = chess.Board(fen)
-                inputs = calculate_nnue_input_layer(board)
-                yield torch.tensor(inputs, dtype=torch.float32), torch.tensor(float(score), dtype=torch.float32)
-
-    # def __len__(self):
-    #     return len(self.data)
-
-    # def __getitem__(self, idx):
-    #     fen = self.data.iloc[idx, 0]
-    #     score = self.data.iloc[idx, 1] # / 1000
-    #     self.board.set_fen(fen)
-    #     inputs = calculate_nnue_input_layer(self.board)
-    #     return torch.tensor(inputs, dtype=torch.float32), torch.tensor(score, dtype=torch.float32)
+            for idx, row in enumerate(reader):
+                    if idx % step == start:
+                        fen, score = row
+                        try:
+                            board = chess.Board(fen)
+                            inputs = calculate_nnue_input_layer(board)
+                            yield torch.tensor(inputs, dtype=torch.float32), torch.tensor(float(score), dtype=torch.float32)
+                        except Exception as e:
+                            print(e)
+                            continue
 
 
 class NNUE(nn.Module):
-    def __init__(self, input_size=768, hidden_size=256, output_size=1):
+    def __init__(self, input_size=768, hidden_size=1024, output_size=1):
         super(NNUE, self).__init__()
         self.fc1 = nn.Linear(input_size, hidden_size, bias=False)
         self.relu = nn.ReLU()
@@ -161,13 +167,6 @@ class NNUE(nn.Module):
         # x = self.relu(self.fc2(x))
         x = self.fc2(x)
         return x
-
-
-# def save_layer_weights(weights: nn.Linear, filename):
-#     with open(filename, 'w') as file:
-#         weights = weights.weight.data.numpy()
-#         for row in weights:
-#             file.write(','.join([str(x) for x in row]) + '\n')
 
 def save_layer_weights(weights: nn.Linear, filename):
     weight_matrix = weights.weight.cpu().data.numpy()  # shape [out_features, in_features]
@@ -333,7 +332,8 @@ if __name__ == '__main__':
     device = torch.device("mps")
     model = model.to(device)
 
-    dataset = ChessDataset("100millions_dataset.csv")
+    # dataset = ChessDataset("100millions_dataset.csv")
+    dataset = ChessDataset("20millions_dataset.csv")
     dataloader = DataLoader(dataset, batch_size=512, num_workers=12, pin_memory=False)
 
     criterion = nn.MSELoss()
@@ -349,14 +349,17 @@ if __name__ == '__main__':
     while True:
         model.train()
         running_loss = 0.0
+        count = 1
         index = 0
-        for (batch_inputs, batch_scores) in dataloader:
+        # for (batch_inputs, batch_scores) in dataloader:
+        for batch_idx, (batch_inputs, batch_scores) in enumerate(dataloader):
             index += 1
+            if index % 100 == 0:
+                print(f"Learning: {index}")
+            count += len(batch_inputs)
             batch_inputs = batch_inputs.to(device)
             batch_scores = batch_scores.to(device)
 
-            if index % 10 == 0:
-                print(f"Learning: {index}")
             optimizer.zero_grad()
             outputs = model(batch_inputs)
             loss = criterion(outputs.squeeze(), batch_scores)
@@ -366,11 +369,11 @@ if __name__ == '__main__':
             running_loss += loss.item()
             # if index % 10 == 0:
                 # print(f"Learning: {index}")
-        loss = running_loss / len(dataloader)
+        loss = running_loss / count
         scheduler.step(loss)
         save_nnue_weights(model, epoch)
 
-        print(f"Epoch [{epoch}], Loss: {running_loss / len(dataloader):.4f}", flush=True)
+        print(f"Epoch [{epoch}], Loss: {loss:.4f}", flush=True)
         save_checkpoint(model, optimizer, scheduler, epoch)
         epoch += 1
 
