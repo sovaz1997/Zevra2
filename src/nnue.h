@@ -5,16 +5,14 @@
 
 #define INPUTS_COUNT 768
 #define INNER_LAYER_COUNT 32
-//static const int INPUTS_COUNT = 768;
-//static const int INNER_LAYER_COUNT = 32;
 
 
 struct NNUE {
     S16 inputs[INPUTS_COUNT];
     double weights_1[INNER_LAYER_COUNT][INPUTS_COUNT];
-    S16 weights_1_quantized[INNER_LAYER_COUNT][INPUTS_COUNT];
+    S32 weights_1_quantized[INPUTS_COUNT][INNER_LAYER_COUNT];
     double weights_2[INNER_LAYER_COUNT];
-    S16 weights_2_quantized[INNER_LAYER_COUNT];
+    S32 weights_2_quantized[INNER_LAYER_COUNT];
     S32 accumulators[INNER_LAYER_COUNT];
     double eval;
 };
