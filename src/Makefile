@@ -1,4 +1,4 @@
-CC = gcc-14
+CC = gcc
 CFLAGS = -std=gnu17 -m64 -fcommon
 SRC = *.c
 OPTIMIZATIONS = -O3 -flto
