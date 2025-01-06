@@ -1,6 +1,6 @@
 import os
 
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset, DataLoader, IterableDataset
 
 import chess
 import chess.pgn
@@ -122,20 +122,30 @@ def evaluate_positions(file_path: str, output_csv_path: str):
                 engine = chess.engine.SimpleEngine.popen_uci("./zevra")
 
 
-class ChessDataset(Dataset):
+class ChessDataset(IterableDataset):
     def __init__(self, file_path):
-        self.data = pd.read_csv(file_path)
-        self.board = chess.Board()
+        # self.data = pd.read_csv(file_path)
+        # self.board = chess.Board()
+        self.file_path = file_path
 
-    def __len__(self):
-        return len(self.data)
+    def __iter__(self):
+        with open(self.file_path, 'r') as f:
+            reader = csv.reader(f)
+            for row in reader:
+                fen, score = row
+                board = chess.Board(fen)
+                inputs = calculate_nnue_input_layer(board)
+                yield torch.tensor(inputs, dtype=torch.float32), torch.tensor(float(score), dtype=torch.float32)
 
-    def __getitem__(self, idx):
-        fen = self.data.iloc[idx, 0]
-        score = self.data.iloc[idx, 1] # / 1000
-        self.board.set_fen(fen)
-        inputs = calculate_nnue_input_layer(self.board)
-        return torch.tensor(inputs, dtype=torch.float32), torch.tensor(score, dtype=torch.float32)
+    # def __len__(self):
+    #     return len(self.data)
+
+    # def __getitem__(self, idx):
+    #     fen = self.data.iloc[idx, 0]
+    #     score = self.data.iloc[idx, 1] # / 1000
+    #     self.board.set_fen(fen)
+    #     inputs = calculate_nnue_input_layer(self.board)
+    #     return torch.tensor(inputs, dtype=torch.float32), torch.tensor(score, dtype=torch.float32)
 
 
 class NNUE(nn.Module):
@@ -324,7 +334,7 @@ if __name__ == '__main__':
     model = model.to(device)
 
     dataset = ChessDataset("100millions_dataset.csv")
-    dataloader = DataLoader(dataset, batch_size=512, shuffle=True, num_workers=1, pin_memory=False)
+    dataloader = DataLoader(dataset, batch_size=512, num_workers=12, pin_memory=False)
 
     criterion = nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
