@@ -160,7 +160,7 @@ class NNUE(nn.Module):
 #             file.write(','.join([str(x) for x in row]) + '\n')
 
 def save_layer_weights(weights: nn.Linear, filename):
-    weight_matrix = weights.weight.data.numpy()  # shape [out_features, in_features]
+    weight_matrix = weights.weight.cpu().data.numpy()  # shape [out_features, in_features]
 
     flat_weights = weight_matrix.flatten()  # shape [out_features * in_features]
 
@@ -320,9 +320,11 @@ def debug_nnue_calculation(model: nn.Module, input_vector: torch.Tensor):
 
 if __name__ == '__main__':
     model = NNUE()
+    device = torch.device("mps")
+    model = model.to(device)
 
-    dataset = ChessDataset("fitered_10millions.csv")
-    dataloader = DataLoader(dataset, batch_size=128, shuffle=True, num_workers=2)
+    dataset = ChessDataset("100millions_dataset.csv")
+    dataloader = DataLoader(dataset, batch_size=512, shuffle=True, num_workers=1, pin_memory=False)
 
     criterion = nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
@@ -330,9 +332,9 @@ if __name__ == '__main__':
     epoch = load_checkpoint(model, optimizer, scheduler)
 
     print(model)
-    print(evaluate_test_fen(model, "1qqqk3/1qqqp3/1qqq4/1qqq4/8/R7/3Q4/3QK3 w HAha - 0 1"))
-    print(evaluate_test_fen(model, "rnbqkbnr/ppp3pp/8/4p3/3pNp2/3P1N2/PPP1PPPP/R1BQKB1R b KQkq - 1 6"))
-    print(evaluate_test_fen(model, "rnbqkbn1/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQq - 0 1"))
+    # print(evaluate_test_fen(model, "1qqqk3/1qqqp3/1qqq4/1qqq4/8/R7/3Q4/3QK3 w HAha - 0 1"))
+    # print(evaluate_test_fen(model, "rnbqkbnr/ppp3pp/8/4p3/3pNp2/3P1N2/PPP1PPPP/R1BQKB1R b KQkq - 1 6"))
+    # print(evaluate_test_fen(model, "rnbqkbn1/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQq - 0 1"))
 
     while True:
         model.train()
@@ -340,7 +342,10 @@ if __name__ == '__main__':
         index = 0
         for (batch_inputs, batch_scores) in dataloader:
             index += 1
-            if index % 1000 == 0:
+            batch_inputs = batch_inputs.to(device)
+            batch_scores = batch_scores.to(device)
+
+            if index % 10 == 0:
                 print(f"Learning: {index}")
             optimizer.zero_grad()
             outputs = model(batch_inputs)
