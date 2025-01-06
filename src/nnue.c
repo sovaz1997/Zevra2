@@ -5,8 +5,8 @@
 #include "timemanager.h"
 #include "search.h"
 
-double MULTIPLY_1 = 0;
-double MULTIPLY_2 = 0;
+int QA = 255;
+int QB = 64;
 
 int isExists(Board* board, int color, int piece, int sq) {
     return !!(board->pieces[piece] & board->colours[color] & bitboardCell(sq));
@@ -20,7 +20,15 @@ double ReLU(double x) {
     return x > 0 ? x : 0;
 }
 
-int counter = 0;
+void recalculateEval(NNUE* nnue) {
+	nnue->eval = 0;
+
+    for (int i = 0; i < INNER_LAYER_COUNT; ++i) {
+        nnue->eval += ReLU(nnue->accumulators[i]) * nnue->weights_2_quantized[i];
+    }
+
+    nnue->eval /= QA * QB;
+}
 
 void setNNUEInput(NNUE* nnue, int index) {
     if (nnue->inputs[index] == 1) {
@@ -29,16 +37,11 @@ void setNNUEInput(NNUE* nnue, int index) {
 
     nnue->inputs[index] = 1;
 
-    // Update eval
     for (int i = 0; i < INNER_LAYER_COUNT; ++i) {
         nnue->accumulators[i] += nnue->weights_1_quantized[i][index];
     }
 
-    nnue->eval = 0;
-
-    for (int i = 0; i < INNER_LAYER_COUNT; ++i) {
-        nnue->eval += (ReLU(nnue->accumulators[i] / MULTIPLY_1) * nnue->weights_2_quantized[i] / MULTIPLY_2);
-    }
+    recalculateEval(nnue);
 }
 
 void resetNNUEInput(NNUE* nnue, int index) {
@@ -48,18 +51,11 @@ void resetNNUEInput(NNUE* nnue, int index) {
 
     nnue->inputs[index] = 0;
 
-    counter--;
-
-    // Update eval
     for (int i = 0; i < INNER_LAYER_COUNT; ++i) {
         nnue->accumulators[i] -= nnue->weights_1_quantized[i][index];
     }
 
-    nnue->eval = 0;
-
-    for (int i = 0; i < INNER_LAYER_COUNT; ++i) {
-        nnue->eval += (ReLU(nnue->accumulators[i] / MULTIPLY_1) * nnue->weights_2_quantized[i] / MULTIPLY_2);
-    }
+    recalculateEval(nnue);
 }
 
 void resetNNUE(NNUE* nnue) {
@@ -93,31 +89,21 @@ void loadNNUEWeights() {
         exit(1);
     }
 
-    double maxWeight = 0;
-
     for (int i = 0; i < INNER_LAYER_COUNT; i++) {
         for (int j = 0; j < INPUTS_COUNT; j++) {
             if (fscanf(file, "%lf,", &nnue->weights_1[i][j]) != 1) {
                 perror("Error reading file");
                 fclose(file);
                 exit(1);
-            } else {
-                if (fabs(nnue->weights_1[i][j]) > maxWeight) {
-                    maxWeight = fabs(nnue->weights_1[i][j]);
-                }
             }
         }
     }
 
-    MULTIPLY_1 = 128 / maxWeight;
-
     for (int i = 0; i < INNER_LAYER_COUNT; i++) {
         for (int j = 0; j < INPUTS_COUNT; j++) {
-            nnue->weights_1_quantized[i][j] = round(nnue->weights_1[i][j] * MULTIPLY_1);
+            nnue->weights_1_quantized[i][j] = round(nnue->weights_1[i][j] * QA);
         }
     }
-
-    printf("Max weight: %lf\n", maxWeight);
 
     fclose(file);
 
@@ -128,34 +114,22 @@ void loadNNUEWeights() {
         exit(1);
     }
 
-    maxWeight = 0;
-
     for (int i = 0; i < INNER_LAYER_COUNT; i++) {
         if (fscanf(file, "%lf,", &nnue->weights_2[i]) != 1) {
             perror("Error reading file");
             fclose(file);
             exit(1);
-        } else {
-            if (fabs(nnue->weights_2[i]) > maxWeight) {
-                maxWeight = fabs(nnue->weights_2[i]);
-            }
         }
     }
 
-    MULTIPLY_2 = 128 / maxWeight;
-
     for (int i = 0; i < INNER_LAYER_COUNT; i++) {
-        nnue->weights_2_quantized[i] = round(nnue->weights_2[i] * MULTIPLY_2);
+        nnue->weights_2_quantized[i] = round(nnue->weights_2[i] * QB);
     }
 
     fclose(file);
 
     resetNNUE(nnue);
 }
-
-//void initNNUEWeights() {
-//    // load file with weights
-//}
 
 void initNNUEPosition(NNUE* nnue, Board* board) {
     resetNNUE(nnue);
@@ -234,10 +208,6 @@ void dataset_gen(Board* board, int from, int to, char* filename) {
             continue;
         }
 
-
-//        printf("Eval: %d\n", absoluteEval);
-//        printf("Quies: %d\n", absoluteEval);
-//        printf("Static: %d\n", absoluteEval);
         fprintf(outputFile, "%s,%d\n", fen, absoluteEval);
     }
 
