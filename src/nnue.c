@@ -35,12 +35,11 @@ void recalculateEval(NNUE* nnue) {
         acc_vec_high = vmaxq_s32(acc_vec_high, vdupq_n_s32(0));
 
         sum_vec_low = vmlaq_s32(sum_vec_low, acc_vec_low, w2_vec_low);
-        sum_vec_low = vmlaq_s32(sum_vec_high, acc_vec_high, w2_vec_high);
+        sum_vec_high = vmlaq_s32(sum_vec_high, acc_vec_high, w2_vec_high);
     }
 
     int32_t result = sum_vec_low[0] + sum_vec_low[1] + sum_vec_low[2] + sum_vec_low[3] +
                      sum_vec_high[0] + sum_vec_high[1] + sum_vec_high[2] + sum_vec_high[3];
-
     nnue->eval = result / (QA * QB);
 }
 
