@@ -222,14 +222,6 @@ int search(Board *board, SearchInfo *searchInfo, int alpha, int beta, int depth,
             }
         }
 
-        int seeScore = see(
-                board,
-                MoveTo(*curMove),
-                board->squares[MoveTo(*curMove)],
-                MoveFrom(*curMove),
-                board->squares[MoveFrom(*curMove)]
-        );
-
         //Fulility pruning
         if (!pvNode && depth < 7 && !extensions && !root && FutilityPruningAllow) {
             if (staticEval + FutilityStep * depth + pVal(board, pieceType(undo.capturedPiece)) <= alpha) {
