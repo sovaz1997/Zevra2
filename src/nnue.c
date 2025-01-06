@@ -21,13 +21,17 @@ double ReLU(double x) {
 }
 
 void recalculateEval(NNUE* nnue) {
-	nnue->eval = 0;
+    int32x4_t sum_vec = vdupq_n_s32(0);
 
-    for (int i = 0; i < INNER_LAYER_COUNT; ++i) {
-        nnue->eval += ReLU(nnue->accumulators[i]) * nnue->weights_2_quantized[i];
+    for (int i = 0; i < INNER_LAYER_COUNT; i += 4) {
+        int32x4_t acc_vec = vld1q_s32(&nnue->accumulators[i]);
+        int32x4_t w2_vec = vld1q_s32(&nnue->weights_2_quantized[i]);
+        acc_vec = vmaxq_s32(acc_vec, vdupq_n_s32(0));
+        sum_vec = vmlaq_s32(sum_vec, acc_vec, w2_vec);
     }
 
-    nnue->eval /= QA * QB;
+    int32_t result = sum_vec[0] + sum_vec[1] + sum_vec[2] + sum_vec[3];
+    nnue->eval = result / (QA * QB);
 }
 
 void setNNUEInput(NNUE* nnue, int index) {
@@ -37,8 +41,11 @@ void setNNUEInput(NNUE* nnue, int index) {
 
     nnue->inputs[index] = 1;
 
-    for (int i = 0; i < INNER_LAYER_COUNT; ++i) {
-        nnue->accumulators[i] += nnue->weights_1_quantized[i][index];
+    for (int i = 0; i < INNER_LAYER_COUNT; i += 4) {
+        int32x4_t acc_vec = vld1q_s32(&nnue->accumulators[i]);
+        int32x4_t w1_vec = vld1q_s32(&nnue->weights_1_quantized[index][i]);
+        acc_vec = vaddq_s32(acc_vec, w1_vec);
+        vst1q_s32(&nnue->accumulators[i], acc_vec);
     }
 
     recalculateEval(nnue);
@@ -51,8 +58,11 @@ void resetNNUEInput(NNUE* nnue, int index) {
 
     nnue->inputs[index] = 0;
 
-    for (int i = 0; i < INNER_LAYER_COUNT; ++i) {
-        nnue->accumulators[i] -= nnue->weights_1_quantized[i][index];
+    for (int i = 0; i < INNER_LAYER_COUNT; i += 4) {
+        int32x4_t acc_vec = vld1q_s32(&nnue->accumulators[i]);
+        int32x4_t w1_vec = vld1q_s32(&nnue->weights_1_quantized[index][i]);
+        acc_vec = vsubq_s32(acc_vec, w1_vec);
+        vst1q_s32(&nnue->accumulators[i], acc_vec);
     }
 
     recalculateEval(nnue);
@@ -101,7 +111,7 @@ void loadNNUEWeights() {
 
     for (int i = 0; i < INNER_LAYER_COUNT; i++) {
         for (int j = 0; j < INPUTS_COUNT; j++) {
-            nnue->weights_1_quantized[i][j] = round(nnue->weights_1[i][j] * QA);
+            nnue->weights_1_quantized[j][i] = round(nnue->weights_1[i][j] * QA);
         }
     }
 

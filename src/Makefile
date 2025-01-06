@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -std=gnu17 -m64 -fcommon
 SRC = *.c
-OPTIMIZATIONS = -O3 -flto
+OPTIMIZATIONS = -O3 -flto -mfpu=neon
 NATIVE = -march=native
 WARNINGS = -Wall -Wextra -Wshadow
 POPCNT = -DUSE_POPCNT -msse3 -mpopcnt
