@@ -155,7 +155,7 @@ class ChessDataset(IterableDataset):
 
 
 class NNUE(nn.Module):
-    def __init__(self, input_size=768, hidden_size=1024, output_size=1):
+    def __init__(self, input_size=768, hidden_size=64, output_size=1):
         super(NNUE, self).__init__()
         self.fc1 = nn.Linear(input_size, hidden_size, bias=False)
         self.relu = nn.ReLU()
@@ -333,7 +333,7 @@ if __name__ == '__main__':
     model = model.to(device)
 
     # dataset = ChessDataset("100millions_dataset.csv")
-    dataset = ChessDataset("20millions_dataset.csv")
+    dataset = ChessDataset("fitered_10millions.csv")
     dataloader = DataLoader(dataset, batch_size=512, num_workers=12, pin_memory=False)
 
     criterion = nn.MSELoss()

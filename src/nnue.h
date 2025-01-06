@@ -4,7 +4,7 @@
 #include "board.h"
 
 static const int INPUTS_COUNT = 768;
-static const int INNER_LAYER_COUNT = 256;
+static const int INNER_LAYER_COUNT = 64;
 
 
 struct NNUE {
