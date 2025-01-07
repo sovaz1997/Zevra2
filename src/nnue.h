@@ -3,7 +3,7 @@
 
 #include "board.h"
 
-#define INPUTS_COUNT 768
+#define INPUTS_COUNT 40960
 #define INNER_LAYER_COUNT 128
 
 
@@ -25,7 +25,7 @@ NNUE* nnue;
 
 double ReLU(double x);
 int isExists(Board* board, int color, int piece, int sq);
-int getInputIndexOf(int color, int piece, int sq);
+int getInputIndexOf(int color, int piece, int sq, int kingSq);
 void setNNUEInput(S16* inputs, S32* accumulators, S32 (*weights)[INNER_LAYER_COUNT], int index);
 void resetNNUEInput(S16* inputs, S32* accumulators, S32 (*weights)[INNER_LAYER_COUNT], int index);
 void setDirectNNUEInput(NNUE* nnue, int index);

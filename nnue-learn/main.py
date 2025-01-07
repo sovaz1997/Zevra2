@@ -9,9 +9,10 @@ import csv
 import torch
 import torch.nn as nn
 
-# DATASET_POSITIONS_COUNT = 100000000
-DATASET_POSITIONS_COUNT = 10000000
+# DATASET_POSITIONS_COUNT = 10000000
+DATASET_POSITIONS_COUNT = 10000
 HIDDEN_SIZE = 128
+INPUT_SIZE = 40960
 
 
 def process_large_pgn(file_path, output_file):
@@ -46,7 +47,7 @@ def print_bitboard(bitboard):
         print(line)
 
 
-def calculate_nnue_index(color: bool, piece: int, square: int):
+def calculate_nnue_index(color: bool, piece: int, square: int, king_square: int):
     colors_mapper = {
         chess.WHITE: 0,
         chess.BLACK: 1
@@ -58,24 +59,27 @@ def calculate_nnue_index(color: bool, piece: int, square: int):
         chess.BISHOP: 2,
         chess.ROOK: 3,
         chess.QUEEN: 4,
-        chess.KING: 5
     }
 
-    return 64 * 6 * colors_mapper[color] + pieces_mapper[piece] * 64 + square
+    piece_index = pieces_mapper[piece] * 2 + colors_mapper[color]
 
+    return square + (piece_index + king_square * 10) * 64
 
 def calculate_nnue_input_layer(board: chess.Board):
-    nnue_input_us = [0] * 768
-    nnue_input_them = [0] * 768
+    nnue_input_us = [0] * INPUT_SIZE
+    nnue_input_them = [0] * INPUT_SIZE
+
+    white_king_square = board.king(chess.WHITE)
+    black_king_square = board.king(chess.BLACK)
 
     for color in chess.COLORS:
-        for piece in chess.PIECE_TYPES:
+        for piece in [chess.PAWN, chess.KNIGHT, chess.BISHOP, chess.ROOK, chess.QUEEN]:
             for square in range(64):
                 if (board.piece_at(square) is not None
                         and board.piece_at(square).piece_type == piece
                         and board.piece_at(square).color == color):
-                    nnue_input_us[calculate_nnue_index(color, piece, square)] = 1
-                    nnue_input_them[calculate_nnue_index(not color, piece, square ^ 56)] = 1
+                    nnue_input_us[calculate_nnue_index(color, piece, square, white_king_square)] = 1
+                    nnue_input_them[calculate_nnue_index(not color, piece, square ^ 56, black_king_square ^ 56)] = 1
 
     return nnue_input_us, nnue_input_them
 
@@ -154,7 +158,8 @@ class ChessDataset(IterableDataset):
                     try:
                         board = chess.Board(fen)
                         turn = torch.tensor(1 if board.turn == chess.WHITE else 0, dtype=torch.float32)
-                        side_multiplier = 1 if board.turn == chess.WHITE else -1
+                        # side_multiplier = 1 if board.turn == chess.WHITE else -1
+                        side_multiplier = 1
                         input1, input2 = calculate_nnue_input_layer(board)
                         yield (
                             torch.tensor(input1, dtype=torch.float32),
@@ -168,7 +173,7 @@ class ChessDataset(IterableDataset):
 
 
 class NNUE(nn.Module):
-    def __init__(self, input_size=768, hidden_size=HIDDEN_SIZE, output_size=1):
+    def __init__(self, input_size=INPUT_SIZE, hidden_size=HIDDEN_SIZE, output_size=1):
         super(NNUE, self).__init__()
         self.fc1_us = nn.Linear(input_size, hidden_size, bias=False)
         self.fc1_them = nn.Linear(input_size, hidden_size, bias=False)
@@ -179,11 +184,9 @@ class NNUE(nn.Module):
         acc1 = self.relu(self.fc1_us(x1))
         acc2 = self.relu(self.fc1_them(x2))
 
-        # print(len(turn[0]))
-
-        side = turn.unsqueeze(0).float()
-        print(side)
-        x = (side * torch.cat((acc1, acc2), 1)) + ((1 - side) * torch.cat((acc2, acc1), 1))
+        # side = turn.unsqueeze(1).float()
+        # x = (side * torch.cat((acc1, acc2), 1)) + ((1 - side) * torch.cat((acc2, acc1), 1))
+        x = torch.cat((acc1, acc2), 1)
 
         return self.fc2(x)
 
@@ -253,99 +256,6 @@ def evaluate_test_fen(model, test_fen: str):
     return score
 
 
-def debug_nnue_calculation(model: nn.Module, input_vector: torch.Tensor):
-    """
-    Выводит пошаговый расчёт сети с архитектурой:
-      fc1(768->256, bias=False) -> ReLU -> fc2(256->1, bias=False).
-    model        : уже инициализированная модель NNUE (weights загружены)
-    input_vector : 1D-тензор формы [768], содержащий вход (чаще всего 0/1)
-    """
-
-    # Если input_vector имеет размер [1, 768], можно привести к [768]:
-    if input_vector.dim() == 2 and input_vector.shape[0] == 1:
-        input_vector = input_vector.squeeze(0)  # [768]
-
-    # Инпуты
-    # print("\n=== Входной вектор ===")
-    # for i in range(768):
-    #     if input_vector[i] != 0.0:
-    #         print(f"input[{i}] = {input_vector[i].item()}")
-
-    with torch.no_grad():
-        # ---------------------------
-        # 1) Скрытый слой: fc1 -> ReLU
-        # ---------------------------
-        # Форма матрицы weight у fc1: [256, 768]
-        # т.е. fc1.weight[j, i] это вес к j-му нейрону от i-го входа
-        fc1_weights = model.fc1.weight  # shape = [256, 768]
-
-        # Подготовим массив (или список) для хранения выхода скрытого слоя до ReLU
-        hidden_raw = [0.0] * 256
-        hidden = [0.0] * 256  # после ReLU
-
-        print("=== Скрытый слой (fc1 -> ReLU) ===")
-        for j in range(256):
-            sum_val = 0.0
-            partial_contribs = []
-
-            # Считаем вклад только тех i, где input[i] != 0
-            for i in range(768):
-                x_i = input_vector[i].item()
-                if x_i != 0.0:
-                    w_ji = fc1_weights[j, i].item()
-
-                    contrib = x_i * w_ji
-                    if contrib != 0.0:
-                        sum_val += contrib
-                        partial_contribs.append((i, x_i, w_ji, contrib))
-
-            hidden_raw[j] = sum_val
-            # Применяем ReLU
-            relu_val = max(0.0, sum_val)
-            hidden[j] = relu_val
-
-            # Если после ReLU что-то осталось > 0, распечатаем подробнее
-            if relu_val > 0.0:
-                print(f"\n[Нейрон {j}] Сумма до ReLU = {sum_val:.4f}, после ReLU = {relu_val:.4f}")
-                print("  Вклады (i, input[i], weight, contrib):")
-                for (i_idx, x_val, w_val, c_val) in partial_contribs:
-                    print(f"    i={i_idx}, x={x_val:.1f}, w={w_val:.4f}, contrib={c_val:.4f}")
-
-        # ---------------------------
-        # 2) Выходной слой: fc2
-        # ---------------------------
-        # Форма weight у fc2: [1, 256]
-        fc2_weights = model.fc2.weight[0]  # shape = [256], т.к. output_size=1
-
-        sum_out = 0.0
-        partial_out = []
-
-        print("\n=== Выходной слой (fc2) ===")
-        # Суммируем вклад от каждого нейрона скрытого слоя
-        for j in range(256):
-            h_j = hidden[j]  # выход j-го нейрона после ReLU
-            if h_j != 0.0:  # если нейрон не затух
-                w_j = fc2_weights[j].item()
-                c = h_j * w_j
-                if c != 0.0:
-                    sum_out += c
-                    partial_out.append((j, h_j, w_j, c))
-
-        print(f"Сумма на выходе (до умножения на 1000): {sum_out:.4f}")
-
-        if len(partial_out) > 0:
-            print("  Вклады активных нейронов скрытого слоя (j, hidden[j], weight, contrib):")
-            for (j_idx, h_val, w_val, c_val) in partial_out:
-                print(f"    j={j_idx}, hidden={h_val:.4f}, w={w_val:.4f}, contrib={c_val:.4f}")
-
-        # Предположим, что при обучении лейблы делились на 1000
-        # Тогда умножаем выход, чтобы получить "сантипешки".
-        scaled_out = sum_out * 1000.0
-
-        print(f"\nИтоговый выход (сырое) = {sum_out:.4f}")
-        print(f"Итоговая оценка (умножено на 1000) = {scaled_out:.1f} cp\n")
-
-
 if __name__ == '__main__':
     model = NNUE()
     device = torch.device("mps")
@@ -360,15 +270,15 @@ if __name__ == '__main__':
     epoch = load_checkpoint(model, optimizer, scheduler)
 
     print(model)
-    # print(evaluate_test_fen(model, "1qqqk3/1qqqp3/1qqq4/1qqq4/8/R7/3Q4/3QK3 b HAha - 0 1"))
-    # print(evaluate_test_fen(model, "4k3/pppppppp/8/8/8/8/4P3/4K3 w - - 0 1"))
+    print(evaluate_test_fen(model, "1qqqk3/1qqqp3/1qqq4/1qqq4/8/R7/3Q4/3QK3 b HAha - 0 1"))
+    print(evaluate_test_fen(model, "4k3/pppppppp/8/8/8/8/4P3/4K3 w - - 0 1"))
     # print(evaluate_test_fen(model, "4k3/pppppppp/8/8/8/8/4P3/4K3 b - - 0 1"))
     # print(evaluate_test_fen(model, "rnbqkbnr/ppp3pp/8/4p3/3pNp2/3P1N2/PPP1PPPP/R1BQKB1R b KQkq - 1 6"))
     # print(evaluate_test_fen(model, "1nbqkbn1/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQ - 0 1"))
     # print(evaluate_test_fen(model, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQq - 0 1"))
     # print(evaluate_test_fen(model, "3qk3/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQ - 0 1"))
-    print(evaluate_test_fen(model, "1nb1kbn1/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQ - 0 1"))
-    print(evaluate_test_fen(model, "1nb1kbn1/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQ - 0 1"))
+    # print(evaluate_test_fen(model, "1nb1kbn1/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQ - 0 1"))
+    # print(evaluate_test_fen(model, "1nb1kbn1/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQ - 0 1"))
 
     while True:
         model.train()
@@ -393,8 +303,6 @@ if __name__ == '__main__':
             optimizer.step()
 
             running_loss += loss.item()
-            # if index % 10 == 0:
-                # print(f"Learning: {index}")
         loss = (running_loss / count)
         scheduler.step(loss)
         save_nnue_weights(model, epoch)
@@ -405,5 +313,4 @@ if __name__ == '__main__':
 
         if loss < 0.05:
             break
-        # print LR
         print(optimizer.param_groups[0]['lr'])

@@ -1,6 +1,8 @@
 #include "board.h"
 #include "uci.h"
 
+#define MAX_INDEX_VALUE 1000000
+
 void setFen(Board* board, char* fen) {
     clearBoard(board);
 
@@ -108,6 +110,22 @@ void printBoardSplitter() {
     printf("\n");
 }
 
+int getKingSq(Board* board, int color) {
+  	U64 bitboard = board->pieces[KING] & board->colours[color];
+
+        // popcnt
+    int count = 0;
+    if (popcount(bitboard) > 1) {
+        printf("King count: %d\n", popcount(bitboard));
+    }
+
+    if (!bitboard) {
+        return -1;
+    }
+
+    return firstOne(bitboard);
+}
+
 void setPiece(Board* board, int piece, int color, int sq) {
     clearPiece(board, sq);
     setBit(&board->pieces[piece], sq);
@@ -116,8 +134,33 @@ void setPiece(Board* board, int piece, int color, int sq) {
     board->key ^= zobristKeys[board->squares[sq]][sq];
 
     if (NNUE_ENABLED) {
-      	setDirectNNUEInput(nnue, getInputIndexOf(color, piece, sq));
-        setPerspectiveNNUEInput(nnue, getInputIndexOf(!color, piece, sq ^ PERSPECTIVE_MASK));
+      	if (piece != KING) {
+          	int whiteKingSq = getKingSq(board, WHITE);
+        	int blackKingSq = getKingSq(board, BLACK);
+
+            if (whiteKingSq != -1) {
+            	setDirectNNUEInput(nnue, getInputIndexOf(color, piece, sq, whiteKingSq));
+            }
+
+            if (blackKingSq != -1) {
+            	setPerspectiveNNUEInput(nnue, getInputIndexOf(!color, piece, sq ^ PERSPECTIVE_MASK, blackKingSq ^ PERSPECTIVE_MASK));
+            }
+        } else {
+            U64 pieces = (board->colours[WHITE] | board->colours[BLACK]) & ~board->pieces[KING];
+            while (pieces) {
+            	int pieceSq = firstOne(pieces);
+                int pieceType = pieceType(board->squares[pieceSq]);
+                int pieceColor = pieceColor(board->squares[pieceSq]);
+
+                if (color == WHITE) {
+            		setDirectNNUEInput(nnue, getInputIndexOf(pieceColor, pieceType, pieceSq, sq));
+                } else {
+                  	setPerspectiveNNUEInput(nnue, getInputIndexOf(!pieceColor, pieceType, pieceSq ^ PERSPECTIVE_MASK, sq ^ PERSPECTIVE_MASK));
+                }
+
+            	clearBit(&pieces, pieceSq);
+            }
+        }
     }
 }
 
@@ -130,22 +173,50 @@ void clearPiece(Board* board, int sq) {
 
     int type = pieceType(piece);
     int color = pieceColor(piece);
+
+    if (NNUE_ENABLED) {
+		int whiteKingSq = getKingSq(board, WHITE);
+        int blackKingSq = getKingSq(board, BLACK);
+
+      	if (type != KING) {
+          	if (whiteKingSq != -1) {
+            	resetDirectNNUEInput(nnue, getInputIndexOf(color, type, sq, whiteKingSq));
+            }
+
+            if (blackKingSq != -1) {
+            	resetPerspectiveNNUEInput(nnue, getInputIndexOf(!color, type, sq ^ PERSPECTIVE_MASK, blackKingSq ^ PERSPECTIVE_MASK));
+            }
+        } else {
+        	// loop by all pieces
+            U64 pieces = (board->colours[WHITE] | board->colours[BLACK]) & ~board->pieces[KING];
+            while (pieces) {
+            	int pieceSq = firstOne(pieces);
+                int pieceType = pieceType(board->squares[pieceSq]);
+                int pieceColor = pieceColor(board->squares[pieceSq]);
+
+                if (color == WHITE) {
+                    resetDirectNNUEInput(nnue, getInputIndexOf(pieceColor, pieceType, pieceSq, sq));
+                } else {
+                    resetPerspectiveNNUEInput(nnue, getInputIndexOf(!pieceColor, pieceType, pieceSq ^ PERSPECTIVE_MASK, sq ^ PERSPECTIVE_MASK));
+                }
+
+            	clearBit(&pieces, pieceSq);
+            }
+        }
+    }
+
+
     clearBit(&board->pieces[type], sq);
     clearBit(&board->colours[color], sq);
     board->squares[sq] = 0;
-
-    if (NNUE_ENABLED) {
-      	resetDirectNNUEInput(nnue, getInputIndexOf(color, type, sq));
-        resetPerspectiveNNUEInput(nnue, getInputIndexOf(!color, type, sq ^ PERSPECTIVE_MASK));
-    }
 }
 
 void movePiece(Board* board, int sq1, int sq2) {
     int type = pieceType(board->squares[sq1]);
     int color = pieceColor(board->squares[sq1]);
 
-    setPiece(board, type, color, sq2);
     clearPiece(board, sq1);
+    setPiece(board, type, color, sq2);
 }
 
 void squareToString(int square, char* str) {
@@ -169,7 +240,10 @@ void printPiece(U8 piece) {
         printf(" ");
 }
 
+
 void makeMove(Board* board, U16 move, Undo* undo) {
+  	char moveStr[6];
+    moveToString(move, moveStr);
     setUndo(board, undo, board->squares[MoveTo(move)]);
 
     if(MoveType(move) == NORMAL_MOVE && !board->squares[MoveTo(move)] && pieceType(board->squares[MoveFrom(move)]) != PAWN)
@@ -224,6 +298,8 @@ void makeMove(Board* board, U16 move, Undo* undo) {
 }
 
 void unmakeMove(Board* board, U16 move, Undo* undo) {
+  	char moveStr[6];
+    moveToString(move, moveStr);
     getUndo(board, undo);
 
     if(MoveType(move) == CASTLE_MOVE) {

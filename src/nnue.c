@@ -12,8 +12,10 @@ int isExists(Board* board, int color, int piece, int sq) {
     return !!(board->pieces[piece] & board->colours[color] & bitboardCell(sq));
 }
 
-int getInputIndexOf(int color, int piece, int sq) {
-    return color * 64 * 6 + (piece - 1) * 64 + sq;
+int getInputIndexOf(int color, int piece, int sq, int kingSq) {
+    int pieceIndex = piece * 2 + color;
+    int res = sq + (pieceIndex + kingSq * 10) * 64;
+    return res;
 }
 
 double ReLU(double x) {
@@ -24,7 +26,7 @@ void recalculateEval(NNUE* nnue, int color) {
     int32x4_t sum_vec_low = vdupq_n_s32(0);
     int32x4_t sum_vec_high = vdupq_n_s32(0);
 
-    int shift = color == WHITE ? 0 : INNER_LAYER_COUNT;
+    int shift = 0;
 
     for (int i = 0; i < INNER_LAYER_COUNT; i += 8) {
         int32x4_t acc_vec_low = vld1q_s32(&nnue->accumulators[i]);
@@ -40,9 +42,8 @@ void recalculateEval(NNUE* nnue, int color) {
         sum_vec_high = vmlaq_s32(sum_vec_high, acc_vec_high, w2_vec_high);
     }
 
-    int32_t result = sum_vec_low[0] + sum_vec_low[1] + sum_vec_low[2] + sum_vec_low[3] +
+    nnue->eval = sum_vec_low[0] + sum_vec_low[1] + sum_vec_low[2] + sum_vec_low[3] +
                      sum_vec_high[0] + sum_vec_high[1] + sum_vec_high[2] + sum_vec_high[3];
-    nnue->eval = result / (QA * QB);
 
 
     // part 2
@@ -51,7 +52,7 @@ void recalculateEval(NNUE* nnue, int color) {
     sum_vec_low = vdupq_n_s32(0);
     sum_vec_high = vdupq_n_s32(0);
 
-    shift = color == WHITE ? INNER_LAYER_COUNT : 0;
+    shift = INNER_LAYER_COUNT;
 
     for (int i = 0; i < INNER_LAYER_COUNT; i += 8) {
         int32x4_t acc_vec_low = vld1q_s32(&nnue->accumulators_perspective[i]);
@@ -67,9 +68,12 @@ void recalculateEval(NNUE* nnue, int color) {
         sum_vec_high = vmlaq_s32(sum_vec_high, acc_vec_high, w2_vec_high);
     }
 
-    result = sum_vec_low[0] + sum_vec_low[1] + sum_vec_low[2] + sum_vec_low[3] +
+    int32_t result = sum_vec_low[0] + sum_vec_low[1] + sum_vec_low[2] + sum_vec_low[3] +
                      sum_vec_high[0] + sum_vec_high[1] + sum_vec_high[2] + sum_vec_high[3];
-    nnue->eval += result / (QA * QB);
+
+    nnue->eval += result;
+    nnue->eval /= (QA * QB);
+    nnue->eval = color == WHITE ? nnue->eval : -nnue->eval;
 }
 
 void setNNUEInput(S16* inputs, S32* accumulators, S32 (*weights)[INNER_LAYER_COUNT], int index) {
