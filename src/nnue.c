@@ -63,8 +63,6 @@ void setNNUEInput(NNUE* nnue, int index) {
         vst1q_s32(&nnue->accumulators[i], acc_vec_low);
         vst1q_s32(&nnue->accumulators[i + 4], acc_vec_high);
     }
-
-    recalculateEval(nnue);
 }
 
 void resetNNUEInput(NNUE* nnue, int index) {
@@ -87,8 +85,6 @@ void resetNNUEInput(NNUE* nnue, int index) {
         vst1q_s32(&nnue->accumulators[i], acc_vec_low);
         vst1q_s32(&nnue->accumulators[i + 4], acc_vec_high);
     }
-
-    recalculateEval(nnue);
 }
 
 void resetNNUE(NNUE* nnue) {
