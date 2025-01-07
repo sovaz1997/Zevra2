@@ -143,19 +143,22 @@ class ChessDataset(IterableDataset):
         with open(self.file_path, 'r') as f:
             reader = csv.reader(f)
             for idx, row in enumerate(reader):
-                    if idx % step == start:
-                        fen, score = row
-                        try:
-                            board = chess.Board(fen)
-                            inputs = calculate_nnue_input_layer(board)
-                            yield torch.tensor(inputs, dtype=torch.float32), torch.tensor(float(score), dtype=torch.float32)
-                        except Exception as e:
-                            print(e)
-                            continue
+                if idx >= 10000000:
+                     break
+
+                if idx % step == start:
+                    fen, score = row
+                    try:
+                        board = chess.Board(fen)
+                        inputs = calculate_nnue_input_layer(board)
+                        yield torch.tensor(inputs, dtype=torch.float32), torch.tensor(float(score), dtype=torch.float32)
+                    except Exception as e:
+                        print(e)
+                        continue
 
 
 class NNUE(nn.Module):
-    def __init__(self, input_size=768, hidden_size=64, output_size=1):
+    def __init__(self, input_size=768, hidden_size=128, output_size=1):
         super(NNUE, self).__init__()
         self.fc1 = nn.Linear(input_size, hidden_size, bias=False)
         self.relu = nn.ReLU()
@@ -332,8 +335,7 @@ if __name__ == '__main__':
     device = torch.device("mps")
     model = model.to(device)
 
-    # dataset = ChessDataset("100millions_dataset.csv")
-    dataset = ChessDataset("fitered_10millions.csv")
+    dataset = ChessDataset("100millions_dataset.csv")
     dataloader = DataLoader(dataset, batch_size=512, num_workers=12, pin_memory=False)
 
     criterion = nn.MSELoss()
