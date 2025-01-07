@@ -1,6 +1,6 @@
 import os
 
-from torch.utils.data import Dataset, DataLoader, IterableDataset
+from torch.utils.data import DataLoader, IterableDataset
 
 import chess
 import chess.pgn
@@ -8,9 +8,8 @@ import chess.engine
 import csv
 import torch
 import torch.nn as nn
-import pandas as pd
 
-DATASET_POSITIONS_COUNT = 250000
+DATASET_POSITIONS_COUNT = 10000000
 
 
 def process_large_pgn(file_path, output_file):
@@ -143,7 +142,7 @@ class ChessDataset(IterableDataset):
         with open(self.file_path, 'r') as f:
             reader = csv.reader(f)
             for idx, row in enumerate(reader):
-                if idx >= 10000000:
+                if idx >= DATASET_POSITIONS_COUNT:
                      break
 
                 if idx % step == start:
@@ -151,7 +150,7 @@ class ChessDataset(IterableDataset):
                     try:
                         board = chess.Board(fen)
                         inputs = calculate_nnue_input_layer(board)
-                        yield torch.tensor(inputs, dtype=torch.float32), torch.tensor(float(score), dtype=torch.float32)
+                        yield torch.tensor(inputs, dtype=torch.float32), torch.tensor(float(score) / EVAL_SCALE, dtype=torch.float32)
                     except Exception as e:
                         print(e)
                         continue
@@ -162,12 +161,10 @@ class NNUE(nn.Module):
         super(NNUE, self).__init__()
         self.fc1 = nn.Linear(input_size, hidden_size, bias=False)
         self.relu = nn.ReLU()
-        # self.fc2 = nn.Linear(hidden_size, hidden_size, bias=False)
         self.fc2 = nn.Linear(hidden_size, output_size, bias=False)
 
     def forward(self, x):
         x = self.relu(self.fc1(x))
-        # x = self.relu(self.fc2(x))
         x = self.fc2(x)
         return x
 
@@ -227,7 +224,7 @@ def evaluate_test_fen(model, test_fen: str):
     nnue_input_tensor = torch.tensor(nnue_input, dtype=torch.float32).unsqueeze(0)
 
     # Переключаем модель в режим оценки
-    model.eval()
+    model.cpu().eval()
     with torch.no_grad():
         output = model(nnue_input_tensor)
         score = output.item() * 1000
@@ -344,9 +341,9 @@ if __name__ == '__main__':
     epoch = load_checkpoint(model, optimizer, scheduler)
 
     print(model)
-    # print(evaluate_test_fen(model, "1qqqk3/1qqqp3/1qqq4/1qqq4/8/R7/3Q4/3QK3 w HAha - 0 1"))
-    # print(evaluate_test_fen(model, "rnbqkbnr/ppp3pp/8/4p3/3pNp2/3P1N2/PPP1PPPP/R1BQKB1R b KQkq - 1 6"))
-    # print(evaluate_test_fen(model, "rnbqkbn1/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQq - 0 1"))
+    print(evaluate_test_fen(model, "1qqqk3/1qqqp3/1qqq4/1qqq4/8/R7/3Q4/3QK3 w HAha - 0 1"))
+    print(evaluate_test_fen(model, "rnbqkbnr/ppp3pp/8/4p3/3pNp2/3P1N2/PPP1PPPP/R1BQKB1R b KQkq - 1 6"))
+    print(evaluate_test_fen(model, "rnbqkbn1/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQq - 0 1"))
 
     while True:
         model.train()
@@ -371,7 +368,7 @@ if __name__ == '__main__':
             running_loss += loss.item()
             # if index % 10 == 0:
                 # print(f"Learning: {index}")
-        loss = running_loss / count
+        loss = (running_loss / count) * (EVAL_SCALE ** 2)
         scheduler.step(loss)
         save_nnue_weights(model, epoch)
 
