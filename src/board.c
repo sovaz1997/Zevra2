@@ -122,7 +122,7 @@ void setPiece(Board* board, int piece, int color, int sq) {
 
     if (NNUE_ENABLED) {
       	setDirectNNUEInput(nnue, getInputIndexOf(color, piece, sq));
-        // setPerspectiveNNUEInput(nnue, getInputIndexOf(!color, piece, sq ^ PERSPECTIVE_MASK));
+        setPerspectiveNNUEInput(nnue, getInputIndexOf(!color, piece, sq ^ PERSPECTIVE_MASK));
     }
 }
 
@@ -141,9 +141,8 @@ void clearPiece(Board* board, int sq) {
 
     if (NNUE_ENABLED) {
       	resetDirectNNUEInput(nnue, getInputIndexOf(color, type, sq));
-        // resetPerspectiveNNUEInput(nnue, getInputIndexOf(!color, type, sq ^ PERSPECTIVE_MASK));
+        resetPerspectiveNNUEInput(nnue, getInputIndexOf(!color, type, sq ^ PERSPECTIVE_MASK));
     }
-
 }
 
 void movePiece(Board* board, int sq1, int sq2) {

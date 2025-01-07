@@ -70,7 +70,7 @@ void recalculateEval(NNUE* nnue) {
     nnue->eval += result / (QA * QB);
 }
 
-void setNNUEInput(S32* inputs, S32 (*accumulators)[INNER_LAYER_COUNT], S32 (*weights)[INNER_LAYER_COUNT], int index) {
+void setNNUEInput(S16* inputs, S32* accumulators, S32 (*weights)[INNER_LAYER_COUNT], int index) {
     if (inputs[index] == 1) {
         return;
     }
@@ -87,19 +87,17 @@ void setNNUEInput(S32* inputs, S32 (*accumulators)[INNER_LAYER_COUNT], S32 (*wei
         acc_vec_low = vaddq_s32(acc_vec_low, w1_vec_low);
         acc_vec_high = vaddq_s32(acc_vec_high, w1_vec_high);
 
-        vst1q_s32(accumulators[i], acc_vec_low);
-        vst1q_s32(accumulators[i + 4], acc_vec_high);
+        vst1q_s32(&accumulators[i], acc_vec_low);
+        vst1q_s32(&accumulators[i + 4], acc_vec_high);
     }
-
-    recalculateEval(nnue);
 }
 
-void resetNNUEInput(S32* inputs, S32 (*accumulators)[INNER_LAYER_COUNT], S32 (*weights)[INNER_LAYER_COUNT], int index) {
-  	if (inputs[index] == 1) {
+void resetNNUEInput(S16* inputs, S32* accumulators, S32 (*weights)[INNER_LAYER_COUNT], int index) {
+  	if (inputs[index] == 0) {
         return;
     }
 
-    inputs[index] = 1;
+    inputs[index] = 0;
 
     for (int i = 0; i < INNER_LAYER_COUNT; i += 8) {
         int32x4_t acc_vec_low = vld1q_s32(&accumulators[i]);
@@ -114,17 +112,13 @@ void resetNNUEInput(S32* inputs, S32 (*accumulators)[INNER_LAYER_COUNT], S32 (*w
         vst1q_s32(&accumulators[i], acc_vec_low);
         vst1q_s32(&accumulators[i + 4], acc_vec_high);
     }
-
-    recalculateEval(nnue);
 }
 
 void setDirectNNUEInput(NNUE* nnue, int index) {
-  printf("setDirectNNUEInput %d\n", index);
   setNNUEInput(nnue->inputs, nnue->accumulators, nnue->weights_1_quantized, index);
 }
 
 void resetDirectNNUEInput(NNUE* nnue, int index) {
-  printf("resetDirectNNUEInput %d\n", index);
   resetNNUEInput(nnue->inputs, nnue->accumulators, nnue->weights_1_quantized, index);
 }
 
