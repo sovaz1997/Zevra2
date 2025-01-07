@@ -48,7 +48,7 @@ int MATE_LIMIT = 29000;
 
 int fullEval(Board *board) {
     if (NNUE_ENABLED) {
-      	recalculateEval(nnue);
+      	recalculateEval(nnue, board->color);
         int eval = nnue->eval;
 
         if(eval > MATE_LIMIT) {
@@ -57,7 +57,9 @@ int fullEval(Board *board) {
             eval = -MATE_LIMIT;
         }
 
-        return (board->color == WHITE ? eval : -eval);
+        return eval;
+
+        //return (board->color == WHITE ? eval : -eval);
     }
     int eval = board->eval;
     stage = stageGame(board);

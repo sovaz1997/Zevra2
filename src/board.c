@@ -54,11 +54,6 @@ void setFen(Board* board, char* fen) {
 
     if(board->color == BLACK)
         board->key ^= otherSideKey;
-
-
-//    if (NNUE_ENABLED) {
-//        initNNUEPosition(nnue, board);
-//    }
 }
 
 void setMovesRange(Board* board, char* moves) {

@@ -32,7 +32,7 @@ void setDirectNNUEInput(NNUE* nnue, int index);
 void resetDirectNNUEInput(NNUE* nnue, int index);
 void setPerspectiveNNUEInput(NNUE* nnue, int index);
 void resetPerspectiveNNUEInput(NNUE* nnue, int index);
-void recalculateEval(NNUE* nnue);
+void recalculateEval(NNUE* nnue, int color);
 void resetNNUE(NNUE* nnue);
 // void modifyNnue(NNUE* nnue, Board* board, int color, int piece);
 //void initNNUEWeights();
