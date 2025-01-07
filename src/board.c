@@ -56,9 +56,9 @@ void setFen(Board* board, char* fen) {
         board->key ^= otherSideKey;
 
 
-    if (NNUE_ENABLED) {
-        initNNUEPosition(nnue, board);
-    }
+//    if (NNUE_ENABLED) {
+//        initNNUEPosition(nnue, board);
+//    }
 }
 
 void setMovesRange(Board* board, char* moves) {
@@ -78,7 +78,10 @@ void clearBoard(Board* board) {
     board->gameInfo = gameInfo;
     board->enpassantSquare = 0;
     board->eval = 0;
-    resetNNUE(nnue);
+
+    if (NNUE_ENABLED) {
+    	resetNNUE(nnue);
+    }
 }
 
 void printBoard(Board* board) {
@@ -118,7 +121,8 @@ void setPiece(Board* board, int piece, int color, int sq) {
     board->key ^= zobristKeys[board->squares[sq]][sq];
 
     if (NNUE_ENABLED) {
-        setNNUEInput(nnue, getInputIndexOf(color, piece, sq));
+      	setDirectNNUEInput(nnue, getInputIndexOf(color, piece, sq));
+        // setPerspectiveNNUEInput(nnue, getInputIndexOf(!color, piece, sq ^ PERSPECTIVE_MASK));
     }
 }
 
@@ -135,7 +139,10 @@ void clearPiece(Board* board, int sq) {
     clearBit(&board->colours[color], sq);
     board->squares[sq] = 0;
 
-    resetNNUEInput(nnue, getInputIndexOf(color, type, sq));
+    if (NNUE_ENABLED) {
+      	resetDirectNNUEInput(nnue, getInputIndexOf(color, type, sq));
+        // resetPerspectiveNNUEInput(nnue, getInputIndexOf(!color, type, sq ^ PERSPECTIVE_MASK));
+    }
 
 }
 

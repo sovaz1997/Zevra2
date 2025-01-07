@@ -58,4 +58,7 @@ void clearBit(U64* bitboard, int sq);
 int rankOf(int sq);
 int fileOf(int sq);
 
+// Helpers
+#define PERSPECTIVE_MASK 0b111000
+
 #endif

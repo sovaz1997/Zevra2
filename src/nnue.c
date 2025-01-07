@@ -41,54 +41,99 @@ void recalculateEval(NNUE* nnue) {
     int32_t result = sum_vec_low[0] + sum_vec_low[1] + sum_vec_low[2] + sum_vec_low[3] +
                      sum_vec_high[0] + sum_vec_high[1] + sum_vec_high[2] + sum_vec_high[3];
     nnue->eval = result / (QA * QB);
+
+
+    // part 2
+
+
+    sum_vec_low = vdupq_n_s32(0);
+    sum_vec_high = vdupq_n_s32(0);
+
+    int shift = INNER_LAYER_COUNT;
+
+    for (int i = 0; i < INNER_LAYER_COUNT; i += 8) {
+        int32x4_t acc_vec_low = vld1q_s32(&nnue->accumulators_perspective[i]);
+        int32x4_t acc_vec_high = vld1q_s32(&nnue->accumulators_perspective[i + 4]);
+
+        int32x4_t w2_vec_low = vld1q_s32(&nnue->weights_2_quantized[i + shift]);
+        int32x4_t w2_vec_high = vld1q_s32(&nnue->weights_2_quantized[i + shift + 4]);
+
+        acc_vec_low = vmaxq_s32(acc_vec_low, vdupq_n_s32(0));
+        acc_vec_high = vmaxq_s32(acc_vec_high, vdupq_n_s32(0));
+
+        sum_vec_low = vmlaq_s32(sum_vec_low, acc_vec_low, w2_vec_low);
+        sum_vec_high = vmlaq_s32(sum_vec_high, acc_vec_high, w2_vec_high);
+    }
+
+    result = sum_vec_low[0] + sum_vec_low[1] + sum_vec_low[2] + sum_vec_low[3] +
+                     sum_vec_high[0] + sum_vec_high[1] + sum_vec_high[2] + sum_vec_high[3];
+    nnue->eval += result / (QA * QB);
 }
 
-void setNNUEInput(NNUE* nnue, int index) {
-    if (nnue->inputs[index] == 1) {
+void setNNUEInput(S32* inputs, S32 (*accumulators)[INNER_LAYER_COUNT], S32 (*weights)[INNER_LAYER_COUNT], int index) {
+    if (inputs[index] == 1) {
         return;
     }
 
-    nnue->inputs[index] = 1;
+    inputs[index] = 1;
 
     for (int i = 0; i < INNER_LAYER_COUNT; i += 8) {
-        int32x4_t acc_vec_low = vld1q_s32(&nnue->accumulators[i]);
-        int32x4_t acc_vec_high = vld1q_s32(&nnue->accumulators[i + 4]);
+        int32x4_t acc_vec_low = vld1q_s32(&accumulators[i]);
+        int32x4_t acc_vec_high = vld1q_s32(&accumulators[i + 4]);
 
-        int32x4_t w1_vec_low = vld1q_s32(&nnue->weights_1_quantized[index][i]);
-        int32x4_t w1_vec_high = vld1q_s32(&nnue->weights_1_quantized[index][i + 4]);
+        int32x4_t w1_vec_low = vld1q_s32(&weights[index][i]);
+        int32x4_t w1_vec_high = vld1q_s32(&weights[index][i + 4]);
 
         acc_vec_low = vaddq_s32(acc_vec_low, w1_vec_low);
         acc_vec_high = vaddq_s32(acc_vec_high, w1_vec_high);
 
-        vst1q_s32(&nnue->accumulators[i], acc_vec_low);
-        vst1q_s32(&nnue->accumulators[i + 4], acc_vec_high);
+        vst1q_s32(accumulators[i], acc_vec_low);
+        vst1q_s32(accumulators[i + 4], acc_vec_high);
     }
 
     recalculateEval(nnue);
 }
 
-void resetNNUEInput(NNUE* nnue, int index) {
-    if (!nnue->inputs[index]) {
+void resetNNUEInput(S32* inputs, S32 (*accumulators)[INNER_LAYER_COUNT], S32 (*weights)[INNER_LAYER_COUNT], int index) {
+  	if (inputs[index] == 1) {
         return;
     }
 
-    nnue->inputs[index] = 0;
+    inputs[index] = 1;
 
     for (int i = 0; i < INNER_LAYER_COUNT; i += 8) {
-        int32x4_t acc_vec_low = vld1q_s32(&nnue->accumulators[i]);
-        int32x4_t acc_vec_high = vld1q_s32(&nnue->accumulators[i + 4]);
+        int32x4_t acc_vec_low = vld1q_s32(&accumulators[i]);
+        int32x4_t acc_vec_high = vld1q_s32(&accumulators[i + 4]);
 
-        int32x4_t w1_vec_low = vld1q_s32(&nnue->weights_1_quantized[index][i]);
-        int32x4_t w1_vec_high = vld1q_s32(&nnue->weights_1_quantized[index][i + 4]);
+        int32x4_t w1_vec_low = vld1q_s32(&weights[index][i]);
+        int32x4_t w1_vec_high = vld1q_s32(&weights[index][i + 4]);
 
         acc_vec_low = vsubq_s32(acc_vec_low, w1_vec_low);
         acc_vec_high = vsubq_s32(acc_vec_high, w1_vec_high);
 
-        vst1q_s32(&nnue->accumulators[i], acc_vec_low);
-        vst1q_s32(&nnue->accumulators[i + 4], acc_vec_high);
+        vst1q_s32(&accumulators[i], acc_vec_low);
+        vst1q_s32(&accumulators[i + 4], acc_vec_high);
     }
 
     recalculateEval(nnue);
+}
+
+void setDirectNNUEInput(NNUE* nnue, int index) {
+  printf("setDirectNNUEInput %d\n", index);
+  setNNUEInput(nnue->inputs, nnue->accumulators, nnue->weights_1_quantized, index);
+}
+
+void resetDirectNNUEInput(NNUE* nnue, int index) {
+  printf("resetDirectNNUEInput %d\n", index);
+  resetNNUEInput(nnue->inputs, nnue->accumulators, nnue->weights_1_quantized, index);
+}
+
+void setPerspectiveNNUEInput(NNUE* nnue, int index) {
+  setNNUEInput(nnue->inputs_perspective, nnue->accumulators_perspective, nnue->weights_1_perspective_quantized, index);
+}
+
+void resetPerspectiveNNUEInput(NNUE* nnue, int index) {
+  resetNNUEInput(nnue->inputs_perspective, nnue->accumulators_perspective, nnue->weights_1_perspective_quantized, index);
 }
 
 void resetNNUE(NNUE* nnue) {
@@ -104,19 +149,19 @@ void resetNNUE(NNUE* nnue) {
 }
 
 
-void modifyNnue(NNUE* nnue, Board* board, int color, int piece) {
-    for(int sq = 0; sq < 64; ++sq) {
-        int weight = isExists(board, color, piece, sq);
-        if (weight) {
-            setNNUEInput(nnue, getInputIndexOf(color, piece, sq));
-        } else {
-            resetNNUEInput(nnue, getInputIndexOf(color, piece, sq));
-        }
-    }
-}
+//void modifyNnue(NNUE* nnue, Board* board, int color, int piece) {
+//    for(int sq = 0; sq < 64; ++sq) {
+//        int weight = isExists(board, color, piece, sq);
+//        if (weight) {
+//            setNNUEInput(nnue, getInputIndexOf(color, piece, sq));
+//        } else {
+//            resetNNUEInput(nnue, getInputIndexOf(color, piece, sq));
+//        }
+//    }
+//}
 
 void loadNNUEWeights() {
-    FILE* file = fopen("./fc1.weights.csv", "r");
+    FILE* file = fopen("./fc1_us.weights.csv", "r");
     if (file == NULL) {
         perror("Unable to open file");
         exit(1);
@@ -140,6 +185,30 @@ void loadNNUEWeights() {
 
     fclose(file);
 
+    file = fopen("./fc1_them.weights.csv", "r");
+    if (file == NULL) {
+        perror("Unable to open file");
+        exit(1);
+    }
+
+    for (int i = 0; i < INNER_LAYER_COUNT; i++) {
+        for (int j = 0; j < INPUTS_COUNT; j++) {
+            if (fscanf(file, "%lf,", &nnue->weights_1_perspective[i][j]) != 1) {
+                perror("Error reading file");
+                fclose(file);
+                exit(1);
+            }
+        }
+    }
+
+    for (int i = 0; i < INNER_LAYER_COUNT; i++) {
+        for (int j = 0; j < INPUTS_COUNT; j++) {
+            nnue->weights_1_perspective_quantized[j][i] = round(nnue->weights_1_perspective[i][j] * QA);
+        }
+    }
+
+    fclose(file);
+
     file = fopen("./fc2.weights.csv", "r");
 
     if (file == NULL) {
@@ -155,7 +224,7 @@ void loadNNUEWeights() {
         }
     }
 
-    for (int i = 0; i < INNER_LAYER_COUNT; i++) {
+    for (int i = 0; i < 2 * INNER_LAYER_COUNT; i++) {
         nnue->weights_2_quantized[i] = round(nnue->weights_2[i] * QB);
     }
 
@@ -163,23 +232,23 @@ void loadNNUEWeights() {
 
     resetNNUE(nnue);
 }
-
-void initNNUEPosition(NNUE* nnue, Board* board) {
-    resetNNUE(nnue);
-
-    modifyNnue(nnue, board, WHITE, PAWN);
-    modifyNnue(nnue, board, BLACK, PAWN);
-    modifyNnue(nnue, board, WHITE, KNIGHT);
-    modifyNnue(nnue, board, BLACK, KNIGHT);
-    modifyNnue(nnue, board, WHITE, BISHOP);
-    modifyNnue(nnue, board, BLACK, BISHOP);
-    modifyNnue(nnue, board, WHITE, ROOK);
-    modifyNnue(nnue, board, BLACK, ROOK);
-    modifyNnue(nnue, board, WHITE, QUEEN);
-    modifyNnue(nnue, board, BLACK, QUEEN);
-    modifyNnue(nnue, board, WHITE, KING);
-    modifyNnue(nnue, board, BLACK, KING);
-}
+//
+//void initNNUEPosition(NNUE* nnue, Board* board) {
+//    resetNNUE(nnue);
+//
+//    modifyNnue(nnue, board, WHITE, PAWN);
+//    modifyNnue(nnue, board, BLACK, PAWN);
+//    modifyNnue(nnue, board, WHITE, KNIGHT);
+//    modifyNnue(nnue, board, BLACK, KNIGHT);
+//    modifyNnue(nnue, board, WHITE, BISHOP);
+//    modifyNnue(nnue, board, BLACK, BISHOP);
+//    modifyNnue(nnue, board, WHITE, ROOK);
+//    modifyNnue(nnue, board, BLACK, ROOK);
+//    modifyNnue(nnue, board, WHITE, QUEEN);
+//    modifyNnue(nnue, board, BLACK, QUEEN);
+//    modifyNnue(nnue, board, WHITE, KING);
+//    modifyNnue(nnue, board, BLACK, KING);
+//}
 
 TimeManager createFixNodesTm(int nodes) {
     TimeManager tm = initTM();
