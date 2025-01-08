@@ -9,8 +9,7 @@ import csv
 import torch
 import torch.nn as nn
 
-DATASET_POSITIONS_COUNT = 10000000
-# DATASET_POSITIONS_COUNT = 10000
+DATASET_POSITIONS_COUNT = 1000000000000
 HIDDEN_SIZE = 128
 INPUT_SIZE = 40960
 
@@ -116,7 +115,7 @@ def evaluate_positions(file_path: str, output_csv_path: str):
                 board.set_fen(fen)
                 eval = analyse_position(board, engine)
                 positions_count += 1
-                if positions_count % 100 == 0:
+                if positions_count % 5000 == 0:
                     print(f"Processed positions: {positions_count}", flush=True)
                 # print(f"FEN: {fen}, Evaluation: {eval}")
                 if eval is not None:
@@ -157,7 +156,7 @@ class ChessDataset(IterableDataset):
                     fen, score = row
                     try:
                         board = chess.Board(fen)
-                        turn = torch.tensor(1 if board.turn == chess.WHITE else 0, dtype=torch.float32)
+                        # turn = torch.tensor(1 if board.turn == chess.WHITE else 0, dtype=torch.float32)
                         # side_multiplier = 1 if board.turn == chess.WHITE else -1
                         side_multiplier = 1
                         input1, input2 = calculate_nnue_input_layer(board)
@@ -165,7 +164,6 @@ class ChessDataset(IterableDataset):
                             torch.tensor(input1, dtype=torch.float32),
                             torch.tensor(input2, dtype=torch.float32),
                             torch.tensor(float(score) * side_multiplier, dtype=torch.float32),
-                            turn
                         )
                     except Exception as e:
                         print(e)
@@ -180,7 +178,7 @@ class NNUE(nn.Module):
         self.relu = nn.ReLU()
         self.fc2 = nn.Linear(2 * hidden_size, output_size, bias=False)
 
-    def forward(self, x1, x2, turn):
+    def forward(self, x1, x2):
         def print_acc(acc):
             quant = torch.round(acc * 255)
 
@@ -261,12 +259,11 @@ def evaluate_test_fen(model, test_fen: str):
     nnue_input_us, nnue_input_them = calculate_nnue_input_layer(board)  # Это ваш метод из кода
     nnue_input_tensor_us = torch.tensor(nnue_input_us, dtype=torch.float32).unsqueeze(0)
     nnue_input_tensor_them = torch.tensor(nnue_input_them, dtype=torch.float32).unsqueeze(0)
-    turn = torch.tensor(1 if board.turn == chess.WHITE else 0, dtype=torch.float32)
 
     # Переключаем модель в режим оценки
     model.cpu().eval()
     with torch.no_grad():
-        output = model(nnue_input_tensor_us, nnue_input_tensor_them, turn)
+        output = model(nnue_input_tensor_us, nnue_input_tensor_them)
         score = output.item()
 
     return score
@@ -278,7 +275,7 @@ def train():
     model = model.to(device)
 
     dataset = ChessDataset("100millions_dataset.csv")
-    dataloader = DataLoader(dataset, batch_size=512, num_workers=12, pin_memory=False)
+    dataloader = DataLoader(dataset, batch_size=512, num_workers=11, prefetch_factor=2)
 
     criterion = nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
@@ -298,9 +295,7 @@ def train():
     # print(evaluate_test_fen(model, "r1b1k2r/pppp1ppp/8/4p3/2P1P3/P2P1qn1/R7/2B3K1 w kq - 0 19"))
     # print(evaluate_test_fen(model, "r1bqkb1r/pppp1ppp/2n5/4p2n/4P3/2NP4/PPP2PPP/R1B1KBNR w KQkq - 0 5"))
     # print(evaluate_test_fen(model, "3qk3/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQ - 0 1"))
-    print(evaluate_test_fen(model, "2k5/ppp3pp/2nrp3/8/2Rb3B/8/2P2PPP/2K5 b - - 6 28"))
-
-    return None
+    # print(evaluate_test_fen(model, "2k5/ppp3pp/2nrp3/8/2Rb3B/8/2P2PPP/2K5 b - - 6 28"))
 
     while True:
         model.train()
@@ -308,18 +303,17 @@ def train():
         count = 1
         index = 0
         # for (batch_inputs, batch_scores) in dataloader:
-        for batch_idx, (batch_inputs_us, batch_inputs_them, batch_scores, turn) in enumerate(dataloader):
+        for batch_idx, (batch_inputs_us, batch_inputs_them, batch_scores) in enumerate(dataloader):
             index += 1
             if index % 100 == 0:
                 print(f"Learning: {index}")
             count += len(batch_inputs_us)
-            batch_inputs_us = batch_inputs_us.to(device)
-            batch_inputs_them = batch_inputs_them.to(device)
-            turn = turn.to(device)
-            batch_scores = batch_scores.to(device)
+            batch_inputs_us = batch_inputs_us.to(device, non_blocking=True)
+            batch_inputs_them = batch_inputs_them.to(device, non_blocking=True)
+            batch_scores = batch_scores.to(device, non_blocking=True)
 
             optimizer.zero_grad()
-            outputs = model(batch_inputs_us, batch_inputs_them, turn)
+            outputs = model(batch_inputs_us, batch_inputs_them)
             loss = criterion(outputs.squeeze(), batch_scores)
             loss.backward()
             optimizer.step()
