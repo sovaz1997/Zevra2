@@ -8,13 +8,16 @@ import chess.engine
 import csv
 import torch
 import torch.nn as nn
+import logging
+
+logging.basicConfig(level=logging.INFO, filename="log.log",filemode="w")
 
 
 VALIDATION_DATASET_PATH = "validate_100millions_dataset.csv"
 TRAIN_DATASET_PATH = "train_100millions_dataset.csv"
 DATASET_POSITIONS_COUNT = 1000000000000
 HIDDEN_SIZE = 128
-INPUT_SIZE = 40960
+INPUT_SIZE = 768
 
 
 def process_large_pgn(file_path, output_file):
@@ -67,23 +70,39 @@ def calculate_nnue_index(color: bool, piece: int, square: int, king_square: int)
 
     return square + (piece_index + king_square * 10) * 64
 
-def calculate_nnue_input_layer(board: chess.Board):
-    nnue_input_us = [0] * INPUT_SIZE
-    nnue_input_them = [0] * INPUT_SIZE
 
-    white_king_square = board.king(chess.WHITE)
-    black_king_square = board.king(chess.BLACK)
+def calculate_nnue_index(color: bool, piece: int, square: int):
+    colors_mapper = {
+        chess.WHITE: 0,
+        chess.BLACK: 1
+    }
+
+    pieces_mapper = {
+        chess.PAWN: 0,
+        chess.KNIGHT: 1,
+        chess.BISHOP: 2,
+        chess.ROOK: 3,
+        chess.QUEEN: 4,
+        chess.KING: 5
+    }
+
+    return 64 * 6 * colors_mapper[color] + pieces_mapper[piece] * 64 + square
+
+
+
+
+def calculate_nnue_input_layer(board: chess.Board):
+    nnue_input = [0] * 768
 
     for color in chess.COLORS:
-        for piece in [chess.PAWN, chess.KNIGHT, chess.BISHOP, chess.ROOK, chess.QUEEN]:
+        for piece in chess.PIECE_TYPES:
             for square in range(64):
                 if (board.piece_at(square) is not None
                         and board.piece_at(square).piece_type == piece
                         and board.piece_at(square).color == color):
-                    nnue_input_us[calculate_nnue_index(color, piece, square, white_king_square)] = 1
-                    nnue_input_them[calculate_nnue_index(not color, piece, square ^ 56, black_king_square ^ 56)] = 1
+                    nnue_input[calculate_nnue_index(color, piece, square)] = 1
 
-    return nnue_input_us, nnue_input_them
+    return nnue_input
 
 
 
@@ -160,10 +179,9 @@ class ChessDataset(IterableDataset):
                         # turn = torch.tensor(1 if board.turn == chess.WHITE else 0, dtype=torch.float32)
                         # side_multiplier = 1 if board.turn == chess.WHITE else -1
                         side_multiplier = 1
-                        input1, input2 = calculate_nnue_input_layer(board)
+                        input1 = calculate_nnue_input_layer(board)
                         yield (
                             torch.tensor(input1, dtype=torch.float32),
-                            torch.tensor(input2, dtype=torch.float32),
                             torch.tensor(float(score) * side_multiplier, dtype=torch.float32),
                         )
                     except Exception as e:
@@ -171,31 +189,18 @@ class ChessDataset(IterableDataset):
                         continue
 
 
+
+
 class NNUE(nn.Module):
-    def __init__(self, input_size=INPUT_SIZE, hidden_size=HIDDEN_SIZE, output_size=1):
+    def __init__(self, input_size=768, hidden_size=128, output_size=1):
         super(NNUE, self).__init__()
-        self.fc1_us = nn.Linear(input_size, hidden_size, bias=False)
-        self.fc1_them = nn.Linear(input_size, hidden_size, bias=False)
-        self.relu = nn.ReLU()
-        self.fc2 = nn.Linear(2 * hidden_size, output_size, bias=False)
+        self.fc1 = nn.Linear(input_size, hidden_size, bias=False)
+        self.fc2 = nn.Linear(hidden_size, output_size, bias=False)
 
-    def forward(self, x1, x2):
-        def print_acc(acc):
-            quant = torch.round(acc * 255)
-
-            for(i, val) in enumerate(quant.data.numpy()[0]):
-                if val > 0:
-                    print(f"{i}: {val}")
-
-        first_input = self.fc1_us(x1)
-        second_input = self.fc1_them(x2)
-
-        acc1 = torch.clamp(first_input, 0, 1)
-        acc2 = torch.clamp(second_input, 0, 1)
-
-        x = torch.cat((acc1, acc2), 1)
-
-        return self.fc2(x)
+    def forward(self, x):
+        x = torch.clamp(self.fc1(x), 0, 1)
+        x = self.fc2(x)
+        return x
 
 def save_layer_weights(weights: nn.Linear, filename):
     weight_matrix = weights.weight.cpu().data.numpy()  # shape [out_features, in_features]
@@ -208,8 +213,7 @@ def save_layer_weights(weights: nn.Linear, filename):
 
 
 def save_nnue_weights(net: NNUE, epoch: int):
-    save_layer_weights(net.fc1_us, f"fc1_us.{epoch}.weights.csv")
-    save_layer_weights(net.fc1_them, f"fc1_them.{epoch}.weights.csv")
+    save_layer_weights(net.fc1, f"fc1.{epoch}.weights.csv")
     save_layer_weights(net.fc2, f"fc2.{epoch}.weights.csv")
 
 
@@ -249,15 +253,13 @@ def validate_net(net: NNUE):
     criterion = nn.MSELoss()
     running_loss = 0.0
 
-    for batch_idx, (batch_inputs_us, batch_inputs_them, batch_scores) in enumerate(dataloader):
+    for batch_idx, (batch_inputs, batch_scores) in enumerate(dataloader):
         batches_length += 1
-        batch_inputs_us = batch_inputs_us.to("mps")
-        batch_inputs_them = batch_inputs_them.to("mps")
+        batch_inputs = batch_inputs.to("mps")
         batch_scores = batch_scores.to("mps")
-        outputs = net(batch_inputs_us, batch_inputs_them)
+        outputs = net(batch_inputs)
         loss = criterion(outputs.squeeze(), batch_scores)
         running_loss += loss.item()
-        # print(f"Validation: {batch_idx} loss: {loss.item()} scores: {batch_scores} outputs: {outputs}; running_loss: {running_loss}; length: {length} running / length: {running_loss / length}")
 
     return running_loss / batches_length
 
@@ -269,14 +271,13 @@ def evaluate_test_fen(model, test_fen: str):
     print(board)
 
     # Превращаем доску в входные данные
-    nnue_input_us, nnue_input_them = calculate_nnue_input_layer(board)  # Это ваш метод из кода
-    nnue_input_tensor_us = torch.tensor(nnue_input_us, dtype=torch.float32).unsqueeze(0)
-    nnue_input_tensor_them = torch.tensor(nnue_input_them, dtype=torch.float32).unsqueeze(0)
+    nnue_input = calculate_nnue_input_layer(board)  # Это ваш метод из кода
+    nnue_input_tensor = torch.tensor(nnue_input, dtype=torch.float32).unsqueeze(0)
 
     # Переключаем модель в режим оценки
     model.cpu().eval()
     with torch.no_grad():
-        output = model(nnue_input_tensor_us, nnue_input_tensor_them)
+        output = model(nnue_input_tensor)
         score = output.item()
 
     return score
@@ -302,24 +303,22 @@ def train():
     # validate_loss = validate_net(model)
     # print(f"Initial validate loss: {validate_loss:.4f}", flush=True)
 
-
     while True:
         model.train()
         running_loss = 0.0
         count = 0
         index = 0
         # for (batch_inputs, batch_scores) in dataloader:
-        for batch_idx, (batch_inputs_us, batch_inputs_them, batch_scores) in enumerate(dataloader):
+        for batch_idx, (batch_inputs, batch_scores) in enumerate(dataloader):
             index += 1
             if index % 100 == 0:
                 print(f"Learning: {index}")
-            count += len(batch_inputs_us)
-            batch_inputs_us = batch_inputs_us.to(device, non_blocking=True)
-            batch_inputs_them = batch_inputs_them.to(device, non_blocking=True)
+            count += len(batch_inputs)
+            batch_inputs = batch_inputs.to(device, non_blocking=True)
             batch_scores = batch_scores.to(device, non_blocking=True)
 
             optimizer.zero_grad()
-            outputs = model(batch_inputs_us, batch_inputs_them)
+            outputs = model(batch_inputs)
             loss = criterion(outputs.squeeze(), batch_scores)
             loss.backward()
             optimizer.step()
@@ -331,6 +330,7 @@ def train():
 
         validate_loss = validate_net(model)
         print(f"Epoch [{epoch}], Train loss: {loss:.4f}, Validate loss: {validate_loss:.4f}", flush=True)
+        logging.info(f"Epoch [{epoch}], Train loss: {loss:.4f}, Validate loss: {validate_loss:.4f}")
         save_checkpoint(model, optimizer, scheduler, epoch)
         epoch += 1
 
