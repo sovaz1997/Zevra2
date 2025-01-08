@@ -9,6 +9,9 @@ import csv
 import torch
 import torch.nn as nn
 
+
+VALIDATION_DATASET_PATH = "validate_100millions_dataset.csv"
+TRAIN_DATASET_PATH = "train_100millions_dataset.csv"
 DATASET_POSITIONS_COUNT = 1000000000000
 HIDDEN_SIZE = 128
 INPUT_SIZE = 40960
@@ -115,7 +118,7 @@ def evaluate_positions(file_path: str, output_csv_path: str):
                 board.set_fen(fen)
                 eval = analyse_position(board, engine)
                 positions_count += 1
-                if positions_count % 5000 == 0:
+                if positions_count % 100 == 0:
                     print(f"Processed positions: {positions_count}", flush=True)
                 # print(f"FEN: {fen}, Evaluation: {eval}")
                 if eval is not None:
@@ -131,8 +134,6 @@ def evaluate_positions(file_path: str, output_csv_path: str):
 
 class ChessDataset(IterableDataset):
     def __init__(self, file_path):
-        # self.data = pd.read_csv(file_path)
-        # self.board = chess.Board()
         self.file_path = file_path
 
     def __iter__(self):
@@ -192,14 +193,6 @@ class NNUE(nn.Module):
         acc1 = torch.clamp(first_input, 0, 1)
         acc2 = torch.clamp(second_input, 0, 1)
 
-        # x255 and round
-        # quant = torch.round(acc1 * 255)
-        # quant.data.numpy()
-        # for(i, val) in enumerate(quant[0]):
-        #     print(f"{i}: {val}")
-
-        # side = turn.unsqueeze(1).float()
-        # x = (side * torch.cat((acc1, acc2), 1)) + ((1 - side) * torch.cat((acc2, acc1), 1))
         x = torch.cat((acc1, acc2), 1)
 
         return self.fc2(x)
@@ -242,12 +235,32 @@ def load_checkpoint(
         scheduler,
         filename="checkpoint.pth"):
     if not os.path.exists(filename):
-        return 1
+        return 0
     checkpoint = torch.load(filename, weights_only=True)
     model.load_state_dict(checkpoint['model_state_dict'])
     optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
     scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
     return checkpoint['epoch']
+
+def validate_net(net: NNUE):
+    dataset = ChessDataset(VALIDATION_DATASET_PATH)
+    dataloader = DataLoader(dataset, batch_size=128, num_workers=1, prefetch_factor=2)
+    batches_length = 0
+    criterion = nn.MSELoss()
+    running_loss = 0.0
+
+    for batch_idx, (batch_inputs_us, batch_inputs_them, batch_scores) in enumerate(dataloader):
+        batches_length += 1
+        batch_inputs_us = batch_inputs_us.to("mps")
+        batch_inputs_them = batch_inputs_them.to("mps")
+        batch_scores = batch_scores.to("mps")
+        outputs = net(batch_inputs_us, batch_inputs_them)
+        loss = criterion(outputs.squeeze(), batch_scores)
+        running_loss += loss.item()
+        # print(f"Validation: {batch_idx} loss: {loss.item()} scores: {batch_scores} outputs: {outputs}; running_loss: {running_loss}; length: {length} running / length: {running_loss / length}")
+
+    return running_loss / batches_length
+
 
 
 def evaluate_test_fen(model, test_fen: str):
@@ -274,38 +287,31 @@ def train():
     device = torch.device("mps")
     model = model.to(device)
 
-    dataset = ChessDataset("100millions_dataset.csv")
-    dataloader = DataLoader(dataset, batch_size=512, num_workers=11, prefetch_factor=2)
+    dataset = ChessDataset(TRAIN_DATASET_PATH)
+    dataloader = DataLoader(dataset, batch_size=512, num_workers=1, prefetch_factor=2)
 
     criterion = nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', patience=2, factor=0.5)
-    epoch = load_checkpoint(model, optimizer, scheduler)
+    epoch = load_checkpoint(model, optimizer, scheduler) + 1
+
+    # model.to("cpu")
+    # print(evaluate_test_fen(model, "6k1/5p2/3p2pp/2r5/1p5P/bQp3PB/P1R2PK1/3q4 b - - 1 40"))
 
     print(model)
-    # print(evaluate_test_fen(model, "qqqqkqqr/ppqqqppp/8/8/8/8/6P1/4K3 w HAka - 0 1"))
-    # print(evaluate_test_fen(model, "4k3/pppppppp/8/8/8/8/4P3/4K3 w - - 0 1"))
-    # print(evaluate_test_fen(model, "4k3/pppppppp/8/8/8/8/4P3/4K3 b - - 0 1"))
-    # print(evaluate_test_fen(model, "rnbqkbnr/ppp3pp/8/4p3/3pNp2/3P1N2/PPP1PPPP/R1BQKB1R b KQkq - 1 6"))
-    # print(evaluate_test_fen(model, "1nbqkbn1/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQ - 0 1"))
-    # print(evaluate_test_fen(model, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQq - 0 1"))
-    # print(evaluate_test_fen(model, "1nb1kbn1/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQ - 0 1"))
-    # print(evaluate_test_fen(model, "1nb1kbn1/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQ - 0 1"))
-    # print(evaluate_test_fen(model, "4k3/7p/8/8/8/8/PPPPPPPP/RNBQKBNR w KQ - 0 1"))
-    # print(evaluate_test_fen(model, "r1b1k2r/pppp1ppp/8/4p3/2P1P3/P2P1qn1/R7/2B3K1 w kq - 0 19"))
-    # print(evaluate_test_fen(model, "r1bqkb1r/pppp1ppp/2n5/4p2n/4P3/2NP4/PPP2PPP/R1B1KBNR w KQkq - 0 5"))
-    # print(evaluate_test_fen(model, "3qk3/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQ - 0 1"))
-    # print(evaluate_test_fen(model, "2k5/ppp3pp/2nrp3/8/2Rb3B/8/2P2PPP/2K5 b - - 6 28"))
+    # validate_loss = validate_net(model)
+    # print(f"Initial validate loss: {validate_loss:.4f}", flush=True)
+
 
     while True:
         model.train()
         running_loss = 0.0
-        count = 1
+        count = 0
         index = 0
         # for (batch_inputs, batch_scores) in dataloader:
         for batch_idx, (batch_inputs_us, batch_inputs_them, batch_scores) in enumerate(dataloader):
             index += 1
-            if index % 5000 == 0:
+            if index % 100 == 0:
                 print(f"Learning: {index}")
             count += len(batch_inputs_us)
             batch_inputs_us = batch_inputs_us.to(device, non_blocking=True)
@@ -319,11 +325,12 @@ def train():
             optimizer.step()
 
             running_loss += loss.item()
-        loss = (running_loss / count)
+        loss = (running_loss / index)
         scheduler.step(loss)
         save_nnue_weights(model, epoch)
 
-        print(f"Epoch [{epoch}], Loss: {loss:.4f}", flush=True)
+        validate_loss = validate_net(model)
+        print(f"Epoch [{epoch}], Train loss: {loss:.4f}, Validate loss: {validate_loss:.4f}", flush=True)
         save_checkpoint(model, optimizer, scheduler, epoch)
         epoch += 1
 
