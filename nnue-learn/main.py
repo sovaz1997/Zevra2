@@ -9,8 +9,8 @@ import csv
 import torch
 import torch.nn as nn
 
-# DATASET_POSITIONS_COUNT = 10000000
-DATASET_POSITIONS_COUNT = 10000
+DATASET_POSITIONS_COUNT = 10000000
+# DATASET_POSITIONS_COUNT = 10000
 HIDDEN_SIZE = 128
 INPUT_SIZE = 40960
 
@@ -181,8 +181,24 @@ class NNUE(nn.Module):
         self.fc2 = nn.Linear(2 * hidden_size, output_size, bias=False)
 
     def forward(self, x1, x2, turn):
-        acc1 = self.relu(self.fc1_us(x1))
-        acc2 = self.relu(self.fc1_them(x2))
+        def print_acc(acc):
+            quant = torch.round(acc * 255)
+
+            for(i, val) in enumerate(quant.data.numpy()[0]):
+                if val > 0:
+                    print(f"{i}: {val}")
+
+        first_input = self.fc1_us(x1)
+        second_input = self.fc1_them(x2)
+
+        acc1 = torch.clamp(first_input, 0, 1)
+        acc2 = torch.clamp(second_input, 0, 1)
+
+        # x255 and round
+        # quant = torch.round(acc1 * 255)
+        # quant.data.numpy()
+        # for(i, val) in enumerate(quant[0]):
+        #     print(f"{i}: {val}")
 
         # side = turn.unsqueeze(1).float()
         # x = (side * torch.cat((acc1, acc2), 1)) + ((1 - side) * torch.cat((acc2, acc1), 1))
@@ -256,7 +272,7 @@ def evaluate_test_fen(model, test_fen: str):
     return score
 
 
-if __name__ == '__main__':
+def train():
     model = NNUE()
     device = torch.device("mps")
     model = model.to(device)
@@ -270,15 +286,21 @@ if __name__ == '__main__':
     epoch = load_checkpoint(model, optimizer, scheduler)
 
     print(model)
-    print(evaluate_test_fen(model, "1qqqk3/1qqqp3/1qqq4/1qqq4/8/R7/3Q4/3QK3 b HAha - 0 1"))
-    print(evaluate_test_fen(model, "4k3/pppppppp/8/8/8/8/4P3/4K3 w - - 0 1"))
+    # print(evaluate_test_fen(model, "qqqqkqqr/ppqqqppp/8/8/8/8/6P1/4K3 w HAka - 0 1"))
+    # print(evaluate_test_fen(model, "4k3/pppppppp/8/8/8/8/4P3/4K3 w - - 0 1"))
     # print(evaluate_test_fen(model, "4k3/pppppppp/8/8/8/8/4P3/4K3 b - - 0 1"))
     # print(evaluate_test_fen(model, "rnbqkbnr/ppp3pp/8/4p3/3pNp2/3P1N2/PPP1PPPP/R1BQKB1R b KQkq - 1 6"))
     # print(evaluate_test_fen(model, "1nbqkbn1/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQ - 0 1"))
     # print(evaluate_test_fen(model, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQq - 0 1"))
-    # print(evaluate_test_fen(model, "3qk3/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQ - 0 1"))
     # print(evaluate_test_fen(model, "1nb1kbn1/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQ - 0 1"))
     # print(evaluate_test_fen(model, "1nb1kbn1/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQ - 0 1"))
+    # print(evaluate_test_fen(model, "4k3/7p/8/8/8/8/PPPPPPPP/RNBQKBNR w KQ - 0 1"))
+    # print(evaluate_test_fen(model, "r1b1k2r/pppp1ppp/8/4p3/2P1P3/P2P1qn1/R7/2B3K1 w kq - 0 19"))
+    # print(evaluate_test_fen(model, "r1bqkb1r/pppp1ppp/2n5/4p2n/4P3/2NP4/PPP2PPP/R1B1KBNR w KQkq - 0 5"))
+    # print(evaluate_test_fen(model, "3qk3/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQ - 0 1"))
+    print(evaluate_test_fen(model, "2k5/ppp3pp/2nrp3/8/2Rb3B/8/2P2PPP/2K5 b - - 6 28"))
+
+    return None
 
     while True:
         model.train()
@@ -314,3 +336,6 @@ if __name__ == '__main__':
         if loss < 0.05:
             break
         print(optimizer.param_groups[0]['lr'])
+
+if __name__ == '__main__':
+    train()

@@ -13,7 +13,7 @@ int isExists(Board* board, int color, int piece, int sq) {
 }
 
 int getInputIndexOf(int color, int piece, int sq, int kingSq) {
-    int pieceIndex = piece * 2 + color;
+    int pieceIndex = (piece - 1) * 2 + color;
     int res = sq + (pieceIndex + kingSq * 10) * 64;
     return res;
 }
@@ -36,7 +36,9 @@ void recalculateEval(NNUE* nnue, int color) {
         int32x4_t w2_vec_high = vld1q_s32(&nnue->weights_2_quantized[shift + i + 4]);
 
         acc_vec_low = vmaxq_s32(acc_vec_low, vdupq_n_s32(0));
+		acc_vec_low = vminq_s32(acc_vec_low, vdupq_n_s32(QA));
         acc_vec_high = vmaxq_s32(acc_vec_high, vdupq_n_s32(0));
+        acc_vec_high = vminq_s32(acc_vec_high, vdupq_n_s32(QA));
 
         sum_vec_low = vmlaq_s32(sum_vec_low, acc_vec_low, w2_vec_low);
         sum_vec_high = vmlaq_s32(sum_vec_high, acc_vec_high, w2_vec_high);
@@ -62,7 +64,9 @@ void recalculateEval(NNUE* nnue, int color) {
         int32x4_t w2_vec_high = vld1q_s32(&nnue->weights_2_quantized[i + shift + 4]);
 
         acc_vec_low = vmaxq_s32(acc_vec_low, vdupq_n_s32(0));
+		acc_vec_low = vminq_s32(acc_vec_low, vdupq_n_s32(QA));
         acc_vec_high = vmaxq_s32(acc_vec_high, vdupq_n_s32(0));
+        acc_vec_high = vminq_s32(acc_vec_high, vdupq_n_s32(QA));
 
         sum_vec_low = vmlaq_s32(sum_vec_low, acc_vec_low, w2_vec_low);
         sum_vec_high = vmlaq_s32(sum_vec_high, acc_vec_high, w2_vec_high);
@@ -224,7 +228,7 @@ void loadNNUEWeights() {
         exit(1);
     }
 
-    for (int i = 0; i < INNER_LAYER_COUNT; i++) {
+    for (int i = 0; i < 2 * INNER_LAYER_COUNT; i++) {
         if (fscanf(file, "%lf,", &nnue->weights_2[i]) != 1) {
             perror("Error reading file");
             fclose(file);
