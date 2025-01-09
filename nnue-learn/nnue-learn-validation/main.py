@@ -83,7 +83,6 @@ def ctzll(x):
 
 nnue_input_layer = np.zeros(768, dtype=np.uint8)
 
-@profile
 def calculate_nnue_input_layer(board: chess.Board):
     nnue_input = np.zeros(768, dtype=np.uint8)
     occupied = board.occupied
@@ -133,7 +132,6 @@ def evaluate_positions(file_path: str, output_csv_path: str):
                 positions_count += 1
                 if positions_count % 100 == 0:
                     print(f"Processed positions: {positions_count}", flush=True)
-                # print(f"FEN: {fen}, Evaluation: {eval}")
                 if eval is not None:
                     writer.writerow([fen, eval])
                 if positions_count > DATASET_POSITIONS_COUNT:
@@ -199,18 +197,8 @@ class ChessDataset(IterableDataset):
                     except Exception as e:
                         print(e)
                         continue
-                    # try:
-                    #     input1 = calculate_nnue_input_layer_cached(fen)
-                    #     board = chess.Board(fen)
-                    #     nnue_input = calculate_nnue_input_layer(board)
-                    #     # Сохраняем входы и оценку
-                    #     writer.write(struct.pack(f'{len(nnue_input)}Bf', *nnue_input, eval_score))
-                    # except Exception as e:
-                    #     print(e)
-                    #     continue
         print("Dataset prepared")
 
-    @profile
     def __iter__(self):
         worker_info = torch.utils.data.get_worker_info()
 
@@ -238,27 +226,6 @@ class ChessDataset(IterableDataset):
                     torch.tensor(nnue_input, dtype=torch.float32),
                     torch.tensor(eval_score, dtype=torch.float32),
                 )
-
-        # with (open(self.file_path, 'r') as f):
-        #     reader = csv.reader(f)
-        #     for idx, row in enumerate(reader):
-        #         if idx >= DATASET_POSITIONS_COUNT:
-        #              break
-        #
-        #         if idx % step == start:
-        #             fen, score = row
-        #             try:
-        #                 # turn = torch.tensor(1 if board.turn == chess.WHITE else 0, dtype=torch.float32)
-        #                 # side_multiplier = 1 if board.turn == chess.WHITE else -1
-        #                 side_multiplier = 1
-        #                 input1 = calculate_nnue_input_layer_cached(fen)
-        #                 yield (
-        #                     torch.tensor(input1, dtype=torch.float32),
-        #                     torch.tensor(float(score) * side_multiplier, dtype=torch.float32),
-        #                 )
-        #             except Exception as e:
-        #                 print(e)
-        #                 continue
 
 
 
@@ -318,9 +285,11 @@ def load_checkpoint(
     scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
     return checkpoint['epoch']
 
+@profile
 def validate_net(net: NNUE):
     dataset = ChessDataset(VALIDATION_DATASET_PATH)
-    dataloader = DataLoader(dataset, batch_size=128, num_workers=0)
+    # dataloader = DataLoader(dataset, batch_size=512, num_workers=11, persistent_workers=True, pin_memory=True, prefetch_factor=2)
+    dataloader = DataLoader(dataset, batch_size=512, num_workers=0)
     batches_length = 0
     criterion = nn.MSELoss()
     running_loss = 0.0
@@ -360,7 +329,16 @@ def train():
     device = torch.device("mps")
     model = model.to(device)
 
+    # optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
+    # scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', patience=2, factor=0.5)
+    # load_checkpoint(model, optimizer, scheduler) + 1
+    # model.to("cpu")
+    # print(evaluate_test_fen(model, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"))
+    # return None
+
+
     dataset = ChessDataset(TRAIN_DATASET_PATH)
+    # dataloader = DataLoader(dataset, batch_size=512, num_workers=11, persistent_workers=True, prefetch_factor=2)
     dataloader = DataLoader(dataset, batch_size=512, num_workers=0)
 
     criterion = nn.MSELoss()
@@ -368,7 +346,6 @@ def train():
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', patience=2, factor=0.5)
     epoch = load_checkpoint(model, optimizer, scheduler) + 1
 
-    # model.to("cpu")
 
     print(model)
     # validate_loss = validate_net(model)
