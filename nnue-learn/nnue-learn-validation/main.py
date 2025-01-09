@@ -1,6 +1,7 @@
 import os
 from functools import lru_cache
 
+import numpy as np
 from torch.utils.data import DataLoader, IterableDataset
 
 import chess
@@ -9,14 +10,6 @@ import chess.engine
 import csv
 import torch
 import torch.nn as nn
-# import logging
-
-# logging.basicConfig(
-#     level=logging.INFO,
-#     filename="log.log",
-#     filemode="w",
-#     force=True
-# )
 
 
 VALIDATION_DATASET_PATH = "validate_100millions_dataset.csv"
@@ -24,6 +17,7 @@ TRAIN_DATASET_PATH = "train_100millions_dataset.csv"
 DATASET_POSITIONS_COUNT = 1000000000000
 HIDDEN_SIZE = 128
 INPUT_SIZE = 768
+
 
 
 def process_large_pgn(file_path, output_file):
@@ -58,25 +52,6 @@ def print_bitboard(bitboard):
         print(line)
 
 
-def calculate_nnue_index(color: bool, piece: int, square: int, king_square: int):
-    colors_mapper = {
-        chess.WHITE: 0,
-        chess.BLACK: 1
-    }
-
-    pieces_mapper = {
-        chess.PAWN: 0,
-        chess.KNIGHT: 1,
-        chess.BISHOP: 2,
-        chess.ROOK: 3,
-        chess.QUEEN: 4,
-    }
-
-    piece_index = pieces_mapper[piece] * 2 + colors_mapper[color]
-
-    return square + (piece_index + king_square * 10) * 64
-
-
 @lru_cache(maxsize=1000000)
 def calculate_nnue_index(color: bool, piece: int, square: int):
     colors_mapper = {
@@ -100,17 +75,26 @@ def calculate_nnue_index(color: bool, piece: int, square: int):
 def calculate_nnue_input_layer_cached(board_fen: str):
     return calculate_nnue_input_layer(chess.Board(board_fen))
 
+@lru_cache
+def ctzll(x):
+    return (x & -x).bit_length() - 1
 
+
+nnue_input_layer = np.zeros(768, dtype=np.uint8)
+
+@profile
 def calculate_nnue_input_layer(board: chess.Board):
-    nnue_input = [0] * 768
+    nnue_input = np.zeros(768, dtype=np.uint8)
+    occupied = board.occupied
 
-    for square, piece in board.piece_map().items():
+    while occupied:
+        square = ctzll(occupied)
+        piece = board.piece_at(square)
         color = piece.color
         piece_type = piece.piece_type
         nnue_input[calculate_nnue_index(color, piece_type, square)] = 1
-
+        occupied &= occupied - 1
     return nnue_input
-
 
 
 def analyse_position(board: chess.Board, engine: chess.engine.SimpleEngine):
@@ -162,6 +146,7 @@ class ChessDataset(IterableDataset):
     def __init__(self, file_path):
         self.file_path = file_path
 
+    @profile
     def __iter__(self):
         worker_info = torch.utils.data.get_worker_info()
 
@@ -182,11 +167,10 @@ class ChessDataset(IterableDataset):
                 if idx % step == start:
                     fen, score = row
                     try:
-                        board = chess.Board(fen)
                         # turn = torch.tensor(1 if board.turn == chess.WHITE else 0, dtype=torch.float32)
                         # side_multiplier = 1 if board.turn == chess.WHITE else -1
                         side_multiplier = 1
-                        input1 = calculate_nnue_input_layer_cached(board.fen())
+                        input1 = calculate_nnue_input_layer_cached(fen)
                         yield (
                             torch.tensor(input1, dtype=torch.float32),
                             torch.tensor(float(score) * side_multiplier, dtype=torch.float32),
@@ -199,7 +183,7 @@ class ChessDataset(IterableDataset):
 
 
 class NNUE(nn.Module):
-    def __init__(self, input_size=768, hidden_size=128, output_size=1):
+    def __init__(self, input_size=768, hidden_size=512, output_size=1):
         super(NNUE, self).__init__()
         self.fc1 = nn.Linear(input_size, hidden_size, bias=False)
         self.fc2 = nn.Linear(hidden_size, output_size, bias=False)
@@ -255,7 +239,7 @@ def load_checkpoint(
 
 def validate_net(net: NNUE):
     dataset = ChessDataset(VALIDATION_DATASET_PATH)
-    dataloader = DataLoader(dataset, batch_size=128, num_workers=1, prefetch_factor=2)
+    dataloader = DataLoader(dataset, batch_size=128, num_workers=0)
     batches_length = 0
     criterion = nn.MSELoss()
     running_loss = 0.0
@@ -289,13 +273,14 @@ def evaluate_test_fen(model, test_fen: str):
     return score
 
 
+@profile
 def train():
     model = NNUE()
     device = torch.device("mps")
     model = model.to(device)
 
     dataset = ChessDataset(TRAIN_DATASET_PATH)
-    dataloader = DataLoader(dataset, batch_size=128, num_workers=1, prefetch_factor=2)
+    dataloader = DataLoader(dataset, batch_size=512, num_workers=0)
 
     criterion = nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
@@ -303,7 +288,6 @@ def train():
     epoch = load_checkpoint(model, optimizer, scheduler) + 1
 
     # model.to("cpu")
-    # print(evaluate_test_fen(model, "r1bq1rk1/4bppp/p1np1n2/1p6/P1p1PB2/2PB1N2/2P1QPPP/R4RK1 w - - 0 13"))
 
     print(model)
     # validate_loss = validate_net(model)
