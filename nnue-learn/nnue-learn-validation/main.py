@@ -231,10 +231,10 @@ class ChessDataset(IterableDataset):
 
 
 class NNUE(nn.Module):
-    def __init__(self, input_size=768, hidden_size=512, output_size=1):
+    def __init__(self):
         super(NNUE, self).__init__()
-        self.fc1 = nn.Linear(input_size, hidden_size, bias=False)
-        self.fc2 = nn.Linear(hidden_size, output_size, bias=False)
+        self.fc1 = nn.Linear(INPUT_SIZE, HIDDEN_SIZE, bias=False)
+        self.fc2 = nn.Linear(HIDDEN_SIZE, 1, bias=False)
 
     def forward(self, x):
         x = torch.clamp(self.fc1(x), 0, 1)
