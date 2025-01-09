@@ -10,6 +10,7 @@ import chess.engine
 import csv
 import torch
 import torch.nn as nn
+import struct
 
 
 VALIDATION_DATASET_PATH = "validate_100millions_dataset.csv"
@@ -86,10 +87,12 @@ nnue_input_layer = np.zeros(768, dtype=np.uint8)
 def calculate_nnue_input_layer(board: chess.Board):
     nnue_input = np.zeros(768, dtype=np.uint8)
     occupied = board.occupied
+    piece_map = board.piece_map()
 
     while occupied:
         square = ctzll(occupied)
-        piece = board.piece_at(square)
+        #piece = board.piece_at(square)
+        piece = piece_map[square]
         color = piece.color
         piece_type = piece.piece_type
         nnue_input[calculate_nnue_index(color, piece_type, square)] = 1
@@ -143,8 +146,69 @@ def evaluate_positions(file_path: str, output_csv_path: str):
 
 
 class ChessDataset(IterableDataset):
+    def __unpack_bits(self, packed_data, total_bits):
+        unpacked = []
+        for byte in packed_data:
+            for i in range(7, -1, -1):
+                unpacked.append((byte >> i) & 1)
+        return unpacked[:total_bits]
+
+    def __pack_bits(self, data):
+        packed = bytearray()
+        for i in range(0, len(data), 8):
+            byte = 0
+            for bit in data[i:i + 8]:
+                byte = (byte << 1) | bit
+            packed.append(byte)
+        return packed
+
+    def __save_nnue_data_bit_optimized(self, writer, nnue_input, eval_score):
+        packed_input = self.__pack_bits(nnue_input)
+        writer.write(packed_input)
+        writer.write(struct.pack('f', eval_score))
+        self.dataset_positions_count += 1
+
     def __init__(self, file_path):
-        self.file_path = file_path
+        print("Prepare dataset...")
+        self.dataset_positions_count = 0
+        self.packed_size = INPUT_SIZE // 8
+        self.record_size = self.packed_size + 4
+        self.bin_file_path = file_path + '.bin'
+        # flush console out
+
+        if os.path.exists(self.bin_file_path):
+            print("Dataset already prepared")
+            self.dataset_positions_count = os.path.getsize(self.bin_file_path) // self.record_size
+            return
+
+
+        with (open(file_path, 'r') as f):
+            reader = csv.reader(f)
+
+            with open(self.bin_file_path, 'wb') as writer:
+                for idx, row in enumerate(reader):
+                    if idx % 10000 == 0:
+                        print(f"Processed positions: {idx}", flush=True)
+                    fen, score = row
+                    try:
+                        self.__save_nnue_data_bit_optimized(
+                            writer,
+                            calculate_nnue_input_layer_cached(fen),
+                            float(score)
+                        )
+                    except Exception as e:
+                        print(e)
+                        continue
+                    # try:
+                    #     input1 = calculate_nnue_input_layer_cached(fen)
+                    #     board = chess.Board(fen)
+                    #     nnue_input = calculate_nnue_input_layer(board)
+                    #     # Сохраняем входы и оценку
+                    #     writer.write(struct.pack(f'{len(nnue_input)}Bf', *nnue_input, eval_score))
+                    # except Exception as e:
+                    #     print(e)
+                    #     continue
+        print("Dataset prepared")
 
     @profile
     def __iter__(self):
@@ -158,26 +222,43 @@ class ChessDataset(IterableDataset):
             start = worker_info.id
             step = worker_info.num_workers
 
-        with (open(self.file_path, 'r') as f):
-            reader = csv.reader(f)
-            for idx, row in enumerate(reader):
-                if idx >= DATASET_POSITIONS_COUNT:
-                     break
+        with open(self.bin_file_path, 'rb') as f:
+            for idx in range(start, self.dataset_positions_count, step):
+                f.seek(idx * self.record_size)
+                record = f.read(self.record_size)
 
-                if idx % step == start:
-                    fen, score = row
-                    try:
-                        # turn = torch.tensor(1 if board.turn == chess.WHITE else 0, dtype=torch.float32)
-                        # side_multiplier = 1 if board.turn == chess.WHITE else -1
-                        side_multiplier = 1
-                        input1 = calculate_nnue_input_layer_cached(fen)
-                        yield (
-                            torch.tensor(input1, dtype=torch.float32),
-                            torch.tensor(float(score) * side_multiplier, dtype=torch.float32),
-                        )
-                    except Exception as e:
-                        print(e)
-                        continue
+                if not record:
+                    break
+
+                packed_input = record[:self.packed_size]
+                eval_score = struct.unpack('f', record[self.packed_size:])[0]
+
+                nnue_input = self.__unpack_bits(packed_input, INPUT_SIZE)
+                yield (
+                    torch.tensor(nnue_input, dtype=torch.float32),
+                    torch.tensor(eval_score, dtype=torch.float32),
+                )
+
+        # with (open(self.file_path, 'r') as f):
+        #     reader = csv.reader(f)
+        #     for idx, row in enumerate(reader):
+        #         if idx >= DATASET_POSITIONS_COUNT:
+        #              break
+        #
+        #         if idx % step == start:
+        #             fen, score = row
+        #             try:
+        #                 # turn = torch.tensor(1 if board.turn == chess.WHITE else 0, dtype=torch.float32)
+        #                 # side_multiplier = 1 if board.turn == chess.WHITE else -1
+        #                 side_multiplier = 1
+        #                 input1 = calculate_nnue_input_layer_cached(fen)
+        #                 yield (
+        #                     torch.tensor(input1, dtype=torch.float32),
+        #                     torch.tensor(float(score) * side_multiplier, dtype=torch.float32),
+        #                 )
+        #             except Exception as e:
+        #                 print(e)
+        #                 continue
 
 
 
