@@ -1,4 +1,5 @@
 import os
+from functools import lru_cache
 
 from torch.utils.data import DataLoader, IterableDataset
 
@@ -8,9 +9,14 @@ import chess.engine
 import csv
 import torch
 import torch.nn as nn
-import logging
+# import logging
 
-logging.basicConfig(level=logging.INFO, filename="log.log",filemode="w")
+# logging.basicConfig(
+#     level=logging.INFO,
+#     filename="log.log",
+#     filemode="w",
+#     force=True
+# )
 
 
 VALIDATION_DATASET_PATH = "validate_100millions_dataset.csv"
@@ -71,6 +77,7 @@ def calculate_nnue_index(color: bool, piece: int, square: int, king_square: int)
     return square + (piece_index + king_square * 10) * 64
 
 
+@lru_cache(maxsize=1000000)
 def calculate_nnue_index(color: bool, piece: int, square: int):
     colors_mapper = {
         chess.WHITE: 0,
@@ -89,18 +96,18 @@ def calculate_nnue_index(color: bool, piece: int, square: int):
     return 64 * 6 * colors_mapper[color] + pieces_mapper[piece] * 64 + square
 
 
+@lru_cache(maxsize=1000000)
+def calculate_nnue_input_layer_cached(board_fen: str):
+    return calculate_nnue_input_layer(chess.Board(board_fen))
 
 
 def calculate_nnue_input_layer(board: chess.Board):
     nnue_input = [0] * 768
 
-    for color in chess.COLORS:
-        for piece in chess.PIECE_TYPES:
-            for square in range(64):
-                if (board.piece_at(square) is not None
-                        and board.piece_at(square).piece_type == piece
-                        and board.piece_at(square).color == color):
-                    nnue_input[calculate_nnue_index(color, piece, square)] = 1
+    for square, piece in board.piece_map().items():
+        color = piece.color
+        piece_type = piece.piece_type
+        nnue_input[calculate_nnue_index(color, piece_type, square)] = 1
 
     return nnue_input
 
@@ -179,7 +186,7 @@ class ChessDataset(IterableDataset):
                         # turn = torch.tensor(1 if board.turn == chess.WHITE else 0, dtype=torch.float32)
                         # side_multiplier = 1 if board.turn == chess.WHITE else -1
                         side_multiplier = 1
-                        input1 = calculate_nnue_input_layer(board)
+                        input1 = calculate_nnue_input_layer_cached(board.fen())
                         yield (
                             torch.tensor(input1, dtype=torch.float32),
                             torch.tensor(float(score) * side_multiplier, dtype=torch.float32),
@@ -267,7 +274,6 @@ def validate_net(net: NNUE):
 
 def evaluate_test_fen(model, test_fen: str):
     board = chess.Board(test_fen)
-    # print board
     print(board)
 
     # Превращаем доску в входные данные
@@ -289,7 +295,7 @@ def train():
     model = model.to(device)
 
     dataset = ChessDataset(TRAIN_DATASET_PATH)
-    dataloader = DataLoader(dataset, batch_size=512, num_workers=1, prefetch_factor=2)
+    dataloader = DataLoader(dataset, batch_size=128, num_workers=1, prefetch_factor=2)
 
     criterion = nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
@@ -297,7 +303,7 @@ def train():
     epoch = load_checkpoint(model, optimizer, scheduler) + 1
 
     # model.to("cpu")
-    # print(evaluate_test_fen(model, "6k1/5p2/3p2pp/2r5/1p5P/bQp3PB/P1R2PK1/3q4 b - - 1 40"))
+    # print(evaluate_test_fen(model, "r1bq1rk1/4bppp/p1np1n2/1p6/P1p1PB2/2PB1N2/2P1QPPP/R4RK1 w - - 0 13"))
 
     print(model)
     # validate_loss = validate_net(model)
@@ -312,7 +318,7 @@ def train():
         for batch_idx, (batch_inputs, batch_scores) in enumerate(dataloader):
             index += 1
             if index % 100 == 0:
-                print(f"Learning: {index}")
+                print(f"Learning: {index}", flush=True)
             count += len(batch_inputs)
             batch_inputs = batch_inputs.to(device, non_blocking=True)
             batch_scores = batch_scores.to(device, non_blocking=True)
@@ -329,10 +335,13 @@ def train():
         save_nnue_weights(model, epoch)
 
         validate_loss = validate_net(model)
-        print(f"Epoch [{epoch}], Train loss: {loss:.4f}, Validate loss: {validate_loss:.4f}", flush=True)
-        logging.info(f"Epoch [{epoch}], Train loss: {loss:.4f}, Validate loss: {validate_loss:.4f}")
         save_checkpoint(model, optimizer, scheduler, epoch)
         epoch += 1
+        print(f"Epoch [{epoch}], Train loss: {loss:.4f}, Validate loss: {validate_loss:.4f}", flush=True)
+        # logging.info(f"Epoch [{epoch}], Train loss: {loss:.4f}, Validate loss: {validate_loss:.4f}")
+
+        with open('log.log', 'a') as log:
+            log.write(f"Epoch [{epoch}], Train loss: {loss:.4f}, Validate loss: {validate_loss:.4f}\n")
 
         if loss < 0.05:
             break

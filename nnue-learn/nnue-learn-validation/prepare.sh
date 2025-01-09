@@ -2,7 +2,7 @@
 
 # Check if at least one argument is provided
 if [ $# -lt 1 ]; then
-    echo "Usage: $0 <file_name> [number_of_lines]"
+    echo "Usage: $0 <file_name> [number_of_lines_to_use]"
     exit 1
 fi
 
@@ -27,17 +27,17 @@ else
     TOTAL_LINES_TO_USE=$(wc -l < "$INPUT_FILE")
 fi
 
-# Generate output file names
-TRAIN_FILE="train_$(basename "$INPUT_FILE")"
-VALIDATE_FILE="validate_$(basename "$INPUT_FILE")"
-
 # Calculate lines for training (80%) and validation (20%)
 TRAIN_LINES=$((TOTAL_LINES_TO_USE * 80 / 100))
 VALIDATE_LINES=$((TOTAL_LINES_TO_USE - TRAIN_LINES))
 
-# Split the file
-head -n "$TOTAL_LINES_TO_USE" "$INPUT_FILE" | head -n "$TRAIN_LINES" > "$TRAIN_FILE"
-head -n "$TOTAL_LINES_TO_USE" "$INPUT_FILE" | tail -n "$VALIDATE_LINES" > "$VALIDATE_FILE"
+# Output file names
+TRAIN_FILE="train_$(basename "$INPUT_FILE")"
+VALIDATE_FILE="validate_$(basename "$INPUT_FILE")"
+
+# Split using sed
+sed -n "1,${TRAIN_LINES}p" "$INPUT_FILE" > "$TRAIN_FILE"
+sed -n "$((TRAIN_LINES + 1)),$((TRAIN_LINES + VALIDATE_LINES))p" "$INPUT_FILE" > "$VALIDATE_FILE"
 
 # Print summary
 echo "File split completed:"
