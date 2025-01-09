@@ -53,7 +53,6 @@ def print_bitboard(bitboard):
         print(line)
 
 
-@lru_cache(maxsize=1000000)
 def calculate_nnue_index(color: bool, piece: int, square: int):
     colors_mapper = {
         chess.WHITE: 0,
@@ -72,7 +71,6 @@ def calculate_nnue_index(color: bool, piece: int, square: int):
     return 64 * 6 * colors_mapper[color] + pieces_mapper[piece] * 64 + square
 
 
-@lru_cache(maxsize=1000000)
 def calculate_nnue_input_layer_cached(board_fen: str):
     return calculate_nnue_input_layer(chess.Board(board_fen))
 
@@ -84,13 +82,12 @@ def ctzll(x):
 nnue_input_layer = np.zeros(768, dtype=np.uint8)
 
 def calculate_nnue_input_layer(board: chess.Board):
-    nnue_input = np.zeros(768, dtype=np.uint8)
+    nnue_input = 768 * [0]
     occupied = board.occupied
     piece_map = board.piece_map()
 
     while occupied:
         square = ctzll(occupied)
-        #piece = board.piece_at(square)
         piece = piece_map[square]
         color = piece.color
         piece_type = piece.piece_type
@@ -138,7 +135,6 @@ def evaluate_positions(file_path: str, output_csv_path: str):
                     engine.close()
                     return
             except Exception as e:
-                # print(e)
                 engine.close()
                 engine = chess.engine.SimpleEngine.popen_uci("./zevra")
 
@@ -285,11 +281,10 @@ def load_checkpoint(
     scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
     return checkpoint['epoch']
 
-@profile
 def validate_net(net: NNUE):
     dataset = ChessDataset(VALIDATION_DATASET_PATH)
-    # dataloader = DataLoader(dataset, batch_size=512, num_workers=11, persistent_workers=True, pin_memory=True, prefetch_factor=2)
-    dataloader = DataLoader(dataset, batch_size=512, num_workers=0)
+    dataloader = DataLoader(dataset, batch_size=512, num_workers=11, persistent_workers=True, pin_memory=True, prefetch_factor=2)
+    # dataloader = DataLoader(dataset, batch_size=512, num_workers=0)
     batches_length = 0
     criterion = nn.MSELoss()
     running_loss = 0.0
@@ -323,7 +318,6 @@ def evaluate_test_fen(model, test_fen: str):
     return score
 
 
-@profile
 def train():
     model = NNUE()
     device = torch.device("mps")
@@ -338,8 +332,8 @@ def train():
 
 
     dataset = ChessDataset(TRAIN_DATASET_PATH)
-    # dataloader = DataLoader(dataset, batch_size=512, num_workers=11, persistent_workers=True, prefetch_factor=2)
-    dataloader = DataLoader(dataset, batch_size=512, num_workers=0)
+    dataloader = DataLoader(dataset, batch_size=512, num_workers=11, persistent_workers=True, prefetch_factor=2)
+    # dataloader = DataLoader(dataset, batch_size=512, num_workers=0)
 
     criterion = nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
