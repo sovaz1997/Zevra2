@@ -344,6 +344,9 @@ def train():
     print(model)
     # validate_loss = validate_net(model)
     # print(f"Initial validate loss: {validate_loss:.4f}", flush=True)
+    TRAIN_FILE = 'train.csv'
+    with open(TRAIN_FILE, 'a') as train:
+        train.write('Epoch,Train loss,Validate loss\n')
 
     while True:
         model.train()
@@ -374,10 +377,9 @@ def train():
         save_checkpoint(model, optimizer, scheduler, epoch)
         epoch += 1
         print(f"Epoch [{epoch}], Train loss: {loss:.4f}, Validate loss: {validate_loss:.4f}", flush=True)
-        # logging.info(f"Epoch [{epoch}], Train loss: {loss:.4f}, Validate loss: {validate_loss:.4f}")
 
-        with open('log.log', 'a') as log:
-            log.write(f"Epoch [{epoch}], Train loss: {loss:.4f}, Validate loss: {validate_loss:.4f}\n")
+        with open(TRAIN_FILE, 'a') as train:
+            train.write(f"{epoch},{loss:.4f},{validate_loss:.4f}\n")
 
         if loss < 0.05:
             break
