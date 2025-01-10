@@ -1,24 +1,26 @@
 from functools import lru_cache
 
 import chess
+import numpy as np
+
 
 @lru_cache
 def ctzll(x):
     return (x & -x).bit_length() - 1
 
 def unpack_bits(packed_data, total_bits):
-    unpacked = []
-    for byte in packed_data:
-        for i in range(7, -1, -1):
-            unpacked.append((byte >> i) & 1)
-    return unpacked[:total_bits]
+    if isinstance(packed_data, (bytes, bytearray)):
+        arr = np.frombuffer(packed_data, dtype=np.uint8)
+    else:
+        arr = np.array(packed_data, dtype=np.uint8)
+
+    unpacked = np.unpackbits(arr)
+
+    unpacked = unpacked[:total_bits]
+
+    return unpacked.tolist()
+
 
 def pack_bits(data):
-    packed = bytearray()
-
-    for i in range(0, len(data), 8):
-        byte = 0
-        for bit in data[i:i + 8]:
-            byte = (byte << 1) | bit
-        packed.append(byte)
-    return packed
+    packed_array = np.packbits(data)
+    return bytearray(packed_array)

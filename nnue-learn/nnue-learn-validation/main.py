@@ -181,7 +181,7 @@ class ChessDataset(IterableDataset):
 
             with open(self.bin_file_path, 'wb') as writer:
                 for idx, row in enumerate(reader):
-                    if idx % 10000 == 0:
+                    if idx % 100 == 0:
                         print(f"Processed positions: {idx}", flush=True)
                     fen, score = row
                     try:

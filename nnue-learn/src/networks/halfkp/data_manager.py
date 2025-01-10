@@ -1,6 +1,7 @@
 import struct
 
 import chess
+import numpy as np
 from torch import tensor, float32
 
 from src.networks.halfkp.constants import NETWORK_INPUT_SIZE
@@ -31,8 +32,8 @@ class HalfKPDataManager(TrainDataManager):
     def calculate_nnue_input_layer(self, fen: str):
         board = chess.Board(fen)
 
-        nnue_input_us = [0] * NETWORK_INPUT_SIZE
-        nnue_input_them = [0] * NETWORK_INPUT_SIZE
+        nnue_input_us = np.zeros(NETWORK_INPUT_SIZE, dtype=np.int8)
+        nnue_input_them = np.zeros(NETWORK_INPUT_SIZE, dtype=np.int8)
 
         white_king_square = board.king(chess.WHITE)
         black_king_square = board.king(chess.BLACK)
@@ -46,6 +47,7 @@ class HalfKPDataManager(TrainDataManager):
             piece_type = piece.piece_type
             nnue_input_us[calculate_nnue_index(color, piece_type, square, white_king_square)] = 1
             nnue_input_them[calculate_nnue_index(not color, piece_type, square ^ 56, black_king_square ^ 56)] = 1
+
             occupied &= occupied - 1
 
         return nnue_input_us, nnue_input_them

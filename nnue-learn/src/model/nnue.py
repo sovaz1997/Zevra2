@@ -14,6 +14,7 @@ def save_layer_weights(weights: nn.Linear, filename):
 
 
 class NNUE(nn.Module):
+
     def _save_weight(self, layer: nn.Linear, name: str, epoch: int, train_directory: str):
         save_layer_weights(layer, f"{train_directory}/{name}.{epoch}.weights.csv")
 
