@@ -23,13 +23,15 @@ int main(int argc, char** argv) {
 
 
     printEngineInfo();
-    setFen(board, startpos);
-
 
     if (NNUE_ENABLED) {
         loadNNUEWeights();
-        initNNUEPosition(nnue, board);
     }
+
+    setFen(board, startpos);
+
+
+
 
     char buff[65536];
 

@@ -54,11 +54,6 @@ void setFen(Board* board, char* fen) {
 
     if(board->color == BLACK)
         board->key ^= otherSideKey;
-
-
-    if (NNUE_ENABLED) {
-        initNNUEPosition(nnue, board);
-    }
 }
 
 void setMovesRange(Board* board, char* moves) {
@@ -78,7 +73,10 @@ void clearBoard(Board* board) {
     board->gameInfo = gameInfo;
     board->enpassantSquare = 0;
     board->eval = 0;
-    resetNNUE(nnue);
+
+    if (NNUE_ENABLED) {
+    	resetNNUE(nnue);
+    }
 }
 
 void printBoard(Board* board) {
@@ -143,8 +141,8 @@ void movePiece(Board* board, int sq1, int sq2) {
     int type = pieceType(board->squares[sq1]);
     int color = pieceColor(board->squares[sq1]);
 
-    setPiece(board, type, color, sq2);
     clearPiece(board, sq1);
+    setPiece(board, type, color, sq2);
 }
 
 void squareToString(int square, char* str) {
