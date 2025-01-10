@@ -17,6 +17,18 @@ def evaluate_position_simple(fen):
     nnue_input = tensor(nnue_input, dtype=float32)
     print(nnue(nnue_input).item())
 
+def evaluate_position_halfkp(fen):
+    nnue = HalfKPNetwork(128)
+    manager = HalfKPDataManager()
+    nnue.load_weights(1, "halfkp")
+    nnue.eval()
+    nnue_input1, nnue_input2 = manager.calculate_nnue_input_layer(fen)
+    nnue_input1 = tensor(nnue_input1, dtype=float32)
+    nnue_input2 = tensor(nnue_input2, dtype=float32)
+    nnue_input1 = nnue_input1.unsqueeze(0)
+    nnue_input2 = nnue_input2.unsqueeze(0)
+    print(nnue(nnue_input1, nnue_input2).item())
+
 def create_singlethreaded_data_loader(manager: TrainDataManager, path: str):
     dataset = ChessDataset(path, manager)
     return DataLoader(dataset, batch_size=512, num_workers=0)

@@ -12,9 +12,10 @@ def validate(model: nn.Module, validation_dataloader: DataLoader):
 
     for batch_idx, (batch_inputs, batch_scores) in enumerate(validation_dataloader):
         batches_length += 1
-        batch_inputs = batch_inputs.to("mps")
+        for i, batch_input in enumerate(batch_inputs):
+            batch_inputs[i] = batch_inputs[i].to("mps")
         batch_scores = batch_scores.to("mps")
-        outputs = model(batch_inputs)
+        outputs = model(*batch_inputs)
         loss = criterion(outputs.squeeze(), batch_scores)
         running_loss += loss.item()
 
@@ -106,8 +107,8 @@ def train(
         loss = (running_loss / index)
         scheduler.step(loss)
 
-        validate_loss = validate(model, validation_data_loader)
         save_checkpoint(model, optimizer, scheduler, epoch, train_directory)
+        validate_loss = validate(model, validation_data_loader)
         print(f"Epoch [{epoch}], Train loss: {loss:.4f}, Validate loss: {validate_loss:.4f}", flush=True)
 
         with open(TRAIN_FILE, 'a') as train:
