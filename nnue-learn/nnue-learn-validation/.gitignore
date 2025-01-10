@@ -1,2 +1,4 @@
 *dataset.csv
 *.log
+trains
+*dataset.csv.bin

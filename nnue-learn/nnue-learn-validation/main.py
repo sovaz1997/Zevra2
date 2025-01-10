@@ -16,7 +16,7 @@ import struct
 VALIDATION_DATASET_PATH = "validate_100millions_dataset.csv"
 TRAIN_DATASET_PATH = "train_100millions_dataset.csv"
 DATASET_POSITIONS_COUNT = 1000000000000
-HIDDEN_SIZE = 128
+HIDDEN_SIZE = 64
 INPUT_SIZE = 768
 
 
@@ -284,7 +284,6 @@ def load_checkpoint(
 def validate_net(net: NNUE):
     dataset = ChessDataset(VALIDATION_DATASET_PATH)
     dataloader = DataLoader(dataset, batch_size=512, num_workers=11, persistent_workers=True, pin_memory=True, prefetch_factor=2)
-    # dataloader = DataLoader(dataset, batch_size=512, num_workers=0)
     batches_length = 0
     criterion = nn.MSELoss()
     running_loss = 0.0
@@ -375,11 +374,12 @@ def train():
 
         validate_loss = validate_net(model)
         save_checkpoint(model, optimizer, scheduler, epoch)
-        epoch += 1
         print(f"Epoch [{epoch}], Train loss: {loss:.4f}, Validate loss: {validate_loss:.4f}", flush=True)
 
         with open(TRAIN_FILE, 'a') as train:
             train.write(f"{epoch},{loss:.4f},{validate_loss:.4f}\n")
+
+        epoch += 1
 
         if loss < 0.05:
             break
