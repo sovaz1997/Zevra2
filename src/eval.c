@@ -48,6 +48,7 @@ int MATE_LIMIT = 29000;
 
 int fullEval(Board *board) {
     if (NNUE_ENABLED) {
+        recalculateEval(nnue);
         int eval = nnue->eval;
 
         if(eval > MATE_LIMIT) {

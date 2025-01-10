@@ -4,7 +4,7 @@
 #include "board.h"
 
 #define INPUTS_COUNT 768
-#define INNER_LAYER_COUNT 128
+#define INNER_LAYER_COUNT 32
 
 
 struct NNUE {
@@ -26,7 +26,7 @@ void setNNUEInput(NNUE* nnue, int index);
 void resetNNUE(NNUE* nnue);
 void resetNNUEInput(NNUE* nnue, int index);
 void modifyNnue(NNUE* nnue, Board* board, int color, int piece);
-//void initNNUEWeights();
+void recalculateEval(NNUE* nnue);
 void initNNUEPosition(NNUE* nnue, Board* board);
 void loadNNUEWeights();
 void debug_nnue_calculation(struct NNUE *nnue);
