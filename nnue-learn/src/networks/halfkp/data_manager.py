@@ -52,22 +52,27 @@ class HalfKPDataManager(TrainDataManager):
 
         return nnue_input_us, nnue_input_them
 
+    def get_unit_size(self):
+        return NETWORK_INPUT_SIZE // 8
+
     def get_packed_size(self):
-        return (2 * NETWORK_INPUT_SIZE) // 8
+        return 2 * self.get_unit_size()
 
     def get_record_size(self):
         return self.get_packed_size() + 4
 
     def parse_record(self, record: bytes):
-        packed_size = self.get_packed_size()
         packed_input = record[:self.get_packed_size()]
-        eval_score = struct.unpack('f', record[2 * packed_size:])[0]
-        nnue_input1 = unpack_bits(packed_input[:packed_size], NETWORK_INPUT_SIZE)
-        nnue_input2 = unpack_bits(packed_input[packed_size:], NETWORK_INPUT_SIZE)
+        eval_score = struct.unpack('f', record[self.get_packed_size():])[0]
+        unit_size = self.get_unit_size()
+        nnue_input1 = unpack_bits(packed_input[:unit_size], NETWORK_INPUT_SIZE)
+        nnue_input2 = unpack_bits(packed_input[unit_size:], NETWORK_INPUT_SIZE)
 
         return (
-            tensor(nnue_input1, dtype=float32),
-            tensor(nnue_input2, dtype=float32),
+            [
+                tensor(nnue_input1, dtype=float32),
+                tensor(nnue_input2, dtype=float32)
+            ],
             tensor(eval_score, dtype=float32),
         )
 

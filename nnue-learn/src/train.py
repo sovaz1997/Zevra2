@@ -86,12 +86,18 @@ def train(
             index += 1
             if index % 100 == 0:
                 print(f"Learning: {index}", flush=True)
-            count += len(batch_inputs)
-            batch_inputs = batch_inputs.to(device, non_blocking=True)
+            count += len(batch_inputs[0])
+
+            for i, batch_input in enumerate(batch_inputs):
+                batch_inputs[i] = batch_inputs[i].to(device, non_blocking=True)
+
             batch_scores = batch_scores.to(device, non_blocking=True)
 
+            # batch_inputs = batch_inputs.to(device, non_blocking=True)
+            # batch_scores = batch_scores.to(device, non_blocking=True)
+
             optimizer.zero_grad()
-            outputs = model(batch_inputs)
+            outputs = model(*batch_inputs)
             loss = criterion(outputs.squeeze(), batch_scores)
             loss.backward()
             optimizer.step()
