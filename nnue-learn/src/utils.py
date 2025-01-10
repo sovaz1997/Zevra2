@@ -17,8 +17,9 @@ def unpack_bits(packed_data, total_bits):
     unpacked = np.unpackbits(arr)
 
     unpacked = unpacked[:total_bits]
+    return unpacked
 
-    return unpacked.tolist()
+    # return unpacked.tolist()
 
 
 def pack_bits(data):
