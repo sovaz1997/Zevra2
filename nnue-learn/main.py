@@ -337,33 +337,37 @@ import os
 
 from torch.utils.data import DataLoader
 from src.model.chess_dataset import ChessDataset
-from src.model.managers.simple_network_data_manager import SimpleNetworkDataManager
-from src.model.networks.simple_network import SimpleNetwork
 from src.model.train_data_manager import TrainDataManager
+from src.networks.simple.data_manager import SimpleNetworkDataManager
+from src.networks.simple.network import SimpleNetwork
 from src.train import train
 
-main_dir = os.path.dirname(os.path.abspath(__file__))
-
-TRAIN_DATASET_PATH = os.path.join(main_dir, "train_100millions_dataset.csv")
-VALIDATION_DATASET_PATH = os.path.join(main_dir, "validate_100millions_dataset.csv")
 
 def create_data_loader(manager: TrainDataManager, path: str):
     dataset = ChessDataset(path, manager)
     return DataLoader(dataset, batch_size=512, num_workers=11, persistent_workers=True, prefetch_factor=2)
 
 
-def run_train_nnue(
+def run_simple_train_nnue(
         hidden_size: int,
         train_dataset_path: str,
         validation_dataset_path: str,
+        train_directory
 ):
     manager = SimpleNetworkDataManager()
 
     train(
         SimpleNetwork(hidden_size),
         create_data_loader(manager, train_dataset_path),
-        create_data_loader(manager, validation_dataset_path)
+        create_data_loader(manager, validation_dataset_path),
+        train_directory
     )
 
+
 if __name__ == '__main__':
-    run_train_nnue(128, TRAIN_DATASET_PATH, VALIDATION_DATASET_PATH)
+    run_simple_train_nnue(
+        128,
+        "train.csv",
+        "validate.csv",
+        "simple"
+    )

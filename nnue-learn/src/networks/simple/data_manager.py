@@ -3,9 +3,9 @@ import struct
 import chess
 from torch import tensor, float32
 
-from src.constants import SIMPLE_NETWORK_INPUT_SIZE
+from src.networks.simple.constants import SIMPLE_NETWORK_INPUT_SIZE
 from src.model.train_data_manager import TrainDataManager
-from src.utils import ctzll, unpack_bits
+from src.utils import ctzll, unpack_bits, pack_bits
 
 
 def calculate_nnue_index(color: bool, piece: int, square: int):
@@ -58,3 +58,12 @@ class SimpleNetworkDataManager(TrainDataManager):
             tensor(nnue_input, dtype=float32),
             tensor(eval_score, dtype=float32),
         )
+
+    def get_bin_folder(self):
+        return "simple"
+
+    def save_bin_data(self, writer, fen: str, eval_score: float):
+        nnue_input = self.calculate_nnue_input_layer(fen)
+        packed_input = pack_bits(nnue_input)
+        writer.write(packed_input)
+        writer.write(struct.pack('f', eval_score))

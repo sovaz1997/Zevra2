@@ -14,13 +14,13 @@ def save_layer_weights(weights: nn.Linear, filename):
 
 
 class NNUE(nn.Module):
-    def _save_weight(self, layer: nn.Linear, name: str, epoch: int):
-        save_layer_weights(layer, f"{name}.{epoch}.weights.csv")
+    def _save_weight(self, layer: nn.Linear, name: str, epoch: int, train_directory: str):
+        save_layer_weights(layer, f"{train_directory}/{name}.{epoch}.weights.csv")
 
-    def save_weights(self, epoch: int):
+    def save_weights(self, epoch: int, train_directory: str):
         model = self.state_dict()
-        torch.save(model, f"model.{epoch}.pth")
+        torch.save(model, f"{train_directory}/model.{epoch}.pth")
 
-    def load_weights(self, epoch: int):
-        model = torch.load(f"model.{epoch}.pth", weights_only=True)
+    def load_weights(self, epoch: int, train_directory: str):
+        model = torch.load(f"{train_directory}/model.{epoch}.pth", weights_only=True)
         self.load_state_dict(model)

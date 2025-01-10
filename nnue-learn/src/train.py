@@ -5,33 +5,6 @@ from torch.utils.data import DataLoader
 
 from src.model.nnue import NNUE
 
-
-def load_checkpoint(
-        model,
-        optimizer,
-        scheduler,
-        filename="checkpoint.pth"):
-    if not os.path.exists(filename):
-        return 0
-    checkpoint = torch.load(filename, weights_only=True)
-    model.load_state_dict(checkpoint['model_state_dict'])
-    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-    scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
-    return checkpoint['epoch']
-
-def save_layer_weights(weights: nn.Linear, filename):
-    weight_matrix = weights.weight.cpu().data.numpy()  # shape [out_features, in_features]
-    flat_weights = weight_matrix.flatten()  # shape [out_features * in_features]
-
-    with open(filename, 'w') as file:
-        file.write(','.join(str(x) for x in flat_weights))
-        file.write('\n')
-
-
-def save_nnue_weights(net: NNUE):
-    save_layer_weights(net.fc1, "fc1.weights.csv")
-    save_layer_weights(net.fc2, "fc2.weights.csv")
-
 def validate(model: nn.Module, validation_dataloader: DataLoader):
     batches_length = 0
     criterion = nn.MSELoss()
@@ -52,14 +25,15 @@ def save_checkpoint(
         optimizer,
         scheduler,
         epoch,
-        filename="checkpoint.pth"):
+        train_directory,
+):
     checkpoint = {
         'optimizer_state_dict': optimizer.state_dict(),
         'scheduler_state_dict': scheduler.state_dict(),
         'epoch': epoch
     }
-    torch.save(checkpoint, filename)
-    model.save_weights(epoch)
+    torch.save(checkpoint, train_directory + "/checkpoint.pth")
+    model.save_weights(epoch, train_directory)
     print(f"Checkpoint saved at epoch {epoch}")
 
 
@@ -67,14 +41,15 @@ def load_checkpoint(
         model,
         optimizer,
         scheduler,
-        filename="checkpoint.pth"):
+        train_directory,):
+    filename = train_directory + "/checkpoint.pth"
     if not os.path.exists(filename):
         return 0
     checkpoint = torch.load(filename, weights_only=True)
     epoch = checkpoint['epoch']
     optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
     scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
-    model.load_weights(epoch)
+    model.load_weights(epoch, train_directory)
 
     return epoch
 
@@ -82,18 +57,22 @@ def load_checkpoint(
 def train(
         model: NNUE,
         train_data_loader: DataLoader,
-        validation_data_loader: DataLoader
+        validation_data_loader: DataLoader,
+        train_directory: str
 ):
+    if not os.path.exists(train_directory):
+        os.makedirs(train_directory)
+
     device = torch.device("mps")
     model = model.to(device)
 
     criterion = nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', patience=2, factor=0.5)
-    epoch = load_checkpoint(model, optimizer, scheduler) + 1
+    epoch = load_checkpoint(model, optimizer, scheduler, train_directory) + 1
 
 
-    TRAIN_FILE = 'train.csv'
+    TRAIN_FILE = f'{train_directory}/train.csv'
     with open(TRAIN_FILE, 'a') as train:
         train.write('Epoch,Train loss,Validate loss\n')
 
@@ -122,7 +101,7 @@ def train(
         scheduler.step(loss)
 
         validate_loss = validate(model, validation_data_loader)
-        save_checkpoint(model, optimizer, scheduler, epoch)
+        save_checkpoint(model, optimizer, scheduler, epoch, train_directory)
         print(f"Epoch [{epoch}], Train loss: {loss:.4f}, Validate loss: {validate_loss:.4f}", flush=True)
 
         with open(TRAIN_FILE, 'a') as train:

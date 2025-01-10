@@ -13,8 +13,8 @@ import torch.nn as nn
 import struct
 
 
-VALIDATION_DATASET_PATH = "validate_100millions_dataset.csv"
-TRAIN_DATASET_PATH = "train_100millions_dataset.csv"
+VALIDATION_DATASET_PATH = "validate.csv"
+TRAIN_DATASET_PATH = "train.csv"
 DATASET_POSITIONS_COUNT = 1000000000000
 HIDDEN_SIZE = 64
 INPUT_SIZE = 768
@@ -168,9 +168,9 @@ class ChessDataset(IterableDataset):
         self.packed_size = INPUT_SIZE // 8
         self.record_size = self.packed_size + 4
         self.bin_file_path = file_path + '.bin'
-        # flush console out
 
         if os.path.exists(self.bin_file_path):
+            print(self.bin_file_path)
             print("Dataset already prepared")
             self.dataset_positions_count = os.path.getsize(self.bin_file_path) // self.record_size
             return
