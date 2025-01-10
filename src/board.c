@@ -143,8 +143,8 @@ void movePiece(Board* board, int sq1, int sq2) {
     int type = pieceType(board->squares[sq1]);
     int color = pieceColor(board->squares[sq1]);
 
-    setPiece(board, type, color, sq2);
     clearPiece(board, sq1);
+    setPiece(board, type, color, sq2);
 }
 
 void squareToString(int square, char* str) {

@@ -21,15 +21,14 @@ int main(int argc, char** argv) {
 //        }
 //    }
 
+    if (NNUE_ENABLED) {
+        loadNNUEWeights();
+        resetNNUE(nnue);
+    }
 
     printEngineInfo();
     setFen(board, startpos);
 
-
-    if (NNUE_ENABLED) {
-        loadNNUEWeights();
-        initNNUEPosition(nnue, board);
-    }
 
     char buff[65536];
 
