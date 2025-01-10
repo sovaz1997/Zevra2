@@ -30,11 +30,10 @@ class SimpleNetworkDataManager(TrainDataManager):
         board = chess.Board(fen)
         nnue_input = SIMPLE_NETWORK_INPUT_SIZE * [0]
         occupied = board.occupied
-        piece_map = board.piece_map()
 
         while occupied:
             square = ctzll(occupied)
-            piece = piece_map[square]
+            piece = board.piece_at(square)
             color = piece.color
             piece_type = piece.piece_type
             nnue_input[calculate_nnue_index(color, piece_type, square)] = 1

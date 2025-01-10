@@ -33,7 +33,7 @@ class ChessDataset(IterableDataset):
                         self.data_manager.save_bin_data(writer, fen, float(score))
                         self.dataset_positions_count += 1
                     except Exception as e:
-                        print(e)
+                        print(e.with_traceback())
                         continue
         print("Dataset prepared")
 
