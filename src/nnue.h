@@ -4,7 +4,7 @@
 #include "board.h"
 
 #define INPUTS_COUNT 768
-#define INNER_LAYER_COUNT 32
+#define INNER_LAYER_COUNT 128
 
 
 struct NNUE {
