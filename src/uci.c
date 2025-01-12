@@ -210,7 +210,7 @@ void readyok() {
 }
 
 void printScore(int score) {
-    if(abs(score) < MATE_SCORE - 100) {
+    if(abs(score) < MATE_SCORE - 256) {
         printf("score cp %d", score);
     } else {
         if(score < 0)
