@@ -190,8 +190,8 @@ TimeManager createFixNodesTm(int nodes) {
 int MAX_FEN_LENGTH = 1000;
 
 void dataset_gen(Board* board, int from, int to, char* filename) {
-    TimeManager tm = createFixNodesTm(10000);
-    FILE *inputFile = fopen("ccrl_positions.txt", "r");
+    TimeManager tm = createFixNodesTm(20000);
+    FILE *inputFile = fopen("training_data.txt", "r");
     FILE *outputFile = fopen(filename, "w");
 
     if (inputFile == NULL || outputFile == NULL) {
