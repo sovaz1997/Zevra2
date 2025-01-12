@@ -5,19 +5,25 @@
 
 #define INPUTS_COUNT 768
 #define INNER_LAYER_COUNT 128
+#define SECOND_INNER_LAYER_COUNT 16
 
 
 struct NNUE {
     S16 inputs[INPUTS_COUNT];
     double weights_1[INNER_LAYER_COUNT][INPUTS_COUNT];
+    double weights_2[SECOND_INNER_LAYER_COUNT][INNER_LAYER_COUNT];
+    double weights_3[SECOND_INNER_LAYER_COUNT];
     S32 weights_1_quantized[INPUTS_COUNT][INNER_LAYER_COUNT];
-    double weights_2[INNER_LAYER_COUNT];
-    S32 weights_2_quantized[INNER_LAYER_COUNT];
+    S32 weights_2_quantized[INNER_LAYER_COUNT][SECOND_INNER_LAYER_COUNT];
+    S32 weights_3_quantized[SECOND_INNER_LAYER_COUNT];
     S32 accumulators[INNER_LAYER_COUNT];
+    S32 accumulators_2[SECOND_INNER_LAYER_COUNT];
     double biases_1[INNER_LAYER_COUNT];
-    double biases_2;
+    double biases_2[SECOND_INNER_LAYER_COUNT];
+    double biases_3;
     S32 biases_1_quantized[INNER_LAYER_COUNT];
-    S32 biases_2_quantized;
+    S32 biases_2_quantized[SECOND_INNER_LAYER_COUNT];
+    S32 biases_3_quantized;
     double eval;
 };
 
@@ -35,5 +41,13 @@ void debug_nnue_calculation(struct NNUE *nnue);
 TimeManager createFixNodesTm(int nodes);
 void dataset_gen(Board* board, int from, int to, char* filename);
 void loadWeightsLayer(char* filename, double* weights, int rows, int cols);
+void multiply(
+    S32* vec1,
+    S32* accumulators,
+    size_t size_vec1,
+    size_t size_vec2,
+    S32* weights,
+    S32* biases
+);
 
 #endif

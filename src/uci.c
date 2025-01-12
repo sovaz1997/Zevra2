@@ -1,4 +1,5 @@
 #include "uci.h"
+#include "nnue.h"
 
 char startpos[] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 Option option;
@@ -9,6 +10,26 @@ int NNUE_ENABLED = 1;
 int SHOULD_HIDE_SEARCH_INFO_LOGS = 0;
 
 int main(int argc, char** argv) {
+    S32 inputs[3] = {1, 2, 3};
+    S32 weights[3][2] = {{1, 2}, {3, 4}, {5, 6}};
+    S32 biases[2] = {1, 2};
+    S32 accumulators[2] = {0, 0};
+
+
+    multiply(
+        inputs,
+        accumulators,
+        3,
+        2,
+        weights[0],
+        biases
+    );
+    printf("!\n");
+
+    printf("accumulators[0] = %d\n", accumulators[0]);
+    printf("accumulators[1] = %d\n", accumulators[1]);
+
+
     nnue = (NNUE*) malloc(sizeof(NNUE));
     initOption();
     initEngine();

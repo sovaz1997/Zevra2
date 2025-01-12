@@ -21,38 +21,113 @@ double ReLU(double x) {
     return x > 0 ? x : 0;
 }
 
-void recalculateEval(NNUE* nnue) {
-    int32x4_t sum_vec_low = vdupq_n_s32(0);
-    int32x4_t sum_vec_high = vdupq_n_s32(0);
+void multiply(
+    S32* vec1,
+    S32* accumulators,
+    size_t size_vec1,
+    size_t size_vec2,
+    S32* weights,
+    S32* biases
+) {
+     size_t j;
 
-    for (int i = 0; i < INNER_LAYER_COUNT; i += 8) {
-        int32x4_t acc_vec_low = vld1q_s32(&nnue->accumulators[i]);
-        int32x4_t acc_vec_high = vld1q_s32(&nnue->accumulators[i + 4]);
+    for (j = 0; j + 3 < size_vec2; j += 4) {
+        int32x4_t sum_vec = vdupq_n_s32(0);
+        size_t i = 0;
 
-        int32x4_t w2_vec_low = vld1q_s32(&nnue->weights_2_quantized[i]);
-        int32x4_t w2_vec_high = vld1q_s32(&nnue->weights_2_quantized[i + 4]);
-        int32x4_t biases_1_vec_low = vld1q_s32(&nnue->biases_1_quantized[i]);
-        int32x4_t biases_1_vec_high = vld1q_s32(&nnue->biases_1_quantized[i + 4]);
+        for (; i + 3 < size_vec1; i += 4) {
+            int32x4_t vdup0 = vdupq_n_s32(vec1[i + 0]);
+            int32x4_t w0 = vld1q_s32(&weights[(i + 0) * size_vec2 + j]);
+            sum_vec = vmlaq_s32(sum_vec, vdup0, w0);
 
-        acc_vec_low = vaddq_s32(acc_vec_low, biases_1_vec_low);
-        acc_vec_low = vmaxq_s32(acc_vec_low, vdupq_n_s32(0));
-        acc_vec_low = vminq_s32(acc_vec_low, vdupq_n_s32(QA));
-        acc_vec_low = vmulq_s32(acc_vec_low, acc_vec_low);
-        acc_vec_high = vaddq_s32(acc_vec_high, biases_1_vec_high);
-        acc_vec_high = vmaxq_s32(acc_vec_high, vdupq_n_s32(0));
-        acc_vec_high = vminq_s32(acc_vec_high, vdupq_n_s32(QA));
-        acc_vec_high = vmulq_s32(acc_vec_high, acc_vec_high);
+            int32x4_t vdup1 = vdupq_n_s32(vec1[i + 1]);
+            int32x4_t w1 = vld1q_s32(&weights[(i + 1) * size_vec2 + j]);
+            sum_vec = vmlaq_s32(sum_vec, vdup1, w1);
 
-        sum_vec_low = vmlaq_s32(sum_vec_low, acc_vec_low, w2_vec_low);
-        sum_vec_high = vmlaq_s32(sum_vec_high, acc_vec_high, w2_vec_high);
+            int32x4_t vdup2 = vdupq_n_s32(vec1[i + 2]);
+            int32x4_t w2 = vld1q_s32(&weights[(i + 2) * size_vec2 + j]);
+            sum_vec = vmlaq_s32(sum_vec, vdup2, w2);
+
+            int32x4_t vdup3 = vdupq_n_s32(vec1[i + 3]);
+            int32x4_t w3 = vld1q_s32(&weights[(i + 3) * size_vec2 + j]);
+            sum_vec = vmlaq_s32(sum_vec, vdup3, w3);
+        }
+
+        for (; i < size_vec1; i++) {
+            int32x4_t vdup = vdupq_n_s32(vec1[i]);
+            int32x4_t w_vec = vld1q_s32(&weights[i * size_vec2 + j]);
+            sum_vec = vmlaq_s32(sum_vec, vdup, w_vec);
+        }
+
+        int32x4_t bias_vec = vld1q_s32(&biases[j]);
+        sum_vec = vaddq_s32(sum_vec, bias_vec);
+
+        vst1q_s32(&accumulators[j], sum_vec);
     }
 
-    nnue->eval = sum_vec_low[0] + sum_vec_low[1] + sum_vec_low[2] + sum_vec_low[3] +
-                     sum_vec_high[0] + sum_vec_high[1] + sum_vec_high[2] + sum_vec_high[3];
-    nnue->eval += nnue->biases_2_quantized;
+    for (; j < size_vec2; j++) {
+        S32 sum = 0;
+        for (size_t i = 0; i < size_vec1; i++) {
+            sum += vec1[i] * weights[i * size_vec2 + j];
+        }
+        accumulators[j] = sum + biases[j];
+    }
+}
+
+void recalculateEval(NNUE* nnue) {
+    static S32 layer1_out[INNER_LAYER_COUNT];
+
+    for (int i = 0; i < INNER_LAYER_COUNT; i += 8) {
+        int32x4_t acc_low  = vld1q_s32(&nnue->accumulators[i]);
+        int32x4_t acc_high = vld1q_s32(&nnue->accumulators[i + 4]);
+        int32x4_t bias_low  = vld1q_s32(&nnue->biases_1_quantized[i]);
+        int32x4_t bias_high = vld1q_s32(&nnue->biases_1_quantized[i + 4]);
+
+        int32x4_t sum_low  = vaddq_s32(acc_low, bias_low);
+        int32x4_t sum_high = vaddq_s32(acc_high, bias_high);
+
+        sum_low  = vmaxq_s32(sum_low,  vdupq_n_s32(0));
+        sum_low  = vminq_s32(sum_low,  vdupq_n_s32(QA));
+        sum_high = vmaxq_s32(sum_high, vdupq_n_s32(0));
+        sum_high = vminq_s32(sum_high, vdupq_n_s32(QA));
+
+        vst1q_s32(&layer1_out[i],     sum_low);
+        vst1q_s32(&layer1_out[i + 4], sum_high);
+    }
+
+    static S32 layer2_out[SECOND_INNER_LAYER_COUNT];
+
+    multiply(
+        layer1_out,
+        layer2_out,
+        INNER_LAYER_COUNT,
+        SECOND_INNER_LAYER_COUNT,
+        nnue->weights_2_quantized[0],
+        nnue->biases_2_quantized
+    );
+
+    // ReLU
+    for (int i = 0; i < SECOND_INNER_LAYER_COUNT; i++) {
+        if (layer2_out[i] < 0)
+            layer2_out[i] = 0;
+
+    }
+
+    S32 final_out[1];
+    multiply(
+        layer2_out,
+        final_out,
+        SECOND_INNER_LAYER_COUNT,
+        1,
+        nnue->weights_3_quantized,
+        &nnue->biases_3_quantized
+    );
+
+    nnue->eval = final_out[0];
+
+
     nnue->eval /= QA;
     nnue->eval *= SCALE;
-
     nnue->eval /= (QA * QB);
 }
 
@@ -135,9 +210,11 @@ void loadWeightsLayer(char* filename, double* weights, int rows, int cols) {
 
 void loadNNUEWeights() {
     loadWeightsLayer("./fc1.weights.csv", nnue->weights_1[0], INNER_LAYER_COUNT, INPUTS_COUNT);
-    loadWeightsLayer("./fc2.weights.csv", nnue->weights_2, INNER_LAYER_COUNT, 1);
+    loadWeightsLayer("./fc2.weights.csv", nnue->weights_2[0], SECOND_INNER_LAYER_COUNT, INNER_LAYER_COUNT);
+    loadWeightsLayer("./fc3.weights.csv", nnue->weights_3, SECOND_INNER_LAYER_COUNT, 1);
     loadWeightsLayer("./fc1.biases.csv", nnue->biases_1, INNER_LAYER_COUNT, 1);
-    loadWeightsLayer("./fc2.biases.csv", &nnue->biases_2, 1, 1);
+    loadWeightsLayer("./fc2.biases.csv", nnue->biases_2, SECOND_INNER_LAYER_COUNT, 1);
+    loadWeightsLayer("./fc3.biases.csv", &nnue->biases_3, 1, 1);
 
     for (int i = 0; i < INNER_LAYER_COUNT; i++) {
         for (int j = 0; j < INPUTS_COUNT; j++) {
@@ -145,15 +222,25 @@ void loadNNUEWeights() {
         }
     }
 
-    for (int i = 0; i < INNER_LAYER_COUNT; i++) {
-        nnue->weights_2_quantized[i] = round(nnue->weights_2[i] * QB);
+    for(int i = 0; i < SECOND_INNER_LAYER_COUNT; i++) {
+        for(int j = 0; j < INNER_LAYER_COUNT; j++) {
+            nnue->weights_2_quantized[j][i] = round(nnue->weights_2[i][j] * QA);
+        }
+    }
+
+    for (int i = 0; i < SECOND_INNER_LAYER_COUNT; i++) {
+        nnue->weights_3_quantized[i] = round(nnue->weights_3[i] * QB);
     }
 
     for (int i = 0; i < INNER_LAYER_COUNT; i++) {
         nnue->biases_1_quantized[i] = round(nnue->biases_1[i] * QA);
     }
 
-    nnue->biases_2_quantized = round(nnue->biases_2 * QB);
+    for(int i = 0; i < SECOND_INNER_LAYER_COUNT; i++) {
+      nnue->biases_2_quantized[i] = round(nnue->biases_2[i] * QA);
+    }
+
+    nnue->biases_3_quantized = round(nnue->biases_3 * QB);
 
     resetNNUE(nnue);
 }
