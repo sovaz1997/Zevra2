@@ -25,12 +25,11 @@ int getInputIndexOf(int color, int piece, int sq);
 void setNNUEInput(NNUE* nnue, int index);
 void resetNNUE(NNUE* nnue);
 void resetNNUEInput(NNUE* nnue, int index);
-void modifyNnue(NNUE* nnue, Board* board, int color, int piece);
 void recalculateEval(NNUE* nnue);
-void initNNUEPosition(NNUE* nnue, Board* board);
 void loadNNUEWeights();
 void debug_nnue_calculation(struct NNUE *nnue);
 TimeManager createFixNodesTm(int nodes);
 void dataset_gen(Board* board, int from, int to, char* filename);
+void loadWeightsLayer(char* filename, double* weights, int rows, int cols);
 
 #endif

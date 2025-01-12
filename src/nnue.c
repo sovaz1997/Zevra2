@@ -107,28 +107,16 @@ void resetNNUE(NNUE* nnue) {
     nnue->eval = 0;
 }
 
-
-void modifyNnue(NNUE* nnue, Board* board, int color, int piece) {
-    for(int sq = 0; sq < 64; ++sq) {
-        int weight = isExists(board, color, piece, sq);
-        if (weight) {
-            setNNUEInput(nnue, getInputIndexOf(color, piece, sq));
-        } else {
-            resetNNUEInput(nnue, getInputIndexOf(color, piece, sq));
-        }
-    }
-}
-
-void loadNNUEWeights() {
-    FILE* file = fopen("./fc1.weights.csv", "r");
+void loadWeightsLayer(char* filename, double* weights, int rows, int cols) {
+    FILE* file = fopen(filename, "r");
     if (file == NULL) {
         perror("Unable to open file");
         exit(1);
     }
 
-    for (int i = 0; i < INNER_LAYER_COUNT; i++) {
-        for (int j = 0; j < INPUTS_COUNT; j++) {
-            if (fscanf(file, "%lf,", &nnue->weights_1[i][j]) != 1) {
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            if (fscanf(file, "%lf,", &weights[i * cols + j]) != 1) {
                 perror("Error reading file");
                 fclose(file);
                 exit(1);
@@ -136,26 +124,17 @@ void loadNNUEWeights() {
         }
     }
 
+    fclose(file);
+}
+
+
+void loadNNUEWeights() {
+    loadWeightsLayer("./fc1.weights.csv", nnue->weights_1[0], INNER_LAYER_COUNT, INPUTS_COUNT);
+    loadWeightsLayer("./fc2.weights.csv", nnue->weights_2, INNER_LAYER_COUNT, 1);
+
     for (int i = 0; i < INNER_LAYER_COUNT; i++) {
         for (int j = 0; j < INPUTS_COUNT; j++) {
             nnue->weights_1_quantized[j][i] = round(nnue->weights_1[i][j] * QA);
-        }
-    }
-
-    fclose(file);
-
-    file = fopen("./fc2.weights.csv", "r");
-
-    if (file == NULL) {
-        perror("Unable to open file");
-        exit(1);
-    }
-
-    for (int i = 0; i < INNER_LAYER_COUNT; i++) {
-        if (fscanf(file, "%lf,", &nnue->weights_2[i]) != 1) {
-            perror("Error reading file");
-            fclose(file);
-            exit(1);
         }
     }
 
@@ -163,26 +142,7 @@ void loadNNUEWeights() {
         nnue->weights_2_quantized[i] = round(nnue->weights_2[i] * QB);
     }
 
-    fclose(file);
-
     resetNNUE(nnue);
-}
-
-void initNNUEPosition(NNUE* nnue, Board* board) {
-    resetNNUE(nnue);
-
-    modifyNnue(nnue, board, WHITE, PAWN);
-    modifyNnue(nnue, board, BLACK, PAWN);
-    modifyNnue(nnue, board, WHITE, KNIGHT);
-    modifyNnue(nnue, board, BLACK, KNIGHT);
-    modifyNnue(nnue, board, WHITE, BISHOP);
-    modifyNnue(nnue, board, BLACK, BISHOP);
-    modifyNnue(nnue, board, WHITE, ROOK);
-    modifyNnue(nnue, board, BLACK, ROOK);
-    modifyNnue(nnue, board, WHITE, QUEEN);
-    modifyNnue(nnue, board, BLACK, QUEEN);
-    modifyNnue(nnue, board, WHITE, KING);
-    modifyNnue(nnue, board, BLACK, KING);
 }
 
 TimeManager createFixNodesTm(int nodes) {
