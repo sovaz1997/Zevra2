@@ -31,10 +31,14 @@ void recalculateEval(NNUE* nnue) {
 
         int32x4_t w2_vec_low = vld1q_s32(&nnue->weights_2_quantized[i]);
         int32x4_t w2_vec_high = vld1q_s32(&nnue->weights_2_quantized[i + 4]);
+        int32x4_t biases_1_vec_low = vld1q_s32(&nnue->biases_1_quantized[i]);
+        int32x4_t biases_1_vec_high = vld1q_s32(&nnue->biases_1_quantized[i + 4]);
 
+        acc_vec_low = vaddq_s32(acc_vec_low, biases_1_vec_low);
         acc_vec_low = vmaxq_s32(acc_vec_low, vdupq_n_s32(0));
         acc_vec_low = vminq_s32(acc_vec_low, vdupq_n_s32(QA));
         acc_vec_low = vmulq_s32(acc_vec_low, acc_vec_low);
+        acc_vec_high = vaddq_s32(acc_vec_high, biases_1_vec_high);
         acc_vec_high = vmaxq_s32(acc_vec_high, vdupq_n_s32(0));
         acc_vec_high = vminq_s32(acc_vec_high, vdupq_n_s32(QA));
         acc_vec_high = vmulq_s32(acc_vec_high, acc_vec_high);
@@ -45,6 +49,7 @@ void recalculateEval(NNUE* nnue) {
 
     nnue->eval = sum_vec_low[0] + sum_vec_low[1] + sum_vec_low[2] + sum_vec_low[3] +
                      sum_vec_high[0] + sum_vec_high[1] + sum_vec_high[2] + sum_vec_high[3];
+    nnue->eval += nnue->biases_2_quantized;
     nnue->eval /= QA;
     nnue->eval *= SCALE;
 
@@ -131,6 +136,8 @@ void loadWeightsLayer(char* filename, double* weights, int rows, int cols) {
 void loadNNUEWeights() {
     loadWeightsLayer("./fc1.weights.csv", nnue->weights_1[0], INNER_LAYER_COUNT, INPUTS_COUNT);
     loadWeightsLayer("./fc2.weights.csv", nnue->weights_2, INNER_LAYER_COUNT, 1);
+    loadWeightsLayer("./fc1.biases.csv", nnue->biases_1, INNER_LAYER_COUNT, 1);
+    loadWeightsLayer("./fc2.biases.csv", &nnue->biases_2, 1, 1);
 
     for (int i = 0; i < INNER_LAYER_COUNT; i++) {
         for (int j = 0; j < INPUTS_COUNT; j++) {
@@ -141,6 +148,12 @@ void loadNNUEWeights() {
     for (int i = 0; i < INNER_LAYER_COUNT; i++) {
         nnue->weights_2_quantized[i] = round(nnue->weights_2[i] * QB);
     }
+
+    for (int i = 0; i < INNER_LAYER_COUNT; i++) {
+        nnue->biases_1_quantized[i] = round(nnue->biases_1[i] * QA);
+    }
+
+    nnue->biases_2_quantized = round(nnue->biases_2 * QB);
 
     resetNNUE(nnue);
 }

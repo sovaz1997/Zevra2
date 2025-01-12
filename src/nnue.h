@@ -14,6 +14,10 @@ struct NNUE {
     double weights_2[INNER_LAYER_COUNT];
     S32 weights_2_quantized[INNER_LAYER_COUNT];
     S32 accumulators[INNER_LAYER_COUNT];
+    double biases_1[INNER_LAYER_COUNT];
+    double biases_2;
+    S32 biases_1_quantized[INNER_LAYER_COUNT];
+    S32 biases_2_quantized;
     double eval;
 };
 
