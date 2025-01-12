@@ -7,6 +7,7 @@
 
 int QA = 255;
 int QB = 64;
+int SCALE = 400;
 
 int isExists(Board* board, int color, int piece, int sq) {
     return !!(board->pieces[piece] & board->colours[color] & bitboardCell(sq));
@@ -33,16 +34,21 @@ void recalculateEval(NNUE* nnue) {
 
         acc_vec_low = vmaxq_s32(acc_vec_low, vdupq_n_s32(0));
         acc_vec_low = vminq_s32(acc_vec_low, vdupq_n_s32(QA));
+        acc_vec_low = vmulq_s32(acc_vec_low, acc_vec_low);
         acc_vec_high = vmaxq_s32(acc_vec_high, vdupq_n_s32(0));
         acc_vec_high = vminq_s32(acc_vec_high, vdupq_n_s32(QA));
+        acc_vec_high = vmulq_s32(acc_vec_high, acc_vec_high);
 
         sum_vec_low = vmlaq_s32(sum_vec_low, acc_vec_low, w2_vec_low);
         sum_vec_high = vmlaq_s32(sum_vec_high, acc_vec_high, w2_vec_high);
     }
 
-    int32_t result = sum_vec_low[0] + sum_vec_low[1] + sum_vec_low[2] + sum_vec_low[3] +
+    nnue->eval = sum_vec_low[0] + sum_vec_low[1] + sum_vec_low[2] + sum_vec_low[3] +
                      sum_vec_high[0] + sum_vec_high[1] + sum_vec_high[2] + sum_vec_high[3];
-    nnue->eval = result / (QA * QB);
+    nnue->eval /= QA;
+    nnue->eval *= SCALE;
+
+    nnue->eval /= (QA * QB);
 }
 
 void setNNUEInput(NNUE* nnue, int index) {
