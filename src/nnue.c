@@ -88,11 +88,6 @@ void recalculateEval(NNUE* nnue) {
          vst1q_s32(&layer1_out[i + 4], acc_high);
     }
 
-
-//    for(int i = 0; i < INNER_LAYER_COUNT; i++) {
-//        layer1_out[i] /= QA;
-//    }
-
     for (int i = 0; i < INNER_LAYER_COUNT; i += 4) {
         int32x4_t v = vld1q_s32(&layer1_out[i]);
         v = vshrq_n_s32(v, 8);
@@ -233,9 +228,6 @@ void loadNNUEWeights() {
     loadWeightsLayer("./fc1.weights.csv", nnue->weights_1[0], INNER_LAYER_COUNT, INPUTS_COUNT);
     loadWeightsLayer("./fc2.weights.csv", nnue->weights_2[0], SECOND_INNER_LAYER_COUNT, INNER_LAYER_COUNT);
     loadWeightsLayer("./fc3.weights.csv", nnue->weights_3, SECOND_INNER_LAYER_COUNT, 1);
-//    loadWeightsLayer("./fc1.biases.csv", nnue->biases_1, INNER_LAYER_COUNT, 1);
-//    loadWeightsLayer("./fc2.biases.csv", nnue->biases_2, SECOND_INNER_LAYER_COUNT, 1);
-//    loadWeightsLayer("./fc3.biases.csv", &nnue->biases_3, 1, 1);
 
     for (int i = 0; i < INNER_LAYER_COUNT; i++) {
         for (int j = 0; j < INPUTS_COUNT; j++) {
@@ -253,16 +245,6 @@ void loadNNUEWeights() {
         nnue->weights_3_quantized[i] = round(nnue->weights_3[i] * QB);
     }
 
-//    for (int i = 0; i < INNER_LAYER_COUNT; i++) {
-//        nnue->biases_1_quantized[i] = round(nnue->biases_1[i] * QA);
-//    }
-//
-//    for(int i = 0; i < SECOND_INNER_LAYER_COUNT; i++) {
-//      nnue->biases_2_quantized[i] = round(nnue->biases_2[i] * QA);
-//    }
-//
-//    nnue->biases_3_quantized = round(nnue->biases_3 * QB);
-
     resetNNUE(nnue);
 }
 
@@ -277,7 +259,7 @@ TimeManager createFixNodesTm(int nodes) {
 int MAX_FEN_LENGTH = 1000;
 
 void dataset_gen(Board* board, int from, int to, char* filename) {
-    TimeManager tm = createFixNodesTm(20000);
+    TimeManager tm = createFixNodesTm(5000);
     FILE *inputFile = fopen("training_data.txt", "r");
     FILE *outputFile = fopen(filename, "w");
 
@@ -319,12 +301,12 @@ void dataset_gen(Board* board, int from, int to, char* filename) {
         int qEval = quiesceSearch(board, &info, -MATE_SCORE, MATE_SCORE, 0);
         int absoluteQEval = board->color == WHITE ? qEval : -qEval;
 
-        if (
-            abs(absoluteStaticEval - absoluteEval) > 70
-            || abs(absoluteStaticEval - absoluteQEval) > 60
-        ) {
-            continue;
-        }
+//        if (
+//            abs(absoluteStaticEval - absoluteEval) > 70
+//            || abs(absoluteStaticEval - absoluteQEval) > 60
+//        ) {
+//            continue;
+//        }
 
         fprintf(outputFile, "%s,%d\n", fen, absoluteEval);
     }

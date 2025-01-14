@@ -198,6 +198,7 @@ int main(int argc, char** argv) {
 
     destroyEval();
     free(board);
+    free(nnue);
 }
 
 void printEngineInfo() {
