@@ -418,11 +418,12 @@ void perft(Board *board, int depth) {
         clock_t start = clock();
         U64 nodes = perftTest(board, i, 0);
         clock_t end = clock();
+        double speed = (double)nodes / ((double)end - (double)start);
 
         if (!(end - start))
             end = start + 1;
 
-        printf("Perft %d: %llu; speed: %llu; time: %.3fs\n", i, nodes, nodes / (end - start), (end - start) / 1000.);
+        printf("Perft %d: %llu; speed: %.1fMnps; time: %.3fs\n", i, nodes, speed, (end - start) / 1000000.);
     }
 }
 

@@ -84,7 +84,6 @@ void getFen(Board* board, char* fen) {
     *fen++ = ' ';
 
 
-    // castling available?
     U64 isAvailable = board->castling & (shortCastlingBitboard[WHITE] | longCastlingBitboard[WHITE] | shortCastlingBitboard[BLACK] | longCastlingBitboard[BLACK]);
     if (isAvailable) {
         if (board->castling & shortCastlingBitboard[WHITE]) {
