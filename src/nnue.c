@@ -7,6 +7,7 @@
 
 int QA = 255;
 int QB = 64;
+int SCALE = 400;
 
 int isExists(Board* board, int color, int piece, int sq) {
     return !!(board->pieces[piece] & board->colours[color] & bitboardCell(sq));
@@ -30,11 +31,15 @@ void recalculateEval(NNUE* nnue) {
 
         int32x4_t w2_vec_low = vld1q_s32(&nnue->weights_2_quantized[i]);
         int32x4_t w2_vec_high = vld1q_s32(&nnue->weights_2_quantized[i + 4]);
+//		printf("weights  %d %d %d %d\n", nnue->weights_2_quantized[i], nnue->weights_2_quantized[i + 1], nnue->weights_2_quantized[i + 2], nnue->weights_2_quantized[i + 3]);
+//        printf("accumulators  %d %d %d %d %d %d %d %d\n", nnue->accumulators[i], nnue->accumulators[i + 1], nnue->accumulators[i + 2], nnue->accumulators[i + 3],
+//                       nnue->accumulators[i + 4], nnue->accumulators[i + 5], nnue->accumulators[i + 6], nnue->accumulators[i + 7]);
+
 
         acc_vec_low = vmaxq_s32(acc_vec_low, vdupq_n_s32(0));
-        acc_vec_low = vminq_s32(acc_vec_low, vdupq_n_s32(QA));
+        // acc_vec_low = vminq_s32(acc_vec_low, vdupq_n_s32(QA));
         acc_vec_high = vmaxq_s32(acc_vec_high, vdupq_n_s32(0));
-        acc_vec_high = vminq_s32(acc_vec_high, vdupq_n_s32(QA));
+        // acc_vec_high = vminq_s32(acc_vec_high, vdupq_n_s32(QA));
 
         sum_vec_low = vmlaq_s32(sum_vec_low, acc_vec_low, w2_vec_low);
         sum_vec_high = vmlaq_s32(sum_vec_high, acc_vec_high, w2_vec_high);
@@ -42,7 +47,7 @@ void recalculateEval(NNUE* nnue) {
 
     int32_t result = sum_vec_low[0] + sum_vec_low[1] + sum_vec_low[2] + sum_vec_low[3] +
                      sum_vec_high[0] + sum_vec_high[1] + sum_vec_high[2] + sum_vec_high[3];
-    nnue->eval = result / (QA * QB);
+    nnue->eval = result / QA * SCALE / QB;
 }
 
 void setNNUEInput(NNUE* nnue, int index) {
@@ -235,6 +240,8 @@ void dataset_gen(Board* board, int from, int to, char* filename) {
         if (
             abs(absoluteStaticEval - absoluteEval) > 70
             || abs(absoluteStaticEval - absoluteQEval) > 60
+            || inCheck(board, board->color)
+            || inCheck(board, !board->color)
         ) {
             continue;
         }
