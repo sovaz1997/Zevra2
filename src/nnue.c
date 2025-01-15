@@ -192,12 +192,10 @@ TimeManager createFixNodesTm(int nodes) {
     return tm;
 }
 
-int MAX_FEN_LENGTH = 1000;
-
 void genDataset(Board* board, int from, int to, char* filename) {
     TimeManager tm = createFixNodesTm(5000);
-    FILE *inputFile = fopen("training_data.txt", "r");
-    FILE *outputFile = fopen(filename, "w");
+    FILE *inputFile = fopen("billion-dataset.fen", "r");
+    FILE *outputFile = fopen(filename, "a");
 
     if (inputFile == NULL || outputFile == NULL) {
         perror("Ошибка открытия файла");
@@ -238,38 +236,10 @@ void genDataset(Board* board, int from, int to, char* filename) {
 
         while (*moveListPtr) {
             makeMove(board, *moveListPtr, &undo);
-            if (isPositionValidForDataset(board, tm)) {
-              char fen[100];
-              getFen(board, fen);
-              printf("Valid position: %s\n", fen);
-                // SearchInfo info = iterativeDeeping(board, tm);
-                // int absoluteEval = board->color == WHITE ? info.eval : -info.eval;
-                // fprintf(outputFile, "%s,%d\n", fen, absoluteEval);
-            }
+            checkAndSavePositionToDataset(board, tm, outputFile);
             unmakeMove(board, *moveListPtr, &undo);
             ++moveListPtr;
         }
-
-
-
-
-//        SearchInfo info = iterativeDeeping(board, tm);
-//        int absoluteEval = board->color == WHITE ? info.eval : -info.eval;
-//        int staticEval = fullEval(board);
-//        int absoluteStaticEval = board->color == WHITE ? staticEval : -staticEval;
-//        int qEval = quiesceSearch(board, &info, -MATE_SCORE, MATE_SCORE, 0);
-//        int absoluteQEval = board->color == WHITE ? qEval : -qEval;
-//
-//        if (
-//            abs(absoluteStaticEval - absoluteEval) > 70
-//            || abs(absoluteStaticEval - absoluteQEval) > 60
-//            || inCheck(board, board->color)
-//            || inCheck(board, !board->color)
-//        ) {
-//            continue;
-//        }
-
-        // fprintf(outputFile, "%s,%d\n", fen, absoluteEval);
     }
 
     fclose(inputFile);
@@ -277,7 +247,7 @@ void genDataset(Board* board, int from, int to, char* filename) {
     exit(0);
 }
 
-int isPositionValidForDataset(Board* board, TimeManager tm) {
+void checkAndSavePositionToDataset(Board* board, TimeManager tm, FILE* file) {
 	SearchInfo info = iterativeDeeping(board, tm);
     int absoluteEval = board->color == WHITE ? info.eval : -info.eval;
     int staticEval = fullEval(board);
@@ -285,9 +255,12 @@ int isPositionValidForDataset(Board* board, TimeManager tm) {
     int qEval = quiesceSearch(board, &info, -MATE_SCORE, MATE_SCORE, 0);
     int absoluteQEval = board->color == WHITE ? qEval : -qEval;
 
-    return abs(absoluteStaticEval - absoluteEval) <= 70
+    if (abs(absoluteStaticEval - absoluteEval) <= 70
         && abs(absoluteStaticEval - absoluteQEval) <= 60
         && !inCheck(board, board->color)
         && !inCheck(board, !board->color)
-        && !havePromotionPawn(board);
+        && !havePromotionPawn(board)) {
+            getFen(board, fen);
+            fprintf(file, "%s,%d\n", fen, absoluteEval);
+    }
 }

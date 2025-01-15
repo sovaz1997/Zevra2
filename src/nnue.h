@@ -5,6 +5,7 @@
 
 #define INPUTS_COUNT 768
 #define INNER_LAYER_COUNT 32
+#define MAX_FEN_LENGTH 1000
 
 
 struct NNUE {
@@ -18,6 +19,7 @@ struct NNUE {
 };
 
 NNUE* nnue;
+char fen[MAX_FEN_LENGTH];
 
 double ReLU(double x);
 int isExists(Board* board, int color, int piece, int sq);
@@ -32,6 +34,6 @@ void loadNNUEWeights();
 void debug_nnue_calculation(struct NNUE *nnue);
 TimeManager createFixNodesTm(int nodes);
 void genDataset(Board* board, int from, int to, char* filename);
-int isPositionValidForDataset(Board* board, TimeManager tm);
+void checkAndSavePositionToDataset(Board* board, TimeManager tm, FILE* file);
 
 #endif
