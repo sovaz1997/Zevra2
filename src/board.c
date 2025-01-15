@@ -56,6 +56,69 @@ void setFen(Board* board, char* fen) {
         board->key ^= otherSideKey;
 }
 
+void getFen(Board* board, char* fen) {
+    int empty = 0;
+    for(int r = 7; r >= 0; --r) {
+        for(int f = 0; f < 8; ++f) {
+            int sq = square(r, f);
+            if(board->squares[sq]) {
+                if(empty) {
+                    *fen++ = empty + '0';
+                    empty = 0;
+                }
+                *fen++ = PieceName[pieceColor(board->squares[sq])][pieceType(board->squares[sq])];
+            } else {
+                ++empty;
+            }
+        }
+        if(empty) {
+            *fen++ = empty + '0';
+            empty = 0;
+        }
+        if(r)
+            *fen++ = '/';
+    }
+
+    *fen++ = ' ';
+    *fen++ = (board->color == WHITE ? 'w' : 'b');
+    *fen++ = ' ';
+
+
+    // castling available?
+    U64 isAvailable = board->castling & (shortCastlingBitboard[WHITE] | longCastlingBitboard[WHITE] | shortCastlingBitboard[BLACK] | longCastlingBitboard[BLACK]);
+    if (isAvailable) {
+        if (board->castling & shortCastlingBitboard[WHITE]) {
+            *fen++ = 'K';
+        }
+        if (board->castling & longCastlingBitboard[WHITE]) {
+            *fen++ = 'Q';
+        }
+        if (board->castling & shortCastlingBitboard[BLACK]) {
+            *fen++ = 'k';
+        }
+        if (board->castling & longCastlingBitboard[BLACK]) {
+            *fen++ = 'q';
+        }
+    } else {
+        *fen++ = '-';
+    }
+
+    *fen++ = ' ';
+
+    if (board->enpassantSquare) {
+        squareToString(board->enpassantSquare, fen);
+        fen += 2;
+    } else {
+        *fen++ = '-';
+    }
+
+    *fen++ = ' ';
+    *fen++ = '0' + board->ruleNumber;
+    *fen++ = ' ';
+    *fen++ = '0' + board->moveNumber;
+    *fen = '\0';
+}
+
 void setMovesRange(Board* board, char* moves) {
     if(moves) {
         char* move = strtok(moves, " ");
@@ -96,6 +159,9 @@ void printBoard(Board* board) {
     printf("White check: %d \n", inCheck(board, WHITE));
     printf("Black check: %d \n\n", inCheck(board, BLACK));
     printf("Have promotion: %d\n", havePromotionPawn(board));
+    char fen[100];
+    getFen(board, fen);
+    printf("Board FEN: %s\n", fen);
 }
 
 void printBoardSplitter() {

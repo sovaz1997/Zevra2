@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
           printf("Generating dataset...\n");
           SHOULD_HIDE_SEARCH_INFO_LOGS = 1;
           NNUE_ENABLED = 0;
-          dataset_gen(board, atoi(argv[2]), atoi(argv[3]), argv[4]);
+          genDataset(board, atoi(argv[2]), atoi(argv[3]), argv[4]);
         }
     }
 

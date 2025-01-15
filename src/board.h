@@ -40,6 +40,7 @@ struct Undo {
 };
 
 void setFen(Board* board, char* fen);
+void getFen(Board* board, char* fen);
 void setMovesRange(Board* board, char* moves);
 void clearBoard(Board* board);
 void printBoard(Board* board);

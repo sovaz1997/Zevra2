@@ -194,8 +194,8 @@ TimeManager createFixNodesTm(int nodes) {
 
 int MAX_FEN_LENGTH = 1000;
 
-void dataset_gen(Board* board, int from, int to, char* filename) {
-    TimeManager tm = createFixNodesTm(20000);
+void genDataset(Board* board, int from, int to, char* filename) {
+    TimeManager tm = createFixNodesTm(5000);
     FILE *inputFile = fopen("training_data.txt", "r");
     FILE *outputFile = fopen(filename, "w");
 
@@ -206,6 +206,8 @@ void dataset_gen(Board* board, int from, int to, char* filename) {
 
     char fen[MAX_FEN_LENGTH];
     int lineNumber = 0;
+    U16 moveList[256];
+    Undo undo;
 
     while (fgets(fen, MAX_FEN_LENGTH, inputFile) != NULL) {
         lineNumber++;
@@ -214,7 +216,7 @@ void dataset_gen(Board* board, int from, int to, char* filename) {
             continue;
         }
 
-        if (lineNumber >= to) {
+        if (lineNumber > to) {
             fclose(inputFile);
             fclose(outputFile);
             exit(0);
@@ -230,26 +232,62 @@ void dataset_gen(Board* board, int from, int to, char* filename) {
         printf("Позиция #%d: %s\n", lineNumber, fen);
 
         setFen(board, fen);
-        SearchInfo info = iterativeDeeping(board, tm);
-        int absoluteEval = board->color == WHITE ? info.eval : -info.eval;
-        int staticEval = fullEval(board);
-        int absoluteStaticEval = board->color == WHITE ? staticEval : -staticEval;
-        int qEval = quiesceSearch(board, &info, -MATE_SCORE, MATE_SCORE, 0);
-        int absoluteQEval = board->color == WHITE ? qEval : -qEval;
 
-        if (
-            abs(absoluteStaticEval - absoluteEval) > 70
-            || abs(absoluteStaticEval - absoluteQEval) > 60
-            || inCheck(board, board->color)
-            || inCheck(board, !board->color)
-        ) {
-            continue;
+		U16* moveListPtr = moveList;
+    	movegen(board, moveList);
+
+        while (*moveListPtr) {
+            makeMove(board, *moveListPtr, &undo);
+            if (isPositionValidForDataset(board, tm)) {
+              char fen[100];
+              getFen(board, fen);
+              printf("Valid position: %s\n", fen);
+                // SearchInfo info = iterativeDeeping(board, tm);
+                // int absoluteEval = board->color == WHITE ? info.eval : -info.eval;
+                // fprintf(outputFile, "%s,%d\n", fen, absoluteEval);
+            }
+            unmakeMove(board, *moveListPtr, &undo);
+            ++moveListPtr;
         }
 
-        fprintf(outputFile, "%s,%d\n", fen, absoluteEval);
+
+
+
+//        SearchInfo info = iterativeDeeping(board, tm);
+//        int absoluteEval = board->color == WHITE ? info.eval : -info.eval;
+//        int staticEval = fullEval(board);
+//        int absoluteStaticEval = board->color == WHITE ? staticEval : -staticEval;
+//        int qEval = quiesceSearch(board, &info, -MATE_SCORE, MATE_SCORE, 0);
+//        int absoluteQEval = board->color == WHITE ? qEval : -qEval;
+//
+//        if (
+//            abs(absoluteStaticEval - absoluteEval) > 70
+//            || abs(absoluteStaticEval - absoluteQEval) > 60
+//            || inCheck(board, board->color)
+//            || inCheck(board, !board->color)
+//        ) {
+//            continue;
+//        }
+
+        // fprintf(outputFile, "%s,%d\n", fen, absoluteEval);
     }
 
     fclose(inputFile);
     fclose(outputFile);
     exit(0);
+}
+
+int isPositionValidForDataset(Board* board, TimeManager tm) {
+	SearchInfo info = iterativeDeeping(board, tm);
+    int absoluteEval = board->color == WHITE ? info.eval : -info.eval;
+    int staticEval = fullEval(board);
+    int absoluteStaticEval = board->color == WHITE ? staticEval : -staticEval;
+    int qEval = quiesceSearch(board, &info, -MATE_SCORE, MATE_SCORE, 0);
+    int absoluteQEval = board->color == WHITE ? qEval : -qEval;
+
+    return abs(absoluteStaticEval - absoluteEval) <= 70
+        && abs(absoluteStaticEval - absoluteQEval) <= 60
+        && !inCheck(board, board->color)
+        && !inCheck(board, !board->color)
+        && !havePromotionPawn(board);
 }
