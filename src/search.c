@@ -134,7 +134,7 @@ int search(Board *board, SearchInfo *searchInfo, int alpha, int beta, int depth,
         if (bestEntity->evalType && bestEntity->depth >= depth && !root) {
             if ((bestEntity->evalType == lowerbound && ttEval >= beta && !mateScore(bestEntity->eval)) ||
                 (bestEntity->evalType == upperbound && ttEval <= alpha && !mateScore(bestEntity->eval)) ||
-                bestEntity->evalType == exact) {
+                bestEntity->evalType == exact && ttEval >= alpha && ttEval <= beta) {
                 return ttEval;
             }
         }
@@ -319,7 +319,7 @@ int quiesceSearch(Board *board, SearchInfo *searchInfo, int alpha, int beta, int
         if (bestEntity->evalType) {
             if ((bestEntity->evalType == lowerbound && ttEval >= beta && !mateScore(bestEntity->eval)) ||
                 (bestEntity->evalType == upperbound && ttEval <= alpha && !mateScore(bestEntity->eval)) ||
-                bestEntity->evalType == exact) {
+                bestEntity->evalType == exact && ttEval >= alpha && ttEval <= beta) {
                 return ttEval;
             }
         }
