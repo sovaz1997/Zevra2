@@ -1,13 +1,13 @@
 #!/bin/bash
 
-train_data_dir="train-data"
+train_data_dir="quality-train-data-2"
 logs_dir="logs"
 
 mkdir -p "$train_data_dir" "$logs_dir"
 
-startPoint=0
-lastPoint=100000
-threads=10
+startPoint=500000
+lastPoint=3000000
+threads=12
 batchSize=$(( (lastPoint - startPoint) / threads ))
 
 for ((i=1; i<=threads; i++)); do

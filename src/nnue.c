@@ -193,7 +193,7 @@ TimeManager createFixNodesTm(int nodes) {
 }
 
 void genDataset(Board* board, int from, int to, char* filename) {
-    TimeManager tm = createFixNodesTm(5000);
+    TimeManager tm = createFixNodesTm(100000);
     FILE *inputFile = fopen("billion-dataset.fen", "r");
     FILE *outputFile = fopen(filename, "a");
 
@@ -231,15 +231,22 @@ void genDataset(Board* board, int from, int to, char* filename) {
 
         setFen(board, fen);
 
-		U16* moveListPtr = moveList;
-    	movegen(board, moveList);
+		// U16* moveListPtr = moveList;
+    	// movegen(board, moveList);
 
-        while (*moveListPtr) {
-            makeMove(board, *moveListPtr, &undo);
-            checkAndSavePositionToDataset(board, tm, outputFile);
-            unmakeMove(board, *moveListPtr, &undo);
-            ++moveListPtr;
-        }
+        saveQuiet(board, tm, outputFile, fen);
+
+//        if (isPositionQuiet(board, tm)) {
+//            // getFen(board, fen);
+//            fprintf(outputFile, "%s,%d\n", fen, fullEval(board));
+//        }
+
+//        while (*moveListPtr) {
+//            makeMove(board, *moveListPtr, &undo);
+//            checkAndSavePositionToDataset(board, tm, outputFile);
+//            unmakeMove(board, *moveListPtr, &undo);
+//            ++moveListPtr;
+//        }
     }
 
     fclose(inputFile);
@@ -263,4 +270,22 @@ void checkAndSavePositionToDataset(Board* board, TimeManager tm, FILE* file) {
             getFen(board, fen);
             fprintf(file, "%s,%d\n", fen, absoluteEval);
     }
+}
+
+int saveQuiet(Board* board, TimeManager tm, FILE* file, char* fen) {
+	SearchInfo info = iterativeDeeping(board, tm);
+    int absoluteEval = board->color == WHITE ? info.eval : -info.eval;
+    int staticEval = fullEval(board);
+    int absoluteStaticEval = board->color == WHITE ? staticEval : -staticEval;
+    int qEval = quiesceSearch(board, &info, -MATE_SCORE, MATE_SCORE, 0);
+    int absoluteQEval = board->color == WHITE ? qEval : -qEval;
+
+    if ( abs(absoluteStaticEval - absoluteEval) <= 70
+        && abs(absoluteStaticEval - absoluteQEval) <= 60
+        && !inCheck(board, board->color)
+        && !inCheck(board, !board->color)
+        && !havePromotionPawn(board)) {
+            fprintf(file, "%s,%d\n", fen, absoluteEval);
+            return 1;
+        }
 }

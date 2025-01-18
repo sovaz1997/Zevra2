@@ -4,7 +4,7 @@
 #include "board.h"
 
 #define INPUTS_COUNT 768
-#define INNER_LAYER_COUNT 32
+#define INNER_LAYER_COUNT 16
 #define MAX_FEN_LENGTH 1000
 
 
@@ -35,5 +35,6 @@ void debug_nnue_calculation(struct NNUE *nnue);
 TimeManager createFixNodesTm(int nodes);
 void genDataset(Board* board, int from, int to, char* filename);
 void checkAndSavePositionToDataset(Board* board, TimeManager tm, FILE* file);
+int saveQuiet(Board* board, TimeManager tm, FILE* file, char* fen);
 
 #endif
