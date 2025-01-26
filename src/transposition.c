@@ -44,11 +44,11 @@ void replaceTranspositionEntry(Transposition* addr, Transposition* newEntry, U64
     }
 
     if (shouldReplace) {
-        *addr = *newEntry;
-
         if (!addr->evalType) {
             ttFilledSize++;
         }
+
+        *addr = *newEntry;
     }
 }
 
