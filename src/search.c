@@ -494,8 +494,9 @@ void moveOrdering(Board *board, U16 *mvs, SearchInfo *searchInfo, int height, in
             }
         }
 
-        if (searchInfo->bestMove == *ptr && !height)
+        if (searchInfo->bestMove == *ptr && !height) {
             movePrice[height][i] = 10000000000000000llu;
+        }
 
         ++ptr;
     }

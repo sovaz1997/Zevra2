@@ -10,7 +10,7 @@
 #include "bitboards.h"
 
 enum {
-    BUCKETS_N = 2,
+    BUCKETS_N = 1,
 };
 
 struct TranspositionEntity {
