@@ -28,35 +28,27 @@ void clearTT() {
     ttFilledSize = 0;
 }
 
-void replaceTranspositionEntry(Transposition* addr, TranspositionEntity* newEntry, U64 key) {
-    int replacePriorities[1];
+void replaceTranspositionEntry(Transposition* addr, Transposition* newEntry, U64 key) {
+    int shouldReplace = 0;
 
-    if(addr->entity[0].age + 5 < ttAge || !addr->entity[0].evalType) {
-        replacePriorities[0] = MAX_PLY * 2 - addr->entity[0].depth;
+    if(addr->age + 5 < ttAge || !addr->evalType) {
+        shouldReplace = 1;
     } else {
-        if(newEntry->depth >= addr->entity[0].depth) {
-            if(newEntry->evalType == upperbound && addr->entity[0].evalType != upperbound) {
-                replacePriorities[0] = -1;
+        if(newEntry->depth >= addr->depth) {
+            if(newEntry->evalType == upperbound && addr->evalType != upperbound) {
+                shouldReplace = 0;
             } else {
-                replacePriorities[0] = MAX_PLY * 2 - addr->entity[0].depth;
+                shouldReplace = 1;
             }
         }
     }
 
-    int index = -1;
-    int maxPriority = -1;
+    if (shouldReplace) {
+        *addr = *newEntry;
 
-    if (replacePriorities[0] > maxPriority) {
-        index = 0;
-        maxPriority = replacePriorities[0];
-    }
-
-    if (index != -1) {
-        if (!addr->entity[index].evalType) {
+        if (!addr->evalType) {
             ttFilledSize++;
         }
-
-        addr->entity[index] = *newEntry;
     }
 }
 
@@ -87,16 +79,4 @@ int evalFromTT(int eval, int height) {
         return eval + height;
         
     return eval;
-}
-
-int getMaxDepthBucket(Transposition* entry, U64 key) {
-    uint32_t depth = 0;
-    int result = -1;
-
-    if (entry->entity[0].depth > depth && key == entry->entity[0].key) {
-        depth = entry->entity[0].depth;
-        result = 0;
-    }
-
-    return result;
 }
