@@ -110,8 +110,6 @@ int search(Board *board, SearchInfo *searchInfo, int alpha, int beta, int depth,
     if ((isDraw(board) && !root) || ABORT)
         return 0;
 
-    int weInCheck = !!(inCheck(board, board->color));
-
     if (depth >= 3 && testAbort(getTime(&searchInfo->timer), searchInfo->nodesCount, &searchInfo->tm)) {
         setAbort(1);
         return 0;
@@ -127,18 +125,26 @@ int search(Board *board, SearchInfo *searchInfo, int alpha, int beta, int depth,
         bestEntity = &ttEntry->entity[bestEntityIndex];
     }
 
-    if (bestEntity) {
+    if (bestEntity && bestEntity->evalType && bestEntity->depth >= depth && !root) {
         int ttEval = evalFromTT(bestEntity->eval, height);
 
         //TT analysis
-        if (bestEntity->evalType && bestEntity->depth >= depth && !root) {
-            if ((bestEntity->evalType == lowerbound && ttEval >= beta && !mateScore(bestEntity->eval)) ||
-                (bestEntity->evalType == upperbound && ttEval <= alpha && !mateScore(bestEntity->eval)) ||
-                bestEntity->evalType == exact) {
-                return ttEval;
-            }
+        if ((bestEntity->evalType == lowerbound && ttEval >= beta && !mateScore(bestEntity->eval)) ||
+            (bestEntity->evalType == upperbound && ttEval <= alpha && !mateScore(bestEntity->eval)) ||
+            bestEntity->evalType == exact) {
+            return ttEval;
+        } else {
+//      		if (depth > 3 && !searchInfo->nullMoveSearch) {
+//      			search(board, searchInfo, alpha, beta, depth / 4, height + 1);
+//      		}
         }
+    } else {
+//      if (depth > 3 && !searchInfo->nullMoveSearch) {
+//      	search(board, searchInfo, alpha, beta, depth / 4, height + 1);
+//      }
     }
+
+    int weInCheck = !!(inCheck(board, board->color));
 
     //go to quiescence search in leaf nodes
     if ((depth <= 0 && !weInCheck) || height >= MAX_PLY - 1)
@@ -147,12 +153,12 @@ int search(Board *board, SearchInfo *searchInfo, int alpha, int beta, int depth,
     //calculate static eval
     int staticEval = fullEval(board);
 
+
     //Null Move pruning
-
+	#if ENABLE_NULL_MOVE_PRUNING
     int R = 2 + depth / 4;
-
     int pieceCount = popcount(board->colours[WHITE] | board->colours[BLACK]);
-    if (NullMovePruningAllow && pieceCount > 7 && !pvNode && haveNoPawnMaterial(board) && !weInCheck && !root &&
+    if (!pvNode && pieceCount > 7 && !weInCheck && !root && haveNoPawnMaterial(board) &&
         !searchInfo->nullMoveSearch && depth > R && (staticEval >= beta || depth <= 4)) {
         makeNullMove(board);
         searchInfo->nullMoveSearch = 1;
@@ -165,16 +171,23 @@ int search(Board *board, SearchInfo *searchInfo, int alpha, int beta, int depth,
         if (eval >= beta)
             return beta;
     }
+    #endif
 
-    //Reverse futility pruning
-    if (!pvNode && !havePromotionPawn(board) && !weInCheck && depth <= 7 &&
-        staticEval - ReverseFutilityStep * depth > beta && ReverseFutilityPruningAllow)
-        return staticEval;
 
-    //Razoring
-    if (!pvNode && !havePromotionPawn(board) && !weInCheck && depth <= 7 && staticEval + RazorMargin * depth < alpha &&
-        RazoringPruningAllow)
-        return quiesceSearch(board, searchInfo, alpha, beta, height);
+    if (!pvNode && !weInCheck && !havePromotionPawn(board)) {
+        //Reverse futility pruning
+        #if ENABLE_RAZORING
+        if (depth <= 7 &&
+            staticEval - ReverseFutilityStep * depth > beta)
+        	return staticEval;
+        #endif
+
+    	//Razoring
+        #if ENABLE_REVERSE_FUTILITY_PRUNING
+    	if (depth <= 7 && staticEval + RazorMargin * depth < alpha)
+        	return quiesceSearch(board, searchInfo, alpha, beta, height);
+        #endif
+    }
 
     movegen(board, moves[height]);
     moveOrdering(board, moves[height], searchInfo, height, depth);
@@ -215,22 +228,16 @@ int search(Board *board, SearchInfo *searchInfo, int alpha, int beta, int depth,
             fflush(stdout);
         }
 
-        int seeScore = see(
-                board,
-                MoveTo(*curMove),
-                board->squares[MoveTo(*curMove)],
-                MoveFrom(*curMove),
-                board->squares[MoveFrom(*curMove)]
-        );
-
         //Fulility pruning
-        if (!pvNode && depth < 7 && !extensions && !root && FutilityPruningAllow) {
+        #if ENABLE_FUTILITY_PRUNING
+        if (!pvNode && depth < 7 && !extensions && !root) {
             if (staticEval + FutilityStep * depth + pVal(board, pieceType(undo.capturedPiece)) <= alpha) {
                 unmakeMove(board, *curMove, &undo);
                 ++curMove;
                 continue;
             }
         }
+        #endif
 
         int reductions = lmr[min(depth, MAX_PLY - 1)][min(playedMovesCount, 63)];
         ++playedMovesCount;

@@ -315,6 +315,9 @@ int isDraw(Board* board) {
     U64 pieces = board->colours[0] | board->colours[1];
     U64 piecesCount = popcount(pieces);
 
+    if (piecesCount > 4)
+        return 0;
+
     if(piecesCount <= 2)
             return 1;
 
