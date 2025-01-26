@@ -133,15 +133,7 @@ int search(Board *board, SearchInfo *searchInfo, int alpha, int beta, int depth,
             (bestEntity->evalType == upperbound && ttEval <= alpha && !mateScore(bestEntity->eval)) ||
             bestEntity->evalType == exact) {
             return ttEval;
-        } else {
-//      		if (depth > 3 && !searchInfo->nullMoveSearch) {
-//      			search(board, searchInfo, alpha, beta, depth / 4, height + 1);
-//      		}
         }
-    } else {
-//      if (depth > 3 && !searchInfo->nullMoveSearch) {
-//      	search(board, searchInfo, alpha, beta, depth / 4, height + 1);
-//      }
     }
 
     int weInCheck = !!(inCheck(board, board->color));
@@ -295,7 +287,6 @@ int search(Board *board, SearchInfo *searchInfo, int alpha, int beta, int depth,
     new_tt.key = keyPosition;
     new_tt.eval = evalToTT(alpha, height);
 
-    // setTransposition(&new_tt, keyPosition, alpha, hashType, depth, curBestMove, ttAge, height);
     replaceTranspositionEntry(ttEntry, &new_tt, keyPosition);
 
     if (!movesCount) {

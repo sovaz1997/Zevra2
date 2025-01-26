@@ -60,9 +60,6 @@ int fullEval(Board *board) {
     eval += bishopsEval(board);
     eval += (rooksEval(board, WHITE) - rooksEval(board, BLACK));
 
-    //King safety
-    // eval += (kingEval(board, WHITE) - kingEval(board, BLACK));
-
     return (board->color == WHITE ? eval : -eval);
 }
 
@@ -270,23 +267,6 @@ int getPassedPawnBonus(int sq, int color) {
         return PassedPawnBonus[rankOf(sq)];
 
     return PassedPawnBonus[7 - rankOf(sq)];
-}
-
-int kingEval(Board *board, int color) {
-    int eval = 0;
-    U64 enemy = board->colours[!color];
-    int kingPos = firstOne(board->pieces[KING] & board->colours[color]);
-
-    while (enemy) {
-        int sq = firstOne(enemy);
-        eval -= 4 * distanceBonus[sq][kingPos] * (pieceType(board->squares[sq]) == QUEEN);
-        eval -= 3 * distanceBonus[sq][kingPos] * (pieceType(board->squares[sq]) == ROOK);
-        eval -= 2 * distanceBonus[sq][kingPos] * (pieceType(board->squares[sq]) == KNIGHT);
-        eval -= 2 * distanceBonus[sq][kingPos] * (pieceType(board->squares[sq]) == BISHOP);
-        clearBit(&enemy, sq);
-    }
-
-    return eval;
 }
 
 int mateScore(int eval) {

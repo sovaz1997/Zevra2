@@ -23,11 +23,6 @@ struct TranspositionEntity {
 };
 
 struct Transposition {
-//    S16 eval[BUCKETS_N];
-//    U8 depth[BUCKETS_N];
-//    S8 age[BUCKETS_N];
-//    U8 evalType[BUCKETS_N];
-//    U16 move[BUCKETS_N];
     TranspositionEntity entity[BUCKETS_N];
 };
 
@@ -37,7 +32,6 @@ double ttFilledSize;
 U64 ttIndex;
 int ttAge;
 
-// void setTransposition(Transposition* entry, U64 key, int eval, int evalType, int depth, U16 move, int age, int height, int bucketIndex);
 void initTT(int size);
 void reallocTT(int size);
 void clearTT();

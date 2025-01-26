@@ -1,21 +1,6 @@
 #include "transposition.h"
 #include "search.h"
 
-//void setTransposition(Transposition* entry, U64 key, int eval, int evalType, int depth, U16 move, int age, int height) {
-//    if (entry->key == 0 || entry->key == key) {
-//        entry->key = key;
-//
-//        int index = getBucketWithLessDepth(entry);
-//
-//        entry->entity[index].eval = evalToTT(eval, height);
-//        entry->entity[index].evalType = evalType;
-//        entry->entity[index].move = move;
-//        entry->entity[index].depth = depth;
-//        entry->entity[index].age = age;
-//    }
-//
-//}
-
 void initTT(int size) {
     ttSize = sizeToTTCount(size);
     tt = (Transposition*) malloc(sizeof(Transposition) * ttSize);

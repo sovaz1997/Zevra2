@@ -85,8 +85,6 @@ int bishopsEval(Board *board);
 
 int rooksEval(Board *board, int color);
 
-int kingEval(Board *board, int color);
-
 int getPassedPawnBonus(int sq, int color);
 
 int mateScore(int eval);
