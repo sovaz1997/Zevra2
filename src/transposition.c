@@ -28,41 +28,27 @@ void clearTT() {
     ttFilledSize = 0;
 }
 
-void replaceTranspositionEntry(Transposition* addr, TranspositionEntity* newEntry, U64 key) {
-    int replacePriorities[BUCKETS_N];
+void replaceTranspositionEntry(Transposition* addr, Transposition* newEntry, U64 key) {
+    int shouldReplace = 0;
 
-    for (int i = 0; i < BUCKETS_N; ++i) {
-        if(addr->entity[i].age + 5 < ttAge || !addr->entity[i].evalType) {
-            replacePriorities[i] = MAX_PLY * 2 - addr->entity[i].depth;
-            continue;
-        }
-
-        if(newEntry->depth >= addr->entity[i].depth) {
-            if(newEntry->evalType == upperbound && addr->entity[i].evalType != upperbound) {
-                replacePriorities[i] = -1;
-                continue;
+    if(addr->age + 5 < ttAge || !addr->evalType) {
+        shouldReplace = 1;
+    } else {
+        if(newEntry->depth >= addr->depth) {
+            if(newEntry->evalType == upperbound && addr->evalType != upperbound) {
+                shouldReplace = 0;
+            } else {
+                shouldReplace = 1;
             }
-
-            replacePriorities[i] = MAX_PLY * 2 - addr->entity[i].depth;
         }
     }
 
-    int index = -1;
-    int maxPriority = -1;
+    if (shouldReplace) {
+        *addr = *newEntry;
 
-    for (int i = 0; i < BUCKETS_N; ++i) {
-        if (replacePriorities[i] > maxPriority) {
-            index = i;
-            maxPriority = replacePriorities[i];
+        if (!addr->evalType) {
+            ttFilledSize++;
         }
-    }
-
-    if (index != -1) {
-        if (!addr->entity[index].evalType) {
-            ttFilledSize += 1. / BUCKETS_N;
-        }
-
-        addr->entity[index] = *newEntry;
     }
 }
 
@@ -93,18 +79,4 @@ int evalFromTT(int eval, int height) {
         return eval + height;
         
     return eval;
-}
-
-int getMaxDepthBucket(Transposition* entry, U64 key) {
-    uint32_t depth = 0;
-    int result = -1;
-
-    for (int i = 0; i < BUCKETS_N; ++i) {
-        if (entry->entity[i].depth > depth && key == entry->entity[i].key) {
-            depth = entry->entity[i].depth;
-            result = i;
-        }
-    }
-
-    return result;
 }
