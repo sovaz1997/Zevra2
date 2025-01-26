@@ -446,12 +446,9 @@ void moveOrdering(Board *board, U16 *mvs, SearchInfo *searchInfo, int height, in
         movePrice[height][i] = 0;
         U16 toPiece = pieceType(board->squares[MoveTo(*ptr)]);
 
-        for (int j = 0; j < BUCKETS_N; ++j) {
-            if (*ptr == ttEntry->entity[j].move && ttEntry->entity[j].key == board->key) {
-                movePrice[height][i] = 1000000000000000llu + ttEntry->entity[j].depth;
-                isHashMove = 1;
-                break;
-            }
+        if (*ptr == ttEntry->entity[0].move && ttEntry->entity[0].key == board->key) {
+            movePrice[height][i] = 1000000000000000llu + ttEntry->entity[0].depth;
+            isHashMove = 1;
         }
 
         if (isHashMove) {

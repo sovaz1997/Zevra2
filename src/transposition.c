@@ -29,37 +29,31 @@ void clearTT() {
 }
 
 void replaceTranspositionEntry(Transposition* addr, TranspositionEntity* newEntry, U64 key) {
-    int replacePriorities[BUCKETS_N];
+    int replacePriorities[1];
 
-    for (int i = 0; i < BUCKETS_N; ++i) {
-        if(addr->entity[i].age + 5 < ttAge || !addr->entity[i].evalType) {
-            replacePriorities[i] = MAX_PLY * 2 - addr->entity[i].depth;
-            continue;
-        }
-
-        if(newEntry->depth >= addr->entity[i].depth) {
-            if(newEntry->evalType == upperbound && addr->entity[i].evalType != upperbound) {
-                replacePriorities[i] = -1;
-                continue;
+    if(addr->entity[0].age + 5 < ttAge || !addr->entity[0].evalType) {
+        replacePriorities[0] = MAX_PLY * 2 - addr->entity[0].depth;
+    } else {
+        if(newEntry->depth >= addr->entity[0].depth) {
+            if(newEntry->evalType == upperbound && addr->entity[0].evalType != upperbound) {
+                replacePriorities[0] = -1;
+            } else {
+                replacePriorities[0] = MAX_PLY * 2 - addr->entity[0].depth;
             }
-
-            replacePriorities[i] = MAX_PLY * 2 - addr->entity[i].depth;
         }
     }
 
     int index = -1;
     int maxPriority = -1;
 
-    for (int i = 0; i < BUCKETS_N; ++i) {
-        if (replacePriorities[i] > maxPriority) {
-            index = i;
-            maxPriority = replacePriorities[i];
-        }
+    if (replacePriorities[0] > maxPriority) {
+        index = 0;
+        maxPriority = replacePriorities[0];
     }
 
     if (index != -1) {
         if (!addr->entity[index].evalType) {
-            ttFilledSize += 1. / BUCKETS_N;
+            ttFilledSize++;
         }
 
         addr->entity[index] = *newEntry;
@@ -99,11 +93,9 @@ int getMaxDepthBucket(Transposition* entry, U64 key) {
     uint32_t depth = 0;
     int result = -1;
 
-    for (int i = 0; i < BUCKETS_N; ++i) {
-        if (entry->entity[i].depth > depth && key == entry->entity[i].key) {
-            depth = entry->entity[i].depth;
-            result = i;
-        }
+    if (entry->entity[0].depth > depth && key == entry->entity[0].key) {
+        depth = entry->entity[0].depth;
+        result = 0;
     }
 
     return result;

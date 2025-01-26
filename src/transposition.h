@@ -9,10 +9,6 @@
 #include "types.h"
 #include "bitboards.h"
 
-enum {
-    BUCKETS_N = 1,
-};
-
 struct TranspositionEntity {
     S16 eval;
     U8 depth;
@@ -23,7 +19,7 @@ struct TranspositionEntity {
 };
 
 struct Transposition {
-    TranspositionEntity entity[BUCKETS_N];
+    TranspositionEntity entity[1];
 };
 
 Transposition* tt;
