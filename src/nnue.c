@@ -7,14 +7,18 @@
 
 int QA = 255;
 int QB = 64;
-int SCALE = 400;
+double SCALE = 1.8;
 
 int isExists(Board* board, int color, int piece, int sq) {
     return !!(board->pieces[piece] & board->colours[color] & bitboardCell(sq));
 }
 
 int getInputIndexOf(int color, int piece, int sq) {
-    return color * 64 * 6 + (piece - 1) * 64 + sq;
+  int rank = rankOf(sq);
+  int file = fileOf(sq);
+  int otherSq = square(7 - rank, file);
+
+  return color * 64 * 6 + (piece - 1) * 64 + otherSq;
 }
 
 double ReLU(double x) {
@@ -22,39 +26,59 @@ double ReLU(double x) {
 }
 
 void recalculateEval(NNUE* nnue) {
-    int32x4_t sum_vec_low = vdupq_n_s32(0);
-    int32x4_t sum_vec_high = vdupq_n_s32(0);
+  double eval = 0;
 
-    for (int i = 0; i < INNER_LAYER_COUNT; i += 8) {
-        int32x4_t acc_vec_low = vld1q_s32(&nnue->accumulators[i]);
-        int32x4_t acc_vec_high = vld1q_s32(&nnue->accumulators[i + 4]);
+  for (int i = 0; i < INNER_LAYER_COUNT; i++) {
+    double acc = nnue->accumulators[i] + nnue->biases_1[i];
+    acc = ReLU(acc);
+    eval += acc * acc * nnue->weights_2[i];
+  }
 
-        int32x4_t w2_vec_low = vld1q_s32(&nnue->weights_2_quantized[i]);
-        int32x4_t w2_vec_high = vld1q_s32(&nnue->weights_2_quantized[i + 4]);
-        int32x4_t biases_1_vec_low = vld1q_s32(&nnue->biases_1_quantized[i]);
-        int32x4_t biases_1_vec_high = vld1q_s32(&nnue->biases_1_quantized[i + 4]);
+    eval += nnue->biases_2;
 
-        acc_vec_low = vaddq_s32(acc_vec_low, biases_1_vec_low);
-        acc_vec_low = vmaxq_s32(acc_vec_low, vdupq_n_s32(0));
-        acc_vec_low = vminq_s32(acc_vec_low, vdupq_n_s32(QA));
-        acc_vec_low = vmulq_s32(acc_vec_low, acc_vec_low);
-        acc_vec_high = vaddq_s32(acc_vec_high, biases_1_vec_high);
-        acc_vec_high = vmaxq_s32(acc_vec_high, vdupq_n_s32(0));
-        acc_vec_high = vminq_s32(acc_vec_high, vdupq_n_s32(QA));
-        acc_vec_high = vmulq_s32(acc_vec_high, acc_vec_high);
-
-        sum_vec_low = vmlaq_s32(sum_vec_low, acc_vec_low, w2_vec_low);
-        sum_vec_high = vmlaq_s32(sum_vec_high, acc_vec_high, w2_vec_high);
-    }
-
-    nnue->eval = sum_vec_low[0] + sum_vec_low[1] + sum_vec_low[2] + sum_vec_low[3] +
-                     sum_vec_high[0] + sum_vec_high[1] + sum_vec_high[2] + sum_vec_high[3];
-    nnue->eval += nnue->biases_2_quantized;
-    nnue->eval /= QA;
-    nnue->eval *= SCALE;
-
-    nnue->eval /= (QA * QB);
+    nnue->eval = eval;
 }
+
+//void recalculateEval(NNUE* nnue) {
+//    int32x4_t sum_vec_low = vdupq_n_s32(0);
+//    int32x4_t sum_vec_high = vdupq_n_s32(0);
+//
+//    for (int i = 0; i < INNER_LAYER_COUNT; i += 8) {
+//        int32x4_t acc_vec_low = vld1q_s32(&nnue->accumulators[i]);
+//        int32x4_t acc_vec_high = vld1q_s32(&nnue->accumulators[i + 4]);
+//
+//        int32x4_t w2_vec_low = vld1q_s32(&nnue->weights_2_quantized[i]);
+//        int32x4_t w2_vec_high = vld1q_s32(&nnue->weights_2_quantized[i + 4]);
+//        int32x4_t biases_1_vec_low = vld1q_s32(&nnue->biases_1_quantized[i]);
+//        int32x4_t biases_1_vec_high = vld1q_s32(&nnue->biases_1_quantized[i + 4]);
+//
+//
+//
+//        acc_vec_low = vaddq_s32(acc_vec_low, biases_1_vec_low);
+//
+//        acc_vec_low = vmaxq_s32(acc_vec_low, vdupq_n_s32(0));
+//        acc_vec_low = vmulq_s32(acc_vec_low, acc_vec_low);
+//        // acc_vec_low = vminq_s32(acc_vec_low, vdupq_n_s32(QA));
+//        acc_vec_low = vmulq_s32(acc_vec_low, acc_vec_low);
+//        acc_vec_high = vaddq_s32(acc_vec_high, biases_1_vec_high);
+//        acc_vec_high = vmaxq_s32(acc_vec_high, vdupq_n_s32(0));
+//        // acc_vec_high = vminq_s32(acc_vec_high, vdupq_n_s32(QA));
+//        acc_vec_high = vmulq_s32(acc_vec_high, acc_vec_high);
+//
+//        sum_vec_low = vmlaq_s32(sum_vec_low, acc_vec_low, w2_vec_low);
+//        sum_vec_high = vmlaq_s32(sum_vec_high, acc_vec_high, w2_vec_high);
+//    }
+//
+//    nnue->eval = sum_vec_low[0] + sum_vec_low[1] + sum_vec_low[2] + sum_vec_low[3] +
+//                     sum_vec_high[0] + sum_vec_high[1] + sum_vec_high[2] + sum_vec_high[3];
+//    nnue->eval += nnue->biases_2_quantized;
+//    nnue->eval /= QA;
+//    nnue->eval *= SCALE;
+//
+//    nnue->eval /= (QA * QB);
+//
+//    // printf("bias q: %d\n", nnue->biases_2_quantized);
+//}
 
 void setNNUEInput(NNUE* nnue, int index) {
     if (nnue->inputs[index] == 1) {
@@ -63,19 +87,23 @@ void setNNUEInput(NNUE* nnue, int index) {
 
     nnue->inputs[index] = 1;
 
-    for (int i = 0; i < INNER_LAYER_COUNT; i += 8) {
-        int32x4_t acc_vec_low = vld1q_s32(&nnue->accumulators[i]);
-        int32x4_t acc_vec_high = vld1q_s32(&nnue->accumulators[i + 4]);
-
-        int32x4_t w1_vec_low = vld1q_s32(&nnue->weights_1_quantized[index][i]);
-        int32x4_t w1_vec_high = vld1q_s32(&nnue->weights_1_quantized[index][i + 4]);
-
-        acc_vec_low = vaddq_s32(acc_vec_low, w1_vec_low);
-        acc_vec_high = vaddq_s32(acc_vec_high, w1_vec_high);
-
-        vst1q_s32(&nnue->accumulators[i], acc_vec_low);
-        vst1q_s32(&nnue->accumulators[i + 4], acc_vec_high);
+    for(int i = 0; i < INNER_LAYER_COUNT; i++) {
+        nnue->accumulators[i] += nnue->weights_1[i][index];
     }
+
+//    for (int i = 0; i < INNER_LAYER_COUNT; i += 8) {
+//        int32x4_t acc_vec_low = vld1q_s32(&nnue->accumulators[i]);
+//        int32x4_t acc_vec_high = vld1q_s32(&nnue->accumulators[i + 4]);
+//
+//        int32x4_t w1_vec_low = vld1q_s32(&nnue->weights_1_quantized[index][i]);
+//        int32x4_t w1_vec_high = vld1q_s32(&nnue->weights_1_quantized[index][i + 4]);
+//
+//        acc_vec_low = vaddq_s32(acc_vec_low, w1_vec_low);
+//        acc_vec_high = vaddq_s32(acc_vec_high, w1_vec_high);
+//
+//        vst1q_s32(&nnue->accumulators[i], acc_vec_low);
+//        vst1q_s32(&nnue->accumulators[i + 4], acc_vec_high);
+//    }
 }
 
 void resetNNUEInput(NNUE* nnue, int index) {
@@ -85,19 +113,10 @@ void resetNNUEInput(NNUE* nnue, int index) {
 
     nnue->inputs[index] = 0;
 
-    for (int i = 0; i < INNER_LAYER_COUNT; i += 8) {
-        int32x4_t acc_vec_low = vld1q_s32(&nnue->accumulators[i]);
-        int32x4_t acc_vec_high = vld1q_s32(&nnue->accumulators[i + 4]);
-
-        int32x4_t w1_vec_low = vld1q_s32(&nnue->weights_1_quantized[index][i]);
-        int32x4_t w1_vec_high = vld1q_s32(&nnue->weights_1_quantized[index][i + 4]);
-
-        acc_vec_low = vsubq_s32(acc_vec_low, w1_vec_low);
-        acc_vec_high = vsubq_s32(acc_vec_high, w1_vec_high);
-
-        vst1q_s32(&nnue->accumulators[i], acc_vec_low);
-        vst1q_s32(&nnue->accumulators[i + 4], acc_vec_high);
+    for(int i = 0; i < INNER_LAYER_COUNT; i++) {
+        nnue->accumulators[i] -= nnue->weights_1[i][index];
     }
+
 }
 
 void resetNNUE(NNUE* nnue) {
