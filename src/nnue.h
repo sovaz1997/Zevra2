@@ -4,7 +4,7 @@
 #include "board.h"
 
 #define INPUTS_COUNT 768
-#define INNER_LAYER_COUNT 16
+#define INNER_LAYER_COUNT 8
 #define MAX_FEN_LENGTH 1000
 
 

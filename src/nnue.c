@@ -366,11 +366,11 @@ void runGame(Board* board, FILE* file) {
             || MoveType(info.bestMove) == PROMOTION_MOVE
             || mateScore(info.eval);
 
+        int turn = board->color == WHITE ? 1 : -1;
         makeMove(board, info.bestMove, &undo);
 
-        if (inCheck(board, !board->color)) {
-            unmakeMove(board, info.bestMove, &undo);
-            printf("Illegal move\n");
+        if (inCheck(board, board->color)) {
+            isNotGoodPosition = 1;
         }
 
         if (isDraw(board)) {
@@ -386,7 +386,6 @@ void runGame(Board* board, FILE* file) {
         getFen(board, fen);
 
 
-        int turn = board->color == WHITE ? 1 : -1;
         fprintf(file, "%s,%d\n", fen, info.eval * turn);
         printf("Positions writed: %d\n", ++fensWrited);
     }

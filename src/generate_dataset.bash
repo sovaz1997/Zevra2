@@ -5,7 +5,7 @@ logs_dir="logs"
 
 mkdir -p "$train_data_dir" "$logs_dir"
 
-gamesCount=60000
+gamesCount=10000000
 threads=12
 gamesPerThread=$((gamesCount / threads))
 
