@@ -184,6 +184,8 @@ int main(int argc, char** argv) {
                     printf("info string hash cleared\n");
                 }
             }
+        } else if(strEquals(cmd, "gen") && SEARCH_COMPLETE) {
+            createDataset(board);
         }
 
         if(makeSearch) {

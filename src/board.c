@@ -112,9 +112,9 @@ void getFen(Board* board, char* fen) {
     }
 
     *fen++ = ' ';
-    *fen++ = '0' + board->ruleNumber;
+    fen += sprintf(fen, "%d", board->ruleNumber);
     *fen++ = ' ';
-    *fen++ = '0' + board->moveNumber;
+    fen += sprintf(fen, "%d", board->moveNumber);
     *fen = '\0';
 }
 

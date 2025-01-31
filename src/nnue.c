@@ -289,3 +289,111 @@ int saveQuiet(Board* board, TimeManager tm, FILE* file, char* fen) {
             return 1;
         }
 }
+
+int getMovesCount(Board* board) {
+    U16 moveList[256];
+    movegen(board, moveList);
+    U16* moveListPtr = moveList;
+    Undo undo;
+
+    int illegalCount = 0;
+    while (*moveListPtr) {
+        ++moveListPtr;
+        // check that not check to us
+        makeMove(board, *moveListPtr, &undo);
+        if (inCheck(board, !board->color)) {
+            ++illegalCount;
+        }
+        unmakeMove(board, *moveListPtr, &undo);
+    }
+
+    return moveListPtr - moveList - illegalCount;
+}
+
+void makeRandomMove(Board* board) {
+  int movesCount = getMovesCount(board);
+
+  if (movesCount == 0) {
+    return;
+  }
+
+    U16 moveList[256];
+    movegen(board, moveList);
+    U16* moveListPtr = moveList;
+    while (*moveListPtr) {
+        ++moveListPtr;
+    }
+
+    int moveIndex = rand() % (moveListPtr - moveList);
+    printf("Move index: %d\n", moveIndex);
+    Undo undo;
+    makeMove(board, moveList[moveIndex], &undo);
+
+    if (inCheck(board, !board->color)) {
+        unmakeMove(board, moveList[moveIndex], &undo);
+        makeRandomMove(board);
+    }
+}
+
+void runGame(Board* board, FILE* file) {
+    setFen(board, startpos);
+
+    printf("Info: %d'n", board);
+    printf("Moves count: %d\n", getMovesCount(board));
+    for (int i = 0; i < 12; i++) {
+        makeRandomMove(board);
+    }
+
+    TimeManager tm = createFixNodesTm(5000);
+    U16 moveList[256];
+
+    while(1) {
+        movegen(board, moveList);
+        int movesCount = getMovesCount(board);
+        if (movesCount == 0) {
+            printf("No moves\n");
+            return;
+        }
+
+        SearchInfo info = iterativeDeeping(board, tm);
+        Undo undo;
+
+        // check that best move capture
+        int isNotGoodPosition = MoveType(info.bestMove) == NORMAL_MOVE && board->squares[MoveTo(info.bestMove)]
+            || MoveType(info.bestMove) == ENPASSANT_MOVE
+            || MoveType(info.bestMove) == PROMOTION_MOVE;
+
+        makeMove(board, info.bestMove, &undo);
+
+        if (inCheck(board, !board->color)) {
+            unmakeMove(board, info.bestMove, &undo);
+            printf("Illegal move\n");
+        }
+
+        if (isDraw(board)) {
+            printf("Draw\n");
+            return;
+        }
+
+        if (isNotGoodPosition) {
+            continue;
+        }
+
+        char fen[256];
+        getFen(board, fen);
+
+        fprintf(file, "%s,%d\n", fen, info.eval);
+    }
+}
+
+void createDataset(Board* board) {
+    NNUE_ENABLED = 0;
+    SHOULD_HIDE_SEARCH_INFO_LOGS = 1;
+    FILE* file = fopen("new-dataset.csv", "w");
+
+    for(int i = 0; i < 1; ++i) {
+        runGame(board, file);
+    }
+
+    fclose(file);
+}
