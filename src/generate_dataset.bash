@@ -5,8 +5,8 @@ logs_dir="logs"
 
 mkdir -p "$train_data_dir" "$logs_dir"
 
-gamesCount=12
-threads=10
+gamesCount=60000
+threads=12
 gamesPerThread=$((gamesCount / threads))
 
 for ((i=1; i<=threads; i++)); do
@@ -19,7 +19,7 @@ for ((i=1; i<=threads; i++)); do
   seed=$((RANDOM))
   echo "Seed: $seed"
 
-  ./zevra --generate-dataset $gamesPerThread $seed $file_name > log_file &
+  ./zevra --generate-dataset $gamesPerThread $seed $file_name $log_file > output.txt &
 done
 
 wait

@@ -132,6 +132,7 @@ void setMovesRange(Board* board, char* moves) {
 void clearBoard(Board* board) {
     GameInfo* gameInfo = board->gameInfo;
     memset(board, 0, sizeof(*board));
+    memset(gameInfo, 0, sizeof(*gameInfo));
     board->gameInfo = gameInfo;
     board->enpassantSquare = 0;
     board->eval = 0;
@@ -380,6 +381,10 @@ int inCheck(Board* board, int color) {
 }
 
 void addMoveToHist(Board* board) {
+  if(board->gameInfo->moveCount >= 1000) {
+        printf("History: %d\n", board->gameInfo->moveCount);
+    }
+
     board->gameInfo->moveHistory[board->gameInfo->moveCount] = board->key;
     ++board->gameInfo->moveCount;
 }

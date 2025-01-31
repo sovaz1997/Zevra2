@@ -363,7 +363,8 @@ void runGame(Board* board, FILE* file) {
         // check that best move capture
         int isNotGoodPosition = MoveType(info.bestMove) == NORMAL_MOVE && board->squares[MoveTo(info.bestMove)]
             || MoveType(info.bestMove) == ENPASSANT_MOVE
-            || MoveType(info.bestMove) == PROMOTION_MOVE;
+            || MoveType(info.bestMove) == PROMOTION_MOVE
+            || mateScore(info.eval);
 
         makeMove(board, info.bestMove, &undo);
 
@@ -384,22 +385,33 @@ void runGame(Board* board, FILE* file) {
         char fen[256];
         getFen(board, fen);
 
-        fprintf(file, "%s,%d\n", fen, info.eval);
+
+        int turn = board->color == WHITE ? 1 : -1;
+        fprintf(file, "%s,%d\n", fen, info.eval * turn);
         printf("Positions writed: %d\n", ++fensWrited);
     }
 }
 
-void createDataset(Board* board, int gamesCount, int seed, char* fileName) {
+void createDataset(Board* board, int gamesCount, int seed, char* fileName, char* logFile) {
     NNUE_ENABLED = 0;
     SHOULD_HIDE_SEARCH_INFO_LOGS = 1;
     FILE* file = fopen(fileName, "w");
+
+    FILE* log = fopen(logFile, "w");
 
     srand(seed);
 
     for(int i = 0; i < gamesCount; ++i) {
         runGame(board, file);
+
+            fprintf(log, "Games played: %d; positions writed: %d; Progress: %.2f%%\n",
+                  i,
+                  fensWrited,
+                    (double)i / gamesCount * 100);
+            fflush(log);
     }
 
     fclose(file);
+    fclose(log);
     exit(0);
 }
