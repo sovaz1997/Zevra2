@@ -44,12 +44,13 @@ int main(int argc, char** argv) {
 
 
 
-    if (argc > 4) {
+    if (argc > 3) {
         if (strEquals(argv[1], "--generate-dataset")) {
-          printf("Generating dataset...\n");
-          SHOULD_HIDE_SEARCH_INFO_LOGS = 1;
-          NNUE_ENABLED = 0;
-          genDataset(board, atoi(argv[2]), atoi(argv[3]), argv[4]);
+          // printf("Generating dataset...\n");
+          // SHOULD_HIDE_SEARCH_INFO_LOGS = 1;
+          // NNUE_ENABLED = 0;
+          // genDataset(board, atoi(argv[2]), atoi(argv[3]), argv[4]);
+          createDataset(board, atoi(argv[2]), atoi(argv[3]), argv[4]);
         }
     }
 
@@ -184,8 +185,6 @@ int main(int argc, char** argv) {
                     printf("info string hash cleared\n");
                 }
             }
-        } else if(strEquals(cmd, "gen") && SEARCH_COMPLETE) {
-            createDataset(board);
         }
 
         if(makeSearch) {

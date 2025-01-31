@@ -335,6 +335,8 @@ void makeRandomMove(Board* board) {
     }
 }
 
+int fensWrited = 0;
+
 void runGame(Board* board, FILE* file) {
     setFen(board, startpos);
 
@@ -383,17 +385,21 @@ void runGame(Board* board, FILE* file) {
         getFen(board, fen);
 
         fprintf(file, "%s,%d\n", fen, info.eval);
+        printf("Positions writed: %d\n", ++fensWrited);
     }
 }
 
-void createDataset(Board* board) {
+void createDataset(Board* board, int gamesCount, int seed, char* fileName) {
     NNUE_ENABLED = 0;
     SHOULD_HIDE_SEARCH_INFO_LOGS = 1;
-    FILE* file = fopen("new-dataset.csv", "w");
+    FILE* file = fopen(fileName, "w");
 
-    for(int i = 0; i < 1; ++i) {
+    srand(seed);
+
+    for(int i = 0; i < gamesCount; ++i) {
         runGame(board, file);
     }
 
     fclose(file);
+    exit(0);
 }

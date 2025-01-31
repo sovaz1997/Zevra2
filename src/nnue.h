@@ -37,7 +37,7 @@ void genDataset(Board* board, int from, int to, char* filename);
 void checkAndSavePositionToDataset(Board* board, TimeManager tm, FILE* file);
 int saveQuiet(Board* board, TimeManager tm, FILE* file, char* fen);
 
-void createDataset(Board* board);
+void createDataset(Board* board, int gamesCount, int seed, char* fileName);
 void runGame(Board* board, FILE* file);
 void makeRandomMove(Board* board);
 int getMovesCount(Board* board);
