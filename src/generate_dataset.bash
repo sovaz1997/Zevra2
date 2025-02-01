@@ -1,12 +1,12 @@
 #!/bin/bash
 
-train_data_dir="dataset"
+train_data_dir="marked-dataset-1"
 logs_dir="logs"
 
 mkdir -p "$train_data_dir" "$logs_dir"
 
-gamesCount=10000000
-threads=12
+gamesCount=100
+threads=10
 gamesPerThread=$((gamesCount / threads))
 
 for ((i=1; i<=threads; i++)); do
