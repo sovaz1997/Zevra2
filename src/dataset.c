@@ -158,3 +158,11 @@ void createDataset(Board* board, int gamesCount, int seed, char* fileName, char*
     fclose(log);
     exit(0);
 }
+
+TimeManager createFixNodesTm(int nodes) {
+    TimeManager tm = initTM();
+    tm.nodes = nodes;
+    tm.depth = 100;
+    tm.searchType = FixedNodes;
+    return tm;
+}

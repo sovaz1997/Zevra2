@@ -32,14 +32,5 @@ void recalculateEval(NNUE* nnue);
 void initNNUEPosition(NNUE* nnue, Board* board);
 void loadNNUEWeights();
 void debug_nnue_calculation(struct NNUE *nnue);
-TimeManager createFixNodesTm(int nodes);
-void genDataset(Board* board, int from, int to, char* filename);
-void checkAndSavePositionToDataset(Board* board, TimeManager tm, FILE* file);
-int saveQuiet(Board* board, TimeManager tm, FILE* file, char* fen);
-
-//void createDataset(Board* board, int gamesCount, int seed, char* fileName, char* logFile);
-//void runGame(Board* board, FILE* file);
-//void makeRandomMove(Board* board);
-//int getMovesCount(Board* board);
 
 #endif

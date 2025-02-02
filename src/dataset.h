@@ -16,6 +16,8 @@ typedef struct {
 
 Game game;
 
+TimeManager createFixNodesTm(int nodes);
+
 void resetGame(Game* game);
 void addPosition(Game* game, char* fen, int eval);
 void saveGameToFile(Game* game, FILE* file, double gameResult);
