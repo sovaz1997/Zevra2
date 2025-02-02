@@ -182,7 +182,8 @@ void setPiece(Board* board, int piece, int color, int sq) {
     board->key ^= zobristKeys[board->squares[sq]][sq];
 
     if (NNUE_ENABLED) {
-        setNNUEInput(nnue, getInputIndexOf(color, piece, sq));
+        setDirectNNUEInput(nnue, getInputIndexOf(color, piece, sq));
+        setPerspectiveNNUEInput(nnue, getInputIndexOf(!color, piece, sq ^ PERSPECTIVE_MASK));
     }
 }
 
@@ -199,8 +200,10 @@ void clearPiece(Board* board, int sq) {
     clearBit(&board->colours[color], sq);
     board->squares[sq] = 0;
 
-    resetNNUEInput(nnue, getInputIndexOf(color, type, sq));
-
+    if (NNUE_ENABLED) {
+        resetDirectNNUEInput(nnue, getInputIndexOf(color, type, sq));
+        resetPerspectiveNNUEInput(nnue, getInputIndexOf(!color, type, sq ^ PERSPECTIVE_MASK));
+    }
 }
 
 void movePiece(Board* board, int sq1, int sq2) {
