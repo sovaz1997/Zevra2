@@ -51,7 +51,7 @@ void recalculateEval(NNUE* nnue, int color) {
     sum_vec_low = vdupq_n_s32(0);
     sum_vec_high = vdupq_n_s32(0);
 
-    shift = color == WHITE ? 0 : INNER_LAYER_COUNT;
+    shift = color == WHITE ? INNER_LAYER_COUNT : 0;
 
     for (int i = 0; i < INNER_LAYER_COUNT; i += 8) {
         int32x4_t acc_vec_low = vld1q_s32(&nnue->accumulators_perspective[i]);
