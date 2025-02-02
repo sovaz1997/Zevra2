@@ -18,8 +18,8 @@ struct NNUE {
     S32 weights_1_perspective_quantized[INPUTS_COUNT][INNER_LAYER_COUNT];
     double weights_2[2 * INNER_LAYER_COUNT];
     S32 weights_2_quantized[2 * INNER_LAYER_COUNT];
-    S32 accumulators[INNER_LAYER_COUNT];
-    S32 accumulators_perspective[INNER_LAYER_COUNT];
+    double accumulators[INNER_LAYER_COUNT];
+    double accumulators_perspective[INNER_LAYER_COUNT];
     double eval;
 };
 
@@ -39,7 +39,7 @@ void recalculateEval(NNUE* nnue, int color);
 void initNNUEPosition(NNUE* nnue, Board* board);
 void loadNNUEWeights();
 void debug_nnue_calculation(struct NNUE *nnue);
-void resetNNUEInput(S16* inputs, S32* accumulators, S32 (*weights)[INNER_LAYER_COUNT], int index);
-void setNNUEInput(S16* inputs, S32* accumulators, S32 (*weights)[INNER_LAYER_COUNT], int index);
+void resetNNUEInput(S16* inputs, double* accumulators, double (*weights)[INPUTS_COUNT], int index);
+void setNNUEInput(S16* inputs, double* accumulators, double (*weights)[INPUTS_COUNT], int index);
 
 #endif

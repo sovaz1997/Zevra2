@@ -57,7 +57,7 @@ int fullEval(Board *board) {
             eval = -MATE_LIMIT;
         }
 
-        return eval;
+        return board->color == WHITE ? eval : -eval;
     }
     int eval = board->eval;
     stage = stageGame(board);

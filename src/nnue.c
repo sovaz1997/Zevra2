@@ -22,117 +22,166 @@ double ReLU(double x) {
 }
 
 void recalculateEval(NNUE* nnue, int color) {
-    int32x4_t sum_vec_low = vdupq_n_s32(0);
-    int32x4_t sum_vec_high = vdupq_n_s32(0);
-
     int shift = color == WHITE ? 0 : INNER_LAYER_COUNT;
+    double sum = 0;
 
-    for (int i = 0; i < INNER_LAYER_COUNT; i += 8) {
-        int32x4_t acc_vec_low = vld1q_s32(&nnue->accumulators[i]);
-        int32x4_t acc_vec_high = vld1q_s32(&nnue->accumulators[i + 4]);
-
-        int32x4_t w2_vec_low = vld1q_s32(&nnue->weights_2_quantized[shift + i]);
-        int32x4_t w2_vec_high = vld1q_s32(&nnue->weights_2_quantized[shift + i + 4]);
-
-        acc_vec_low = vmaxq_s32(acc_vec_low, vdupq_n_s32(0));
-        acc_vec_high = vmaxq_s32(acc_vec_high, vdupq_n_s32(0));
-
-        sum_vec_low = vmlaq_s32(sum_vec_low, acc_vec_low, w2_vec_low);
-        sum_vec_high = vmlaq_s32(sum_vec_high, acc_vec_high, w2_vec_high);
+    for (int i = 0; i < INNER_LAYER_COUNT; i++) {
+        double acc = nnue->accumulators[i];
+        double w2 = nnue->weights_2[shift + i];
+        sum += (ReLU(acc) * w2);
     }
-
-    nnue->eval = sum_vec_low[0] + sum_vec_low[1] + sum_vec_low[2] + sum_vec_low[3] +
-                     sum_vec_high[0] + sum_vec_high[1] + sum_vec_high[2] + sum_vec_high[3];
-
 
     // part 2
 
+    shift = color == WHITE ? INNER_LAYER_COUNT : 0;
 
-    sum_vec_low = vdupq_n_s32(0);
-    sum_vec_high = vdupq_n_s32(0);
-
-    shift = color == WHITE ? 0 : INNER_LAYER_COUNT;
-
-    for (int i = 0; i < INNER_LAYER_COUNT; i += 8) {
-        int32x4_t acc_vec_low = vld1q_s32(&nnue->accumulators_perspective[i]);
-        int32x4_t acc_vec_high = vld1q_s32(&nnue->accumulators_perspective[i + 4]);
-
-        int32x4_t w2_vec_low = vld1q_s32(&nnue->weights_2_quantized[i + shift]);
-        int32x4_t w2_vec_high = vld1q_s32(&nnue->weights_2_quantized[i + shift + 4]);
-
-        acc_vec_low = vmaxq_s32(acc_vec_low, vdupq_n_s32(0));
-        acc_vec_high = vmaxq_s32(acc_vec_high, vdupq_n_s32(0));
-
-        sum_vec_low = vmlaq_s32(sum_vec_low, acc_vec_low, w2_vec_low);
-        sum_vec_high = vmlaq_s32(sum_vec_high, acc_vec_high, w2_vec_high);
+    for (int i = 0; i < INNER_LAYER_COUNT; i++) {
+        double acc = nnue->accumulators_perspective[i];
+        double w2 = nnue->weights_2[shift + i];
+        sum += ReLU(acc) * w2;
     }
 
-    int32_t result = sum_vec_low[0] + sum_vec_low[1] + sum_vec_low[2] + sum_vec_low[3] +
-                     sum_vec_high[0] + sum_vec_high[1] + sum_vec_high[2] + sum_vec_high[3];
-
-    nnue->eval += result;
-    nnue->eval = nnue->eval / QA * SCALE / QB;
-    nnue->eval = color == WHITE ? nnue->eval : -nnue->eval;
+    nnue->eval = sum;
+    nnue->eval *= SCALE;
 }
 
-void setNNUEInput(S16* inputs, S32* accumulators, S32 (*weights)[INNER_LAYER_COUNT], int index) {
+//
+//void recalculateEval(NNUE* nnue, int color) {
+//    int32x4_t sum_vec_low = vdupq_n_s32(0);
+//    int32x4_t sum_vec_high = vdupq_n_s32(0);
+//
+//    int shift = color == WHITE ? 0 : INNER_LAYER_COUNT;
+//
+//    for (int i = 0; i < INNER_LAYER_COUNT; i += 8) {
+//        int32x4_t acc_vec_low = vld1q_s32(&nnue->accumulators[i]);
+//        int32x4_t acc_vec_high = vld1q_s32(&nnue->accumulators[i + 4]);
+//
+//        int32x4_t w2_vec_low = vld1q_s32(&nnue->weights_2_quantized[shift + i]);
+//        int32x4_t w2_vec_high = vld1q_s32(&nnue->weights_2_quantized[shift + i + 4]);
+//
+//        acc_vec_low = vmaxq_s32(acc_vec_low, vdupq_n_s32(0));
+//        acc_vec_high = vmaxq_s32(acc_vec_high, vdupq_n_s32(0));
+//
+//        sum_vec_low = vmlaq_s32(sum_vec_low, acc_vec_low, w2_vec_low);
+//        sum_vec_high = vmlaq_s32(sum_vec_high, acc_vec_high, w2_vec_high);
+//    }
+//
+//    nnue->eval = sum_vec_low[0] + sum_vec_low[1] + sum_vec_low[2] + sum_vec_low[3] +
+//                     sum_vec_high[0] + sum_vec_high[1] + sum_vec_high[2] + sum_vec_high[3];
+//
+//
+//    // part 2
+//
+//
+//    sum_vec_low = vdupq_n_s32(0);
+//    sum_vec_high = vdupq_n_s32(0);
+//
+//    shift = color == WHITE ? 0 : INNER_LAYER_COUNT;
+//
+//    for (int i = 0; i < INNER_LAYER_COUNT; i += 8) {
+//        int32x4_t acc_vec_low = vld1q_s32(&nnue->accumulators_perspective[i]);
+//        int32x4_t acc_vec_high = vld1q_s32(&nnue->accumulators_perspective[i + 4]);
+//
+//        int32x4_t w2_vec_low = vld1q_s32(&nnue->weights_2_quantized[i + shift]);
+//        int32x4_t w2_vec_high = vld1q_s32(&nnue->weights_2_quantized[i + shift + 4]);
+//
+//        acc_vec_low = vmaxq_s32(acc_vec_low, vdupq_n_s32(0));
+//        acc_vec_high = vmaxq_s32(acc_vec_high, vdupq_n_s32(0));
+//
+//        sum_vec_low = vmlaq_s32(sum_vec_low, acc_vec_low, w2_vec_low);
+//        sum_vec_high = vmlaq_s32(sum_vec_high, acc_vec_high, w2_vec_high);
+//    }
+//
+//    int32_t result = sum_vec_low[0] + sum_vec_low[1] + sum_vec_low[2] + sum_vec_low[3] +
+//                     sum_vec_high[0] + sum_vec_high[1] + sum_vec_high[2] + sum_vec_high[3];
+//
+//    nnue->eval += result;
+//    nnue->eval = nnue->eval / QA * SCALE / QB;
+//    nnue->eval = color == WHITE ? nnue->eval : -nnue->eval;
+//}
+
+void setNNUEInput(S16* inputs, double* accumulators, double (*weights)[INPUTS_COUNT], int index) {
     if (inputs[index] == 1) {
         return;
     }
 
     inputs[index] = 1;
 
-    for (int i = 0; i < INNER_LAYER_COUNT; i += 8) {
-        int32x4_t acc_vec_low = vld1q_s32(&accumulators[i]);
-        int32x4_t acc_vec_high = vld1q_s32(&accumulators[i + 4]);
-
-        int32x4_t w1_vec_low = vld1q_s32(&weights[index][i]);
-        int32x4_t w1_vec_high = vld1q_s32(&weights[index][i + 4]);
-
-        acc_vec_low = vaddq_s32(acc_vec_low, w1_vec_low);
-        acc_vec_high = vaddq_s32(acc_vec_high, w1_vec_high);
-
-        vst1q_s32(&accumulators[i], acc_vec_low);
-        vst1q_s32(&accumulators[i + 4], acc_vec_high);
+    for (int i = 0; i < INNER_LAYER_COUNT; i++) {
+        accumulators[i] += weights[i][index];
     }
 }
 
-void resetNNUEInput(S16* inputs, S32* accumulators, S32 (*weights)[INNER_LAYER_COUNT], int index) {
-  	if (inputs[index] == 0) {
+//void setNNUEInput(S16* inputs, S32* accumulators, S32 (*weights)[INNER_LAYER_COUNT], int index) {
+//    if (inputs[index] == 1) {
+//        return;
+//    }
+//
+//    inputs[index] = 1;
+//
+//    for (int i = 0; i < INNER_LAYER_COUNT; i += 8) {
+//        int32x4_t acc_vec_low = vld1q_s32(&accumulators[i]);
+//        int32x4_t acc_vec_high = vld1q_s32(&accumulators[i + 4]);
+//
+//        int32x4_t w1_vec_low = vld1q_s32(&weights[index][i]);
+//        int32x4_t w1_vec_high = vld1q_s32(&weights[index][i + 4]);
+//
+//        acc_vec_low = vaddq_s32(acc_vec_low, w1_vec_low);
+//        acc_vec_high = vaddq_s32(acc_vec_high, w1_vec_high);
+//
+//        vst1q_s32(&accumulators[i], acc_vec_low);
+//        vst1q_s32(&accumulators[i + 4], acc_vec_high);
+//    }
+//}
+
+//void resetNNUEInput(S16* inputs, S32* accumulators, S32 (*weights)[INNER_LAYER_COUNT], int index) {
+//  	if (inputs[index] == 0) {
+//        return;
+//    }
+//
+//    inputs[index] = 0;
+//
+//    for (int i = 0; i < INNER_LAYER_COUNT; i += 8) {
+//        int32x4_t acc_vec_low = vld1q_s32(&accumulators[i]);
+//        int32x4_t acc_vec_high = vld1q_s32(&accumulators[i + 4]);
+//
+//        int32x4_t w1_vec_low = vld1q_s32(&weights[index][i]);
+//        int32x4_t w1_vec_high = vld1q_s32(&weights[index][i + 4]);
+//
+//        acc_vec_low = vsubq_s32(acc_vec_low, w1_vec_low);
+//        acc_vec_high = vsubq_s32(acc_vec_high, w1_vec_high);
+//
+//        vst1q_s32(&accumulators[i], acc_vec_low);
+//        vst1q_s32(&accumulators[i + 4], acc_vec_high);
+//    }
+//}
+
+void resetNNUEInput(S16* inputs, double* accumulators, double (*weights)[INPUTS_COUNT], int index) {
+    if (inputs[index] == 0) {
         return;
     }
 
     inputs[index] = 0;
 
-    for (int i = 0; i < INNER_LAYER_COUNT; i += 8) {
-        int32x4_t acc_vec_low = vld1q_s32(&accumulators[i]);
-        int32x4_t acc_vec_high = vld1q_s32(&accumulators[i + 4]);
-
-        int32x4_t w1_vec_low = vld1q_s32(&weights[index][i]);
-        int32x4_t w1_vec_high = vld1q_s32(&weights[index][i + 4]);
-
-        acc_vec_low = vsubq_s32(acc_vec_low, w1_vec_low);
-        acc_vec_high = vsubq_s32(acc_vec_high, w1_vec_high);
-
-        vst1q_s32(&accumulators[i], acc_vec_low);
-        vst1q_s32(&accumulators[i + 4], acc_vec_high);
+    for (int i = 0; i < INNER_LAYER_COUNT; i++) {
+        accumulators[i] -= weights[i][index];
     }
 }
 
 void setDirectNNUEInput(NNUE* nnue, int index) {
-  setNNUEInput(nnue->inputs, nnue->accumulators, nnue->weights_1_quantized, index);
+  setNNUEInput(nnue->inputs, nnue->accumulators, nnue->weights_1, index);
 }
 
 void resetDirectNNUEInput(NNUE* nnue, int index) {
-  resetNNUEInput(nnue->inputs, nnue->accumulators, nnue->weights_1_quantized, index);
+  resetNNUEInput(nnue->inputs, nnue->accumulators, nnue->weights_1, index);
 }
 
 void setPerspectiveNNUEInput(NNUE* nnue, int index) {
-  setNNUEInput(nnue->inputs_perspective, nnue->accumulators_perspective, nnue->weights_1_perspective_quantized, index);
+  setNNUEInput(nnue->inputs_perspective, nnue->accumulators_perspective, nnue->weights_1_perspective, index);
 }
 
 void resetPerspectiveNNUEInput(NNUE* nnue, int index) {
-  resetNNUEInput(nnue->inputs_perspective, nnue->accumulators_perspective, nnue->weights_1_perspective_quantized, index);
+  resetNNUEInput(nnue->inputs_perspective, nnue->accumulators_perspective, nnue->weights_1_perspective, index);
 }
 
 void resetNNUE(NNUE* nnue) {
