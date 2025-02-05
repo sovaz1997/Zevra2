@@ -113,7 +113,6 @@ int search(Board *board, SearchInfo *searchInfo, int alpha, int beta, int depth,
     int pvNode = (beta - alpha > 1);
 
     if (root) {
-      srand(time(0));
       for (int i = 0; i < 256; i++) {
         temperatureOffsets[i] = temperature == 0 ? 0 : rand() % temperature;
       }

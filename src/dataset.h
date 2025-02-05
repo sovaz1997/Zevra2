@@ -16,6 +16,9 @@ typedef struct {
 
 Game game;
 
+char fen_for_save[256];
+U16 moveList[256];
+
 TimeManager createFixNodesTm(int nodes);
 
 void resetGame(Game* game);

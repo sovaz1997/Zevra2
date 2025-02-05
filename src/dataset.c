@@ -70,6 +70,8 @@ void makeRandomMove(Board* board) {
     }
 }
 
+
+
 void runGame(Board* board, FILE* file) {
     setFen(board, startpos);
     resetGame(&game);
@@ -79,8 +81,7 @@ void runGame(Board* board, FILE* file) {
         makeRandomMove(board);
     }
 
-    TimeManager tm = createFixNodesTm(1000);
-    U16 moveList[256];
+    TimeManager tm = createFixNodesTm(5000);
 
     while(1) {
         movegen(board, moveList);
@@ -127,16 +128,16 @@ void runGame(Board* board, FILE* file) {
             continue;
         }
 
-        char fen[256];
-        getFen(board, fen);
 
-        addPosition(&game, fen, info.eval * turn);
+        getFen(board, fen_for_save);
+
+        addPosition(&game, fen_for_save, info.eval * turn);
         printf("Positions writed: %d\n", ++fensWrited);
     }
 }
 
 void createDataset(Board* board, int gamesCount, int seed, char* fileName, char* logFile) {
-    temperature = 100;
+    temperature = 0;
     // NNUE_ENABLED = 0;
     SHOULD_HIDE_SEARCH_INFO_LOGS = 1;
     FILE* file = fopen(fileName, "w");

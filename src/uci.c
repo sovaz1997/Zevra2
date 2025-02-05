@@ -13,6 +13,7 @@ int main(int argc, char** argv) {
     nnue = (NNUE*) malloc(sizeof(NNUE));
     initOption();
     initEngine();
+    srand(time(NULL));
 
     Board* board = (Board*) malloc(sizeof(Board));
 
