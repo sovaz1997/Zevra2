@@ -9,11 +9,15 @@
 extern int SHOULD_GENERATE_DATASET;
 extern int NNUE_ENABLED;
 extern int SHOULD_HIDE_SEARCH_INFO_LOGS;
+int temperature;
 
 struct Option {
     int defaultHashSize;
     int minHashSize;
     int maxHashSize;
+    int defaultTemperature;
+    int minTemperature;
+    int maxTemperature;
 };
 
 extern char startpos[];

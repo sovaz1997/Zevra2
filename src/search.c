@@ -112,6 +112,13 @@ int search(Board *board, SearchInfo *searchInfo, int alpha, int beta, int depth,
     int root = (height ? 0 : 1);
     int pvNode = (beta - alpha > 1);
 
+    if (root) {
+      srand(time(0));
+      for (int i = 0; i < 256; i++) {
+        temperatureOffsets[i] = temperature == 0 ? 0 : rand() % temperature;
+      }
+    }
+
     if ((isDraw(board) && !root) || ABORT)
         return 0;
 
@@ -193,10 +200,13 @@ int search(Board *board, SearchInfo *searchInfo, int alpha, int beta, int depth,
     searchInfo->killer[height + 1][1] = 0;
 
     while (*curMove) {
+        int bonus = mateScore(alpha) || !root ? 0 : temperatureOffsets[pseudoMovesCount];
+
         int nextDepth = depth - 1;
         movePick(pseudoMovesCount, height);
         ++pseudoMovesCount;
         makeMove(board, *curMove, &undo);
+
 
         if (inCheck(board, !board->color)) {
             unmakeMove(board, *curMove, &undo);
@@ -236,17 +246,17 @@ int search(Board *board, SearchInfo *searchInfo, int alpha, int beta, int depth,
 
         int eval;
         if (movesCount == 1) {
-            eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
+            eval = -search(board, searchInfo, -beta + bonus, -alpha + bonus, nextDepth + extensions, height + 1) - bonus;
         } else {
             if (LmrPruningAllow && playedMovesCount >= 3 && quiteMove) {
-                eval = -search(board, searchInfo, -alpha - 1, -alpha, nextDepth + extensions - reductions, height + 1);
+                eval = -search(board, searchInfo, -alpha - 1 + bonus, -alpha + bonus, nextDepth + extensions - reductions, height + 1) - bonus;
                 if (eval > alpha)
-                    eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
+                    eval = -search(board, searchInfo, -beta + bonus, -alpha + bonus, nextDepth + extensions, height + 1) - bonus;
             } else {
-                eval = -search(board, searchInfo, -alpha - 1, -alpha, nextDepth + extensions, height + 1);
+                eval = -search(board, searchInfo, -alpha - 1 + bonus, -alpha + bonus, nextDepth + extensions, height + 1) - bonus;
 
                 if (eval > alpha && eval < beta)
-                    eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
+                    eval = -search(board, searchInfo, -beta + bonus, -alpha + bonus, nextDepth + extensions, height + 1) - bonus;
             }
         }
         unmakeMove(board, *curMove, &undo);

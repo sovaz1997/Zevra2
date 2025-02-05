@@ -79,7 +79,7 @@ void runGame(Board* board, FILE* file) {
         makeRandomMove(board);
     }
 
-    TimeManager tm = createFixNodesTm(5000);
+    TimeManager tm = createFixNodesTm(1000);
     U16 moveList[256];
 
     while(1) {
@@ -136,7 +136,8 @@ void runGame(Board* board, FILE* file) {
 }
 
 void createDataset(Board* board, int gamesCount, int seed, char* fileName, char* logFile) {
-    NNUE_ENABLED = 0;
+    temperature = 100;
+    // NNUE_ENABLED = 0;
     SHOULD_HIDE_SEARCH_INFO_LOGS = 1;
     FILE* file = fopen(fileName, "w");
 

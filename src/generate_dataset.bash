@@ -1,11 +1,11 @@
 #!/bin/bash
 
-train_data_dir="marked-dataset-2"
+train_data_dir="self-play-dataset-gen005-1000nodes"
 logs_dir="logs"
 
 mkdir -p "$train_data_dir" "$logs_dir"
 
-gamesCount=2500000
+gamesCount=400000
 threads=10
 gamesPerThread=$((gamesCount / threads))
 

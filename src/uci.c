@@ -39,6 +39,7 @@ int main(int argc, char** argv) {
     gameInfo.moveCount = 0;
     board->gameInfo = &gameInfo;
     SEARCH_COMPLETE = 1;
+    temperature = option.defaultTemperature;
 
     setFen(board, startpos);
 
@@ -161,6 +162,7 @@ int main(int argc, char** argv) {
         } else if(strEquals(cmd, "uci") && SEARCH_COMPLETE) {
             printEngineInfo();
             printf("option name Hash type spin default %d min %d max %d\n", option.defaultHashSize, option.minHashSize, option.maxHashSize);
+            printf("option name Temperature type spin default %d min %d max %d\n", option.defaultTemperature, option.minTemperature, option.maxTemperature);
             printf("option name Clear Hash type button\n");
             printf("uciok\n");
         } else if(strEquals(cmd, "eval") && SEARCH_COMPLETE) {
@@ -184,6 +186,11 @@ int main(int argc, char** argv) {
                 } else if(strStartsWith(name, "Clear Hash")) {
                     clearTT();
                     printf("info string hash cleared\n");
+                } else if(strStartsWith(name, "Temperature")) {
+                    temperature = atoi(value);
+                    temperature = max(temperature, option.minTemperature);
+                    temperature = min(temperature, option.maxTemperature);
+                    printf("info string temperature changed to %d\n", temperature);
                 }
             }
         }
@@ -318,6 +325,10 @@ void initOption() {
     option.defaultHashSize = 256;
     option.minHashSize = 1;
     option.maxHashSize = 65536;
+    option.defaultTemperature = 0;
+    option.minTemperature = 0;
+    option.maxTemperature = 100;
+    temperature = option.defaultTemperature;
 }
 
 int strEquals(char* str1, char* str2) {
