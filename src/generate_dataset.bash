@@ -1,12 +1,12 @@
 #!/bin/bash
 
-train_data_dir="self-play-dataset-gen005-again"
+train_data_dir="self-play-dataset-gen007"
 logs_dir="logs"
 
 mkdir -p "$train_data_dir" "$logs_dir"
 
-gamesCount=360000
-threads=10
+gamesCount=1100000
+threads=5
 gamesPerThread=$((gamesCount / threads))
 
 for ((i=1; i<=threads; i++)); do

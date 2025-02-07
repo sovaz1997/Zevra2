@@ -8,6 +8,7 @@
 int QA = 255;
 int QB = 64;
 int SCALE = 400;
+double EXTRA_SCALE = 0.4;
 
 int isExists(Board* board, int color, int piece, int sq) {
     return !!(board->pieces[piece] & board->colours[color] & bitboardCell(sq));
@@ -71,7 +72,7 @@ void recalculateEval(NNUE* nnue, int color) {
                      sum_vec_high[0] + sum_vec_high[1] + sum_vec_high[2] + sum_vec_high[3];
 
     nnue->eval += result;
-    nnue->eval = nnue->eval / QA * SCALE / QB;
+    nnue->eval = nnue->eval / QA * SCALE / QB * EXTRA_SCALE;
     nnue->eval = color == WHITE ? nnue->eval : -nnue->eval;
 }
 
