@@ -29,6 +29,7 @@ void clearTT() {
 }
 
 void replaceTranspositionEntry(Transposition* addr, Transposition* newEntry, U64 key) {
+    return;
     int shouldReplace = 0;
 
     if(addr->age + 5 < ttAge || !addr->evalType) {

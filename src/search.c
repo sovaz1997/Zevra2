@@ -172,14 +172,14 @@ int search(Board *board, SearchInfo *searchInfo, int alpha, int beta, int depth,
 
     if (!pvNode && !weInCheck && !havePromotionPawn(board)) {
         //Reverse futility pruning
-        #if ENABLE_RAZORING
+        #if ENABLE_REVERSE_FUTILITY_PRUNING
         if (depth <= 7 &&
             staticEval - ReverseFutilityStep * depth > beta)
         	return staticEval;
         #endif
 
     	//Razoring
-        #if ENABLE_REVERSE_FUTILITY_PRUNING
+        #if ENABLE_RAZORING
     	if (depth <= 7 && staticEval + RazorMargin * depth < alpha)
         	return quiesceSearch(board, searchInfo, alpha, beta, height);
         #endif

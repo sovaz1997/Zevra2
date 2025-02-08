@@ -56,7 +56,7 @@ int lmr[MAX_PLY][64];
 static const int LmrPruningAllow = 1;
 
 #define ENABLE_REVERSE_FUTILITY_PRUNING 1
-#define ENABLE_RAZORING 1
+#define ENABLE_RAZORING 0
 #define ENABLE_NULL_MOVE_PRUNING 1
 #define ENABLE_FUTILITY_PRUNING 1
 
