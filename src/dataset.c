@@ -190,7 +190,7 @@ void createDatasetForMaterial(Board* board, char* positionsPath, char* datasetPa
 
         int stage = stageGame(board);
 
-        fprintf(datasetFile, "%d,%d,%d,%d,%d,%d\n", pawnsDifference, knightsDifference, bishopsDifference, rooksDifference, queensDifference, eval);
+        fprintf(datasetFile, "%d,%d,%d,%d,%d,%d,%d\n", pawnsDifference, knightsDifference, bishopsDifference, rooksDifference, queensDifference, stage, eval);
         if (processed % 100000 == 0) {
             printf("Processed positions: %d\n", processed);
         }

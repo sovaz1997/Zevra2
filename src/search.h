@@ -42,7 +42,7 @@ enum {
     exact = 3
 };
 
-static const int FutilityStep = 50;
+static const int FutilityStep = 150;
 static const int ReverseFutilityStep = 90;
 static const int RazorMargin = 250;
 

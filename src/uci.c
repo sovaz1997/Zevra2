@@ -59,7 +59,7 @@ int main(int argc, char** argv) {
     }
 
 
-    createDatasetForMaterial(board, "1.csv", "material-dataset.csv");
+    // createDatasetForMaterial(board, "1.csv", "material-dataset.csv");
 
 //    if (SHOULD_GENERATE_DATASET) {
 //        SHOULD_HIDE_SEARCH_INFO_LOGS = 1;
