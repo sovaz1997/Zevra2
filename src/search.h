@@ -44,7 +44,7 @@ enum {
 
 static const int FutilityStep = 150;
 static const int ReverseFutilityStep = 90;
-static const int RazorMargin = 250;
+static const int RazorMargin = 400;
 
 U16 moves[MAX_PLY][256];
 U8 temperatureOffsets[256];
@@ -56,7 +56,7 @@ int lmr[MAX_PLY][64];
 static const int LmrPruningAllow = 1;
 
 #define ENABLE_REVERSE_FUTILITY_PRUNING 1
-#define ENABLE_RAZORING 0
+#define ENABLE_RAZORING 1
 #define ENABLE_NULL_MOVE_PRUNING 1
 #define ENABLE_FUTILITY_PRUNING 1
 
