@@ -168,3 +168,35 @@ TimeManager createFixNodesTm(int nodes) {
     tm.searchType = FixedNodes;
     return tm;
 }
+
+void createDatasetForMaterial(Board* board, char* positionsPath, char* datasetPath) {
+    FILE* positionsFile = fopen(positionsPath, "r");
+    FILE* datasetFile = fopen(datasetPath, "w");
+    int processed = 0;
+
+    char buff[1024];
+    while (fgets(buff, 256, positionsFile)) {
+        char* fen = strtok(buff, ",");
+        setFen(board, fen);
+
+        int eval = fullEval(board);
+        eval = board->color == WHITE ? eval : -eval;
+
+        int pawnsDifference = popcount(board->pieces[PAWN] & board->colours[WHITE]) - popcount(board->pieces[PAWN] & board->colours[BLACK]);
+        int knightsDifference = popcount(board->pieces[KNIGHT] & board->colours[WHITE]) - popcount(board->pieces[KNIGHT] & board->colours[BLACK]);
+        int bishopsDifference = popcount(board->pieces[BISHOP] & board->colours[WHITE]) - popcount(board->pieces[BISHOP] & board->colours[BLACK]);
+        int rooksDifference = popcount(board->pieces[ROOK] & board->colours[WHITE]) - popcount(board->pieces[ROOK] & board->colours[BLACK]);
+        int queensDifference = popcount(board->pieces[QUEEN] & board->colours[WHITE]) - popcount(board->pieces[QUEEN] & board->colours[BLACK]);
+
+        int stage = stageGame(board);
+
+        fprintf(datasetFile, "%d,%d,%d,%d,%d,%d\n", pawnsDifference, knightsDifference, bishopsDifference, rooksDifference, queensDifference, eval);
+        if (processed % 100000 == 0) {
+            printf("Processed positions: %d\n", processed);
+        }
+        processed++;
+    }
+
+    fclose(positionsFile);
+    fclose(datasetFile);
+}

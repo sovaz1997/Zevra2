@@ -17,6 +17,7 @@ int main(int argc, char** argv) {
 
     Board* board = (Board*) malloc(sizeof(Board));
 
+
 //    if (argc > 2) {
 //        if (strEquals(argv[1], "--weights-file")) {
 //            loadWeights(argv[2]);
@@ -56,6 +57,9 @@ int main(int argc, char** argv) {
           createDataset(board, atoi(argv[2]), atoi(argv[3]), argv[4], argv[5]);
         }
     }
+
+
+    createDatasetForMaterial(board, "1.csv", "material-dataset.csv");
 
 //    if (SHOULD_GENERATE_DATASET) {
 //        SHOULD_HIDE_SEARCH_INFO_LOGS = 1;

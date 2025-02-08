@@ -30,5 +30,7 @@ int getMovesCount(Board* board);
 void makeRandomMove(Board* board);
 void runGame(Board* board, FILE* file);
 void createDataset(Board* board, int gamesCount, int seed, char* fileName, char* logFile);
+void createDatasetForMaterial(Board* board, char* positionsPath, char* datasetPath);
+
 
 #endif
