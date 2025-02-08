@@ -8,7 +8,6 @@
 int QA = 255;
 int QB = 64;
 int SCALE = 400;
-double EXTRA_SCALE = 1;
 
 int isExists(Board* board, int color, int piece, int sq) {
     return !!(board->pieces[piece] & board->colours[color] & bitboardCell(sq));

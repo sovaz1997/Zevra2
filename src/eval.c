@@ -2,6 +2,7 @@
 #include "score.h"
 #include <math.h>
 #include "uci.h"
+#include "nnue.h"
 
 //Material
 int PAWN_EV_MG = 143;

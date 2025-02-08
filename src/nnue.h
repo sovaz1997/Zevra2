@@ -8,6 +8,8 @@
 #define INNER_LAYER_COUNT 64
 #define MAX_FEN_LENGTH 1000
 
+#define EXTRA_SCALE 0.5
+
 
 struct NNUE {
     S16 inputs[INPUTS_COUNT];
