@@ -4,17 +4,17 @@
 #include "uci.h"
 
 //Material
-int PAWN_EV_MG = 100;
-int KNIGHT_EV_MG = 337;
-int BISHOP_EV_MG = 338;
-int ROOK_EV_MG = 467;
-int QUEEN_EV_MG = 1083;
+int PAWN_EV_MG = 143;
+int KNIGHT_EV_MG = 732;
+int BISHOP_EV_MG = 778;
+int ROOK_EV_MG = 841;
+int QUEEN_EV_MG = 2559;
 
-int PAWN_EV_EG = 158;
-int KNIGHT_EV_EG = 334;
-int BISHOP_EV_EG = 380;
-int ROOK_EV_EG = 601;
-int QUEEN_EV_EG = 1083;
+int PAWN_EV_EG = 493;
+int KNIGHT_EV_EG = 636;
+int BISHOP_EV_EG = 679;
+int ROOK_EV_EG = 1248;
+int QUEEN_EV_EG = 1850;
 
 //Mobility bonuses
 int QueenMobilityMG[QUEEN_MOBILITY_N] = {
