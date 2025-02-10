@@ -39,19 +39,15 @@ void replaceTranspositionEntry(Transposition* newEntry, U64 key) {
   	Transposition* addr = &tt[key & ttIndex];
     int shouldReplace = 0;
 
-    if (addr->age != ttAge) {
+    if (addr->age != ttAge || !addr->evalType || addr->evalType == upperbound && newEntry->evalType != upperbound) {
     	shouldReplace = 1;
     } else {
-    	if(addr->age + 5 < ttAge || !addr->evalType) {
-        	shouldReplace = 1;
-    	} else {
-        	if(newEntry->depth >= addr->depth) {
-            	if(newEntry->evalType == upperbound && addr->evalType != upperbound) {
-                	shouldReplace = 0;
-            	} else {
-	                shouldReplace = 1;
-    	        }
-	        }
+        if(newEntry->depth >= addr->depth) {
+            if(newEntry->evalType == upperbound && addr->evalType != upperbound) {
+                shouldReplace = 0;
+            } else {
+	            shouldReplace = 1;
+    	    }
 	    }
 	}
 
