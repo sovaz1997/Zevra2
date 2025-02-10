@@ -56,7 +56,6 @@ void replaceTranspositionEntry(Transposition* newEntry, U64 key) {
 	}
 
     if (shouldReplace) {
-        ++writed;
         if (!addr->evalType) {
             ttFilledSize++;
         }
