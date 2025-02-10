@@ -6,6 +6,13 @@ void initTT(int size) {
     tt = (Transposition*) malloc(sizeof(Transposition) * ttSize);
     ttIndex = ttSize - 1;
     clearTT();
+
+    nullTransposition.eval = 0;
+    nullTransposition.depth = 0;
+    nullTransposition.age = 0;
+    nullTransposition.evalType = 0;
+    nullTransposition.move = 0;
+    nullTransposition.key = 0;
 }
 
 void reallocTT(int size) {
@@ -28,20 +35,25 @@ void clearTT() {
     ttFilledSize = 0;
 }
 
-void replaceTranspositionEntry(Transposition* addr, Transposition* newEntry, U64 key) {
+void replaceTranspositionEntry(Transposition* newEntry, U64 key) {
+  	Transposition* addr = &tt[key & ttIndex];
     int shouldReplace = 0;
 
-    if(addr->age + 5 < ttAge || !addr->evalType) {
-        shouldReplace = 1;
+    if (addr->age != ttAge) {
+    	shouldReplace = 1;
     } else {
-        if(newEntry->depth >= addr->depth) {
-            if(newEntry->evalType == upperbound && addr->evalType != upperbound) {
-                shouldReplace = 0;
-            } else {
-                shouldReplace = 1;
-            }
-        }
-    }
+    	if(addr->age + 5 < ttAge || !addr->evalType) {
+        	shouldReplace = 1;
+    	} else {
+        	if(newEntry->depth >= addr->depth) {
+            	if(newEntry->evalType == upperbound && addr->evalType != upperbound) {
+                	shouldReplace = 0;
+            	} else {
+	                shouldReplace = 1;
+    	        }
+	        }
+	    }
+	}
 
     if (shouldReplace) {
         ++writed;
@@ -80,4 +92,14 @@ int evalFromTT(int eval, int height) {
         return eval + height;
         
     return eval;
+}
+
+Transposition* getTTEntry(U64 key) {
+    Transposition* transposition = &tt[key & ttIndex];
+
+    if (transposition->age != ttAge) {
+        return &nullTransposition;
+    }
+
+    return transposition;
 }

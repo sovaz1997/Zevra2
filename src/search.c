@@ -10,7 +10,7 @@ void *go(void *thread_data) {
 
 SearchInfo iterativeDeeping(Board *board, TimeManager tm) {
   	writed = 0;
-    clearTT();
+    // clearTT();
     ++ttAge;
     SearchInfo searchInfo;
     char bestMove[6];
@@ -130,7 +130,7 @@ int search(Board *board, SearchInfo *searchInfo, int alpha, int beta, int depth,
     }
 
     U64 keyPosition = board->key;
-    Transposition *ttEntry = &tt[keyPosition & ttIndex];
+    Transposition *ttEntry = getTTEntry(keyPosition);
 
     if (ttEntry && ttEntry->key == board->key && ttEntry->evalType && ttEntry->depth >= depth && !root) {
         int ttEval = evalFromTT(ttEntry->eval, height);
@@ -299,7 +299,7 @@ int search(Board *board, SearchInfo *searchInfo, int alpha, int beta, int depth,
     new_tt.key = keyPosition;
     new_tt.eval = evalToTT(alpha, height);
 
-    replaceTranspositionEntry(ttEntry, &new_tt, keyPosition);
+    replaceTranspositionEntry(&new_tt, keyPosition);
 
     if (!movesCount) {
         if (inCheck(board, board->color))
@@ -315,7 +315,7 @@ int quiesceSearch(Board *board, SearchInfo *searchInfo, int alpha, int beta, int
     searchInfo->selDepth = max(searchInfo->selDepth, height);
 
     U64 keyPosition = board->key;
-    Transposition *ttEntry = &tt[keyPosition & ttIndex];
+    Transposition *ttEntry = getTTEntry(keyPosition);
 
     if (ttEntry && ttEntry->key == board->key) {
         int ttEval = evalFromTT(ttEntry->eval, height);
@@ -444,7 +444,7 @@ void moveOrdering(Board *board, U16 *mvs, SearchInfo *searchInfo, int height, in
         depth = MAX_PLY - 1;
 
     U16 *ptr = mvs;
-    Transposition *ttEntry = &tt[board->key & ttIndex];
+    Transposition *ttEntry = getTTEntry(board->key);
     int i;
 
     for (i = 0; *ptr; ++i) {
