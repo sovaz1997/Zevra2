@@ -161,10 +161,10 @@ int mobilityAndKingDangerEval(Board *board, int color) {
     U64 mask = board->pieces[PAWN] & enemy;
     U64 pAttacks;
 
-    if (!color == WHITE)
-        pAttacks = ((mask << 9) & ~files[0]) | ((mask << 7) & ~files[7]);
-    else
+    if (color == WHITE)
         pAttacks = ((mask >> 9) & ~files[7]) | ((mask >> 7) & ~files[0]);
+    else
+        pAttacks = ((mask << 9) & ~files[0]) | ((mask << 7) & ~files[7]);
 
     U64 possibleSq = ~pAttacks;
 
@@ -432,6 +432,8 @@ int pVal(Board* b, int n) {
         case 6:
             return 0;
     }
+
+    return 0;
 }
 
 int stageGame(Board *board) {

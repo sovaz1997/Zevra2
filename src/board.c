@@ -293,7 +293,7 @@ void unmakeMove(Board* board, U16 move, Undo* undo) {
     getUndo(board, undo);
 
     if(MoveType(move) == CASTLE_MOVE) {
-        int castlingRank = (!board->color == WHITE ? 0 : 7);
+        int castlingRank = (board->color == WHITE ? 7 : 0);
         U8 king = makePiece(KING, !board->color);
 
         if(board->squares[square(castlingRank, 6)] == king) {
@@ -305,10 +305,10 @@ void unmakeMove(Board* board, U16 move, Undo* undo) {
         }
     } else if(MoveType(move) == ENPASSANT_MOVE) {
         board->key ^= zobristEnpassantKeys[board->enpassantSquare];
-        if(!board->color == WHITE)
-            setPiece(board, PAWN, board->color, undo->enpassantSquare - 8);
-        else
+        if(board->color == WHITE)
             setPiece(board, PAWN, board->color, undo->enpassantSquare + 8);
+        else
+            setPiece(board, PAWN, board->color, undo->enpassantSquare - 8);
     }
 
     movePiece(board, MoveTo(move), MoveFrom(move));

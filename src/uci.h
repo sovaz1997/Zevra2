@@ -24,7 +24,7 @@ extern char startpos[];
 extern const int TUNING_ENABLED;
 pthread_mutex_t mutex;
 
-int main();
+int main(int argc, char** argv);
 void makeCommand();
 void printPV(Board* board, int depth, U16 bestMove);
 void printEngineInfo();
