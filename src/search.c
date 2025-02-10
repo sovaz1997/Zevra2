@@ -10,7 +10,7 @@ void *go(void *thread_data) {
 
 SearchInfo iterativeDeeping(Board *board, TimeManager tm) {
   	writed = 0;
-    clearTT();
+    // clearTT();
     ++ttAge;
     SearchInfo searchInfo;
     char bestMove[6];

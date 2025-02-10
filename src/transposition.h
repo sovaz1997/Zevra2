@@ -12,7 +12,7 @@
 struct Transposition {
     S16 eval;
     U8 depth;
-    U32 age;
+    S8 age;
     U8 evalType;
     U16 move;
     U64 key;
