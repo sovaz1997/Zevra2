@@ -9,6 +9,7 @@ void *go(void *thread_data) {
 }
 
 SearchInfo iterativeDeeping(Board *board, TimeManager tm) {
+  	writed = 0;
     clearTT();
     ++ttAge;
     SearchInfo searchInfo;
@@ -31,6 +32,7 @@ SearchInfo iterativeDeeping(Board *board, TimeManager tm) {
     SEARCH_COMPLETE = 1;
     __sync_synchronize();
     printf("bestmove %s\n", bestMove);
+    printf("write %d\n", writed);
     fflush(stdout);
 
     searchInfo.eval = prevEval;

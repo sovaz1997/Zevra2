@@ -20,6 +20,8 @@ struct SearchArgs {
     TimeManager tm;
 };
 
+int writed;
+
 long long history[2][64][64];
 
 struct SearchInfo {
