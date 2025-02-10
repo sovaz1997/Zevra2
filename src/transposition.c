@@ -96,9 +96,9 @@ int evalFromTT(int eval, int height) {
 Transposition* getTTEntry(U64 key) {
     Transposition* transposition = &tt[key & ttIndex];
 
-    if (transposition->age != ttAge) {
-        return &nullTransposition;
-    }
+//    if (transposition->age != ttAge) {
+//        return &nullTransposition;
+//    }
 
     return transposition;
 }

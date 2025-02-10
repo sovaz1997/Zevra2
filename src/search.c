@@ -129,7 +129,7 @@ int search(Board *board, SearchInfo *searchInfo, int alpha, int beta, int depth,
     U64 keyPosition = board->key;
     Transposition *ttEntry = getTTEntry(keyPosition);
 
-    if (ttEntry && ttEntry->key == board->key && ttEntry->evalType && ttEntry->depth >= depth && !root) {
+    if (!pvNode && ttEntry && ttEntry->key == board->key && ttEntry->evalType && ttEntry->depth >= depth && !root) {
         int ttEval = evalFromTT(ttEntry->eval, height);
 
         //TT analysis
