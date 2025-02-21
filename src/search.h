@@ -43,7 +43,7 @@ enum {
 };
 
 static const int FutilityStep = 50;
-static const int ReverseFutilityStep = 90;
+static const int ReverseFutilityStep = 60;
 static const int RazorMargin = 250;
 
 U16 moves[MAX_PLY][256];
