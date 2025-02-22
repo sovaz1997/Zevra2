@@ -149,6 +149,19 @@ int search(Board *board, SearchInfo *searchInfo, int alpha, int beta, int depth,
     //calculate static eval
     int staticEval = fullEval(board);
 
+    improving[height] = staticEval;
+
+    int hasImproving = 0;
+
+    if (!weInCheck && !searchInfo->nullMoveSearch) {
+    	if (height >= 4) {
+        	hasImproving = improving[height] > improving[height - 4];
+    	} else if (height >= 2) {
+            hasImproving = improving[height] > improving[height - 2];
+        } else {
+            hasImproving = 0;
+        }
+    }
 
     //Null Move pruning
 	#if ENABLE_NULL_MOVE_PRUNING
@@ -172,14 +185,15 @@ int search(Board *board, SearchInfo *searchInfo, int alpha, int beta, int depth,
 
     if (!pvNode && !weInCheck && !havePromotionPawn(board)) {
         //Reverse futility pruning
-        #if ENABLE_RAZORING
+        #if ENABLE_REVERSE_FUTILITY_PRUNING
+        //int improvementGap = hasImproving ? -20 : 20;
         if (depth <= 7 &&
-            staticEval - ReverseFutilityStep * depth > beta)
+            staticEval - ReverseFutilityStep  * depth > beta)
         	return staticEval;
         #endif
 
     	//Razoring
-        #if ENABLE_REVERSE_FUTILITY_PRUNING
+        #if ENABLE_RAZORING
     	if (depth <= 7 && staticEval + RazorMargin * depth < alpha)
         	return quiesceSearch(board, searchInfo, alpha, beta, height);
         #endif
@@ -241,6 +255,7 @@ int search(Board *board, SearchInfo *searchInfo, int alpha, int beta, int depth,
         #endif
 
         int reductions = lmr[min(depth, MAX_PLY - 1)][min(playedMovesCount, 63)];
+        // int reductions = 0.75 + log(depth) * log(depth) / (2 + hasImproving);
         ++playedMovesCount;
 
         int eval;
@@ -314,16 +329,16 @@ int quiesceSearch(Board *board, SearchInfo *searchInfo, int alpha, int beta, int
     U64 keyPosition = board->key;
     Transposition *ttEntry = getTTEntry(keyPosition);
 
-    if (ttEntry && ttEntry->key == board->key) {
-        int ttEval = evalFromTT(ttEntry->eval, height);
-        if (ttEntry->evalType) {
-            if ((ttEntry->evalType == lowerbound && ttEval >= beta && !mateScore(ttEntry->eval)) ||
-                (ttEntry->evalType == upperbound && ttEval <= alpha && !mateScore(ttEntry->eval)) ||
-                ttEntry->evalType == exact) {
-                return ttEval;
-            }
-        }
-    }
+//    if (ttEntry && ttEntry->key == board->key) {
+//        int ttEval = evalFromTT(ttEntry->eval, height);
+//        if (ttEntry->evalType) {
+//            if ((ttEntry->evalType == lowerbound && ttEval >= beta && !mateScore(ttEntry->eval)) ||
+//                (ttEntry->evalType == upperbound && ttEval <= alpha && !mateScore(ttEntry->eval)) ||
+//                ttEntry->evalType == exact) {
+//                return ttEval;
+//            }
+//        }
+//    }
 
     if (height >= MAX_PLY - 1)
         return fullEval(board);
@@ -474,6 +489,7 @@ void moveOrdering(Board *board, U16 *mvs, SearchInfo *searchInfo, int height, in
         }
 
         if (MoveType(*ptr) == ENPASSANT_MOVE)
+          // movePrice[height][i] = mvvLvaScores[PAWN][PAWN] * 10000000000000llu; maybe better?
             movePrice[height][i] = mvvLvaScores[PAWN][PAWN] * 1000000000000llu;
 
         if (toPiece) {

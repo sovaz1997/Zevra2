@@ -47,6 +47,7 @@ static const int ReverseFutilityStep = 60;
 static const int RazorMargin = 250;
 
 U16 moves[MAX_PLY][256];
+int improving[256];
 U8 temperatureOffsets[256];
 long long movePrice[MAX_PLY][256];
 int mvvLvaScores[7][7];

@@ -6,7 +6,7 @@ Option option;
 
 const int TUNING_ENABLED = 0;
 int SHOULD_GENERATE_DATASET = 0;
-int NNUE_ENABLED = 1;
+int NNUE_ENABLED = 0;
 int SHOULD_HIDE_SEARCH_INFO_LOGS = 0;
 
 int main(int argc, char** argv) {
