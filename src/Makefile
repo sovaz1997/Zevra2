@@ -1,27 +1,37 @@
 CC = gcc
 CFLAGS = -std=gnu17 -m64 -fcommon
 SRC = *.c
-OPTIMIZATIONS = -O3 -flto -mfpu=neon
+OPTIMIZATIONS = -O3 -flto
 NATIVE = -march=native
 WARNINGS = -Wall -Wextra -Wshadow
-POPCNT = -DUSE_POPCNT -msse3 -mpopcnt
 DEBUG = -g -Wall -pedantic -fno-omit-frame-pointer -gdwarf-2
 LIBS = -lpthread -lm
 OUTPUT = zevra
-OUTPUT_POPCNT = zevra_popcnt
-OUTPUT_NONPOPCNT = zevra_nonpopcnt
+OUTPUT_X86 = zevra_x86
+OUTPUT_ARM = zevra_arm
+
+ARCH_X86 = -mavx2
+ARCH_ARM = -mfpu=neon
+
+ARCH = $(shell uname -m)
+
+ifeq ($(ARCH), x86_64)
+    ARCH_FLAGS = $(ARCH_X86)
+    OUTPUT_BINARY = $(OUTPUT_X86)
+else ifeq ($(ARCH), armv7l)
+    ARCH_FLAGS = $(ARCH_ARM)
+    OUTPUT_BINARY = $(OUTPUT_ARM)
+else
+    $(error Unsupported architecture: $(ARCH))
+endif
 
 all:
-	$(CC) $(CFLAGS) -DNDEBUG $(OPTIMIZATIONS) $(NATIVE) $(SRC) -o $(OUTPUT) $(LIBS)
-popcnt:
-	$(CC) $(CFLAGS) -DNDEBUG $(OPTIMIZATIONS) -static $(POPCNT) $(SRC) -o $(OUTPUT_POPCNT) $(LIBS)
-nonpopcnt:
-	$(CC) $(CFLAGS) -DNDEBUG $(OPTIMIZATIONS) -static $(SRC) -o $(OUTPUT_NONPOPCNT) $(LIBS)
+	$(CC) $(CFLAGS) -DNDEBUG $(OPTIMIZATIONS) $(NATIVE) $(ARCH_FLAGS) $(SRC) -o $(OUTPUT_BINARY) $(LIBS)
+
 debug:
-	$(CC) $(CFLAGS) $(DEBUG) $(WARNINGS) $(SRC) -o $(OUTPUT) $(LIBS)
-release:
-	make popcnt
-	make nonpopcnt
+	$(CC) $(CFLAGS) $(DEBUG) $(WARNINGS) $(SRC) -o $(OUTPUT_BINARY) $(LIBS)
+
+release: all
 
 clean:
-	rm -rf *.o $(OUTPUT)
+	rm -rf *.o $(OUTPUT_BINARY)
