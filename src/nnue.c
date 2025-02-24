@@ -314,7 +314,6 @@ void loadInnerNNUEWeights() {
     }
 
     for (int i = 0; i < INNER_LAYER_COUNT; i++) {
-        printf("%d\n", i);
         for (int j = 0; j < INPUTS_COUNT; j++) {
             nnue->weights_1_quantized[j][i] = round(nnue->weights_1[i][j] * QA);
         }
