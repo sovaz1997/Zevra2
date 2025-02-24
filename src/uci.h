@@ -9,6 +9,7 @@
 extern int SHOULD_GENERATE_DATASET;
 extern int NNUE_ENABLED;
 extern int SHOULD_HIDE_SEARCH_INFO_LOGS;
+extern int shouldUseNNUE;
 int temperature;
 
 struct Option {
@@ -18,7 +19,11 @@ struct Option {
     int defaultTemperature;
     int minTemperature;
     int maxTemperature;
+    int shouldUseNNUE;
+    int defaultShouldUseNNUE;
 };
+
+Option option;
 
 extern char startpos[];
 extern const int TUNING_ENABLED;

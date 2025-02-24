@@ -47,7 +47,7 @@ int DoubleBishopsBonus() {
 int MATE_LIMIT = 29000;
 
 int fullEval(Board *board) {
-    if (NNUE_ENABLED) {
+    if (NNUE_ENABLED && option.shouldUseNNUE) {
         recalculateEval(nnue, board->color);
         int eval = nnue->eval;
 

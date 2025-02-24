@@ -2,7 +2,6 @@
 #include "dataset.h"
 
 char startpos[] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-Option option;
 
 const int TUNING_ENABLED = 0;
 int SHOULD_GENERATE_DATASET = 0;
@@ -165,6 +164,7 @@ int main(int argc, char** argv) {
             printEngineInfo();
             printf("option name Hash type spin default %d min %d max %d\n", option.defaultHashSize, option.minHashSize, option.maxHashSize);
             printf("option name Temperature type spin default %d min %d max %d\n", option.defaultTemperature, option.minTemperature, option.maxTemperature);
+            printf("option name Use NNUE type check default false\n");
             printf("option name Clear Hash type button\n");
             printf("uciok\n");
         } else if(strEquals(cmd, "eval") && SEARCH_COMPLETE) {
@@ -193,6 +193,9 @@ int main(int argc, char** argv) {
                     temperature = max(temperature, option.minTemperature);
                     temperature = min(temperature, option.maxTemperature);
                     printf("info string temperature changed to %d\n", temperature);
+                } else if(strStartsWith(name, "Use NNUE")) {
+                    option.shouldUseNNUE = strEquals(value, "true");
+                    printf("info string Use NNUE changed to %s\n", value);
                 }
             }
         }
@@ -331,6 +334,8 @@ void initOption() {
     option.minTemperature = 0;
     option.maxTemperature = 100;
     temperature = option.defaultTemperature;
+    option.shouldUseNNUE = 1;
+    option.defaultShouldUseNNUE = 1;
 }
 
 int strEquals(char* str1, char* str2) {
