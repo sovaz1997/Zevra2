@@ -27,7 +27,8 @@ int main(int argc, char** argv) {
     printEngineInfo();
 
     if (NNUE_ENABLED) {
-        loadNNUEWeights();
+        // loadNNUEWeights();
+        loadInnerNNUEWeights();
     }
 
 

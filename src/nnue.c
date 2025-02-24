@@ -8,6 +8,7 @@
 #include "nnue.h"
 #include "timemanager.h"
 #include "search.h"
+#include "weights.h"
 
 int QA = 255;
 int QB = 64;
@@ -230,20 +231,6 @@ void resetNNUE(NNUE* nnue) {
     nnue->eval = 0;
 }
 
-
-void modifyNnue(NNUE* nnue, Board* board, int color, int piece) {
-    for(int sq = 0; sq < 64; ++sq) {
-        int weight = isExists(board, color, piece, sq);
-        if (weight) {
-            setDirectNNUEInput(nnue, getInputIndexOf(color, piece, sq));
-            setPerspectiveNNUEInput(nnue, getInputIndexOf(!color, piece, sq ^ PERSPECTIVE_MASK));
-        } else {
-            resetDirectNNUEInput(nnue, getInputIndexOf(color, piece, sq));
-            resetPerspectiveNNUEInput(nnue, getInputIndexOf(!color, piece, sq ^ PERSPECTIVE_MASK));
-        }
-    }
-}
-
 void loadNNUEWeights() {
     FILE* file = fopen("./fc1_us.weights.csv", "r");
     if (file == NULL) {
@@ -317,19 +304,46 @@ void loadNNUEWeights() {
     resetNNUE(nnue);
 }
 
-void initNNUEPosition(NNUE* nnue, Board* board) {
-    resetNNUE(nnue);
+void loadInnerNNUEWeights() {
+    int index = 0;
+    for (int i = 0; i < INNER_LAYER_COUNT; i++) {
+        for (int j = 0; j < INPUTS_COUNT; j++) {
+            nnue->weights_1[i][j] = fc1_us[index];
+            index++;
+        }
+    }
 
-    modifyNnue(nnue, board, WHITE, PAWN);
-    modifyNnue(nnue, board, BLACK, PAWN);
-    modifyNnue(nnue, board, WHITE, KNIGHT);
-    modifyNnue(nnue, board, BLACK, KNIGHT);
-    modifyNnue(nnue, board, WHITE, BISHOP);
-    modifyNnue(nnue, board, BLACK, BISHOP);
-    modifyNnue(nnue, board, WHITE, ROOK);
-    modifyNnue(nnue, board, BLACK, ROOK);
-    modifyNnue(nnue, board, WHITE, QUEEN);
-    modifyNnue(nnue, board, BLACK, QUEEN);
-    modifyNnue(nnue, board, WHITE, KING);
-    modifyNnue(nnue, board, BLACK, KING);
+    for (int i = 0; i < INNER_LAYER_COUNT; i++) {
+        printf("%d\n", i);
+        for (int j = 0; j < INPUTS_COUNT; j++) {
+            nnue->weights_1_quantized[j][i] = round(nnue->weights_1[i][j] * QA);
+        }
+    }
+
+
+    index = 0;
+    for (int i = 0; i < INNER_LAYER_COUNT; i++) {
+        for (int j = 0; j < INPUTS_COUNT; j++) {
+            nnue->weights_1_perspective[i][j] = fc1_them[index];
+            index++;
+        }
+    }
+
+    for (int i = 0; i < INNER_LAYER_COUNT; i++) {
+        for (int j = 0; j < INPUTS_COUNT; j++) {
+            nnue->weights_1_perspective_quantized[j][i] = round(nnue->weights_1_perspective[i][j] * QA);
+        }
+    }
+
+    index = 0;
+    for (int i = 0; i < 2 * INNER_LAYER_COUNT; i++) {
+        nnue->weights_2[i] = fc2[index];
+        index++;
+    }
+
+    for (int i = 0; i < 2 * INNER_LAYER_COUNT; i++) {
+        nnue->weights_2_quantized[i] = round(nnue->weights_2[i] * QB);
+    }
+
+    resetNNUE(nnue);
 }

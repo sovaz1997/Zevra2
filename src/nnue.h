@@ -34,12 +34,11 @@ void setDirectNNUEInput(NNUE* nnue, int index);
 void resetDirectNNUEInput(NNUE* nnue, int index);
 void setPerspectiveNNUEInput(NNUE* nnue, int index);
 void resetPerspectiveNNUEInput(NNUE* nnue, int index);
-void modifyNnue(NNUE* nnue, Board* board, int color, int piece);
 void recalculateEval(NNUE* nnue, int color);
-void initNNUEPosition(NNUE* nnue, Board* board);
 void loadNNUEWeights();
 void debug_nnue_calculation(struct NNUE *nnue);
 void resetNNUEInput(S16* inputs, S32* accumulators, S32 (*weights)[INNER_LAYER_COUNT], int index);
 void setNNUEInput(S16* inputs, S32* accumulators, S32 (*weights)[INNER_LAYER_COUNT], int index);
+void loadInnerNNUEWeights();
 
 #endif
