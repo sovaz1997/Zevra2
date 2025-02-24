@@ -28,20 +28,21 @@ void clearTT() {
     ttFilledSize = 0;
 }
 
-void replaceTranspositionEntry(Transposition* addr, Transposition* newEntry, U64 key) {
+void replaceTranspositionEntry(Transposition* newEntry, U64 key) {
+  	Transposition* addr = &tt[key & ttIndex];
     int shouldReplace = 0;
 
-    if(addr->age + 5 < ttAge || !addr->evalType) {
-        shouldReplace = 1;
+    if (addr->age != ttAge || !addr->evalType || addr->evalType == upperbound && newEntry->evalType != upperbound) {
+    	shouldReplace = 1;
     } else {
         if(newEntry->depth >= addr->depth) {
             if(newEntry->evalType == upperbound && addr->evalType != upperbound) {
                 shouldReplace = 0;
             } else {
-                shouldReplace = 1;
-            }
-        }
-    }
+	            shouldReplace = 1;
+    	    }
+	    }
+	}
 
     if (shouldReplace) {
         if (!addr->evalType) {
@@ -79,4 +80,10 @@ int evalFromTT(int eval, int height) {
         return eval + height;
         
     return eval;
+}
+
+Transposition* getTTEntry(U64 key) {
+    Transposition* transposition = &tt[key & ttIndex];
+
+    return transposition;
 }

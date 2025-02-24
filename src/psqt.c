@@ -136,7 +136,7 @@ int egKingPST[64] = {
         -62, -51, -34, -20, -73, -27, -65, -93,
 };
 
-int initPSQT() {
+void initPSQT() {
     for (int stage = 0; stage < 99; stage++) {
         for (int sq = 0; sq < 64; sq++) {
             PST[stage][PAWN][sq] = getScore2(pawnPST[sq], egPawnPST[sq], stage);

@@ -11,6 +11,7 @@
 #include "move.h"
 #include "zobrist.h"
 #include "eval.h"
+#include "nnue.h"
 
 struct GameInfo {
     U64 moveHistory[8192];
@@ -39,6 +40,7 @@ struct Undo {
 };
 
 void setFen(Board* board, char* fen);
+void getFen(Board* board, char* fen);
 void setMovesRange(Board* board, char* moves);
 void clearBoard(Board* board);
 void printBoard(Board* board);

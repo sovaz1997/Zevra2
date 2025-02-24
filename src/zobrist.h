@@ -12,7 +12,6 @@ U64 zobristEnpassantKeys[64];
 U64 nullMoveKey;
 U64 otherSideKey;
 
-//xorshift*
 U64 rand64();
 void zobristInit();
 

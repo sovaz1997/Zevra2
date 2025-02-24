@@ -1,4 +1,5 @@
 #include "board.h"
+#include "uci.h"
 
 void setFen(Board* board, char* fen) {
     clearBoard(board);
@@ -55,6 +56,68 @@ void setFen(Board* board, char* fen) {
         board->key ^= otherSideKey;
 }
 
+void getFen(Board* board, char* fen) {
+    int empty = 0;
+    for(int r = 7; r >= 0; --r) {
+        for(int f = 0; f < 8; ++f) {
+            int sq = square(r, f);
+            if(board->squares[sq]) {
+                if(empty) {
+                    *fen++ = empty + '0';
+                    empty = 0;
+                }
+                *fen++ = PieceName[pieceColor(board->squares[sq])][pieceType(board->squares[sq])];
+            } else {
+                ++empty;
+            }
+        }
+        if(empty) {
+            *fen++ = empty + '0';
+            empty = 0;
+        }
+        if(r)
+            *fen++ = '/';
+    }
+
+    *fen++ = ' ';
+    *fen++ = (board->color == WHITE ? 'w' : 'b');
+    *fen++ = ' ';
+
+
+    U64 isAvailable = board->castling & (shortCastlingBitboard[WHITE] | longCastlingBitboard[WHITE] | shortCastlingBitboard[BLACK] | longCastlingBitboard[BLACK]);
+    if (isAvailable) {
+        if (board->castling & shortCastlingBitboard[WHITE]) {
+            *fen++ = 'K';
+        }
+        if (board->castling & longCastlingBitboard[WHITE]) {
+            *fen++ = 'Q';
+        }
+        if (board->castling & shortCastlingBitboard[BLACK]) {
+            *fen++ = 'k';
+        }
+        if (board->castling & longCastlingBitboard[BLACK]) {
+            *fen++ = 'q';
+        }
+    } else {
+        *fen++ = '-';
+    }
+
+    *fen++ = ' ';
+
+    if (board->enpassantSquare) {
+        squareToString(board->enpassantSquare, fen);
+        fen += 2;
+    } else {
+        *fen++ = '-';
+    }
+
+    *fen++ = ' ';
+    fen += sprintf(fen, "%d", board->ruleNumber);
+    *fen++ = ' ';
+    fen += sprintf(fen, "%d", board->moveNumber);
+    *fen = '\0';
+}
+
 void setMovesRange(Board* board, char* moves) {
     if(moves) {
         char* move = strtok(moves, " ");
@@ -69,9 +132,14 @@ void setMovesRange(Board* board, char* moves) {
 void clearBoard(Board* board) {
     GameInfo* gameInfo = board->gameInfo;
     memset(board, 0, sizeof(*board));
+    memset(gameInfo, 0, sizeof(*gameInfo));
     board->gameInfo = gameInfo;
     board->enpassantSquare = 0;
     board->eval = 0;
+
+    if (NNUE_ENABLED) {
+    	resetNNUE(nnue);
+    }
 }
 
 void printBoard(Board* board) {
@@ -91,6 +159,9 @@ void printBoard(Board* board) {
     printf("White check: %d \n", inCheck(board, WHITE));
     printf("Black check: %d \n\n", inCheck(board, BLACK));
     printf("Have promotion: %d\n", havePromotionPawn(board));
+    char fen[100];
+    getFen(board, fen);
+    printf("Board FEN: %s\n", fen);
 }
 
 void printBoardSplitter() {
@@ -109,6 +180,11 @@ void setPiece(Board* board, int piece, int color, int sq) {
     setBit(&board->colours[color], sq);
     board->squares[sq] = makePiece(piece, color);
     board->key ^= zobristKeys[board->squares[sq]][sq];
+
+    if (NNUE_ENABLED) {
+        setDirectNNUEInput(nnue, getInputIndexOf(color, piece, sq));
+        setPerspectiveNNUEInput(nnue, getInputIndexOf(!color, piece, sq ^ PERSPECTIVE_MASK));
+    }
 }
 
 void clearPiece(Board* board, int sq) {
@@ -118,14 +194,24 @@ void clearPiece(Board* board, int sq) {
     U8 piece = board->squares[sq];
     board->key ^= zobristKeys[board->squares[sq]][sq];
 
-    clearBit(&board->pieces[pieceType(piece)], sq);
-    clearBit(&board->colours[pieceColor(piece)], sq);
+    int type = pieceType(piece);
+    int color = pieceColor(piece);
+    clearBit(&board->pieces[type], sq);
+    clearBit(&board->colours[color], sq);
     board->squares[sq] = 0;
+
+    if (NNUE_ENABLED) {
+        resetDirectNNUEInput(nnue, getInputIndexOf(color, type, sq));
+        resetPerspectiveNNUEInput(nnue, getInputIndexOf(!color, type, sq ^ PERSPECTIVE_MASK));
+    }
 }
 
 void movePiece(Board* board, int sq1, int sq2) {
-    setPiece(board, pieceType(board->squares[sq1]), pieceColor(board->squares[sq1]), sq2);
+    int type = pieceType(board->squares[sq1]);
+    int color = pieceColor(board->squares[sq1]);
+
     clearPiece(board, sq1);
+    setPiece(board, type, color, sq2);
 }
 
 void squareToString(int square, char* str) {
@@ -207,7 +293,7 @@ void unmakeMove(Board* board, U16 move, Undo* undo) {
     getUndo(board, undo);
 
     if(MoveType(move) == CASTLE_MOVE) {
-        int castlingRank = (!board->color == WHITE ? 0 : 7);
+        int castlingRank = (board->color == WHITE ? 7 : 0);
         U8 king = makePiece(KING, !board->color);
 
         if(board->squares[square(castlingRank, 6)] == king) {
@@ -219,10 +305,10 @@ void unmakeMove(Board* board, U16 move, Undo* undo) {
         }
     } else if(MoveType(move) == ENPASSANT_MOVE) {
         board->key ^= zobristEnpassantKeys[board->enpassantSquare];
-        if(!board->color == WHITE)
-            setPiece(board, PAWN, board->color, undo->enpassantSquare - 8);
-        else
+        if(board->color == WHITE)
             setPiece(board, PAWN, board->color, undo->enpassantSquare + 8);
+        else
+            setPiece(board, PAWN, board->color, undo->enpassantSquare - 8);
     }
 
     movePiece(board, MoveTo(move), MoveFrom(move));
@@ -298,6 +384,10 @@ int inCheck(Board* board, int color) {
 }
 
 void addMoveToHist(Board* board) {
+  if(board->gameInfo->moveCount >= 1000) {
+        printf("History: %d\n", board->gameInfo->moveCount);
+    }
+
     board->gameInfo->moveHistory[board->gameInfo->moveCount] = board->key;
     ++board->gameInfo->moveCount;
 }

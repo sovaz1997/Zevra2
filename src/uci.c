@@ -1,26 +1,26 @@
 #include "uci.h"
-#include "tuning.h"
+#include "dataset.h"
 
 char startpos[] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-Option option;
 
 const int TUNING_ENABLED = 0;
+int SHOULD_GENERATE_DATASET = 0;
+int NNUE_ENABLED = 1;
+int SHOULD_HIDE_SEARCH_INFO_LOGS = 0;
 
 int main(int argc, char** argv) {
-
+    nnue = (NNUE*) malloc(sizeof(NNUE));
     initOption();
     initEngine();
+    srand(time(NULL));
 
     Board* board = (Board*) malloc(sizeof(Board));
 
-    if (argc > 2) {
-        if (strEquals(argv[1], "--weights-file")) {
-            loadWeights(argv[2]);
-        }
-    }
-
     printEngineInfo();
-    setFen(board, startpos);
+
+    if (NNUE_ENABLED) {
+        loadInnerNNUEWeights();
+    }
 
 
     char buff[65536];
@@ -29,11 +29,17 @@ int main(int argc, char** argv) {
     gameInfo.moveCount = 0;
     board->gameInfo = &gameInfo;
     SEARCH_COMPLETE = 1;
+    temperature = option.defaultTemperature;
 
-    // tuning
-    if (TUNING_ENABLED) {
-        makeTuning(board);
+    setFen(board, startpos);
+
+
+    if (argc > 4) {
+        if (strEquals(argv[1], "--generate-dataset")) {
+          createDataset(board, atoi(argv[2]), atoi(argv[3]), argv[4], argv[5]);
+        }
     }
+
 
     TimeManager tm = initTM();
 
@@ -134,6 +140,8 @@ int main(int argc, char** argv) {
         } else if(strEquals(cmd, "uci") && SEARCH_COMPLETE) {
             printEngineInfo();
             printf("option name Hash type spin default %d min %d max %d\n", option.defaultHashSize, option.minHashSize, option.maxHashSize);
+            printf("option name Temperature type spin default %d min %d max %d\n", option.defaultTemperature, option.minTemperature, option.maxTemperature);
+            printf("option name Use NNUE type check default false\n");
             printf("option name Clear Hash type button\n");
             printf("uciok\n");
         } else if(strEquals(cmd, "eval") && SEARCH_COMPLETE) {
@@ -157,6 +165,14 @@ int main(int argc, char** argv) {
                 } else if(strStartsWith(name, "Clear Hash")) {
                     clearTT();
                     printf("info string hash cleared\n");
+                } else if(strStartsWith(name, "Temperature")) {
+                    temperature = atoi(value);
+                    temperature = max(temperature, option.minTemperature);
+                    temperature = min(temperature, option.maxTemperature);
+                    printf("info string temperature changed to %d\n", temperature);
+                } else if(strStartsWith(name, "Use NNUE")) {
+                    option.shouldUseNNUE = strEquals(value, "true");
+                    printf("info string Use NNUE changed to %s\n", value);
                 }
             }
         }
@@ -182,7 +198,7 @@ int main(int argc, char** argv) {
 }
 
 void printEngineInfo() {
-    printf("id name Zevra v2.5\nid author Oleg Smirnov\n");
+    printf("id name Zevra v2.6 (NNUE)\nid author Oleg Smirnov\n");
 }
 
 void readyok() {
@@ -192,7 +208,7 @@ void readyok() {
 }
 
 void printScore(int score) {
-    if(abs(score) < MATE_SCORE - 100) {
+    if(abs(score) < MATE_SCORE - 256) {
         printf("score cp %d", score);
     } else {
         if(score < 0)
@@ -203,6 +219,10 @@ void printScore(int score) {
 }
 
 void printSearchInfo(SearchInfo* info, Board* board, int depth, int eval, int evalType) {
+      if (SHOULD_HIDE_SEARCH_INFO_LOGS) {
+        return;
+      }
+
     U64 searchTime = getTime(&info->timer);
     int speed = (searchTime < 1 ? 0 : (info->nodesCount / (searchTime / 1000.)));
     int hashfull = (double)ttFilledSize  / (double)ttSize * 1000;
@@ -287,6 +307,12 @@ void initOption() {
     option.defaultHashSize = 256;
     option.minHashSize = 1;
     option.maxHashSize = 65536;
+    option.defaultTemperature = 0;
+    option.minTemperature = 0;
+    option.maxTemperature = 100;
+    temperature = option.defaultTemperature;
+    option.shouldUseNNUE = 1;
+    option.defaultShouldUseNNUE = 1;
 }
 
 int strEquals(char* str1, char* str2) {

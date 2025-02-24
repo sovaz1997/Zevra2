@@ -16,8 +16,11 @@ SearchInfo iterativeDeeping(Board *board, TimeManager tm) {
     resetSearchInfo(&searchInfo, tm);
     startTimer(&searchInfo.timer);
     int eval = 0;
+    int prevEval = 0;
     for (int i = 1; i <= tm.depth; ++i) {
+        prevEval = eval;
         eval = aspirationWindow(board, &searchInfo, i, eval);
+
         moveToString(searchInfo.bestMove, bestMove);
         if (ABORT && i > 1)
             break;
@@ -28,6 +31,8 @@ SearchInfo iterativeDeeping(Board *board, TimeManager tm) {
     __sync_synchronize();
     printf("bestmove %s\n", bestMove);
     fflush(stdout);
+
+    searchInfo.eval = prevEval;
 
     return searchInfo;
 }
@@ -107,6 +112,12 @@ int search(Board *board, SearchInfo *searchInfo, int alpha, int beta, int depth,
     int root = (height ? 0 : 1);
     int pvNode = (beta - alpha > 1);
 
+    if (root) {
+      for (int i = 0; i < 256; i++) {
+        temperatureOffsets[i] = temperature == 0 ? 0 : rand() % temperature;
+      }
+    }
+
     if ((isDraw(board) && !root) || ABORT)
         return 0;
 
@@ -116,9 +127,9 @@ int search(Board *board, SearchInfo *searchInfo, int alpha, int beta, int depth,
     }
 
     U64 keyPosition = board->key;
-    Transposition *ttEntry = &tt[keyPosition & ttIndex];
+    Transposition *ttEntry = getTTEntry(keyPosition);
 
-    if (ttEntry && ttEntry->key == board->key && ttEntry->evalType && ttEntry->depth >= depth && !root) {
+    if (!pvNode && ttEntry && ttEntry->key == board->key && ttEntry->evalType && ttEntry->depth >= depth && !root) {
         int ttEval = evalFromTT(ttEntry->eval, height);
 
         //TT analysis
@@ -138,6 +149,19 @@ int search(Board *board, SearchInfo *searchInfo, int alpha, int beta, int depth,
     //calculate static eval
     int staticEval = fullEval(board);
 
+    improving[height] = staticEval;
+
+    int hasImproving = 0;
+
+    if (!weInCheck && !searchInfo->nullMoveSearch) {
+    	if (height >= 4) {
+        	hasImproving = improving[height] > improving[height - 4];
+    	} else if (height >= 2) {
+            hasImproving = improving[height] > improving[height - 2];
+        } else {
+            hasImproving = 0;
+        }
+    }
 
     //Null Move pruning
 	#if ENABLE_NULL_MOVE_PRUNING
@@ -161,14 +185,14 @@ int search(Board *board, SearchInfo *searchInfo, int alpha, int beta, int depth,
 
     if (!pvNode && !weInCheck && !havePromotionPawn(board)) {
         //Reverse futility pruning
-        #if ENABLE_RAZORING
+        #if ENABLE_REVERSE_FUTILITY_PRUNING
         if (depth <= 7 &&
-            staticEval - ReverseFutilityStep * depth > beta)
+            staticEval - ReverseFutilityStep  * depth > beta)
         	return staticEval;
         #endif
 
     	//Razoring
-        #if ENABLE_REVERSE_FUTILITY_PRUNING
+        #if ENABLE_RAZORING
     	if (depth <= 7 && staticEval + RazorMargin * depth < alpha)
         	return quiesceSearch(board, searchInfo, alpha, beta, height);
         #endif
@@ -188,10 +212,13 @@ int search(Board *board, SearchInfo *searchInfo, int alpha, int beta, int depth,
     searchInfo->killer[height + 1][1] = 0;
 
     while (*curMove) {
+        int bonus = mateScore(alpha) || !root ? 0 : temperatureOffsets[pseudoMovesCount];
+
         int nextDepth = depth - 1;
         movePick(pseudoMovesCount, height);
         ++pseudoMovesCount;
         makeMove(board, *curMove, &undo);
+
 
         if (inCheck(board, !board->color)) {
             unmakeMove(board, *curMove, &undo);
@@ -209,8 +236,10 @@ int search(Board *board, SearchInfo *searchInfo, int alpha, int beta, int depth,
         if (root && depth > 12) {
             char moveStr[6];
             moveToString(*curMove, moveStr);
-            printf("info currmove %s currmovenumber %d\n", moveStr, movesCount);
-            fflush(stdout);
+            if (!SHOULD_HIDE_SEARCH_INFO_LOGS) {
+                printf("info currmove %s currmovenumber %d\n", moveStr, movesCount);
+                fflush(stdout);
+            }
         }
 
         //Fulility pruning
@@ -229,17 +258,17 @@ int search(Board *board, SearchInfo *searchInfo, int alpha, int beta, int depth,
 
         int eval;
         if (movesCount == 1) {
-            eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
+            eval = -search(board, searchInfo, -beta + bonus, -alpha + bonus, nextDepth + extensions, height + 1) - bonus;
         } else {
             if (LmrPruningAllow && playedMovesCount >= 3 && quiteMove) {
-                eval = -search(board, searchInfo, -alpha - 1, -alpha, nextDepth + extensions - reductions, height + 1);
+                eval = -search(board, searchInfo, -alpha - 1 + bonus, -alpha + bonus, nextDepth + extensions - reductions, height + 1) - bonus;
                 if (eval > alpha)
-                    eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
+                    eval = -search(board, searchInfo, -beta + bonus, -alpha + bonus, nextDepth + extensions, height + 1) - bonus;
             } else {
-                eval = -search(board, searchInfo, -alpha - 1, -alpha, nextDepth + extensions, height + 1);
+                eval = -search(board, searchInfo, -alpha - 1 + bonus, -alpha + bonus, nextDepth + extensions, height + 1) - bonus;
 
                 if (eval > alpha && eval < beta)
-                    eval = -search(board, searchInfo, -beta, -alpha, nextDepth + extensions, height + 1);
+                    eval = -search(board, searchInfo, -beta + bonus, -alpha + bonus, nextDepth + extensions, height + 1) - bonus;
             }
         }
         unmakeMove(board, *curMove, &undo);
@@ -280,7 +309,7 @@ int search(Board *board, SearchInfo *searchInfo, int alpha, int beta, int depth,
     new_tt.key = keyPosition;
     new_tt.eval = evalToTT(alpha, height);
 
-    replaceTranspositionEntry(ttEntry, &new_tt, keyPosition);
+    replaceTranspositionEntry(&new_tt, keyPosition);
 
     if (!movesCount) {
         if (inCheck(board, board->color))
@@ -296,18 +325,7 @@ int quiesceSearch(Board *board, SearchInfo *searchInfo, int alpha, int beta, int
     searchInfo->selDepth = max(searchInfo->selDepth, height);
 
     U64 keyPosition = board->key;
-    Transposition *ttEntry = &tt[keyPosition & ttIndex];
-
-    if (ttEntry && ttEntry->key == board->key) {
-        int ttEval = evalFromTT(ttEntry->eval, height);
-        if (ttEntry->evalType) {
-            if ((ttEntry->evalType == lowerbound && ttEval >= beta && !mateScore(ttEntry->eval)) ||
-                (ttEntry->evalType == upperbound && ttEval <= alpha && !mateScore(ttEntry->eval)) ||
-                ttEntry->evalType == exact) {
-                return ttEval;
-            }
-        }
-    }
+    Transposition *ttEntry = getTTEntry(keyPosition);
 
     if (height >= MAX_PLY - 1)
         return fullEval(board);
@@ -411,11 +429,12 @@ void perft(Board *board, int depth) {
         clock_t start = clock();
         U64 nodes = perftTest(board, i, 0);
         clock_t end = clock();
+        double speed = (double)nodes / ((double)end - (double)start);
 
         if (!(end - start))
             end = start + 1;
 
-        printf("Perft %d: %llu; speed: %llu; time: %.3fs\n", i, nodes, nodes / (end - start), (end - start) / 1000.);
+        printf("Perft %d: %llu; speed: %.1fMnps; time: %.3fs\n", i, nodes, speed, (end - start) / 1000000.);
     }
 }
 
@@ -424,7 +443,7 @@ void moveOrdering(Board *board, U16 *mvs, SearchInfo *searchInfo, int height, in
         depth = MAX_PLY - 1;
 
     U16 *ptr = mvs;
-    Transposition *ttEntry = &tt[board->key & ttIndex];
+    Transposition *ttEntry = getTTEntry(board->key);
     int i;
 
     for (i = 0; *ptr; ++i) {

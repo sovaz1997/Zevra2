@@ -1,19 +1,20 @@
 #include "eval.h"
 #include "score.h"
 #include <math.h>
+#include "uci.h"
 
 //Material
-int PAWN_EV_MG = 100;
-int KNIGHT_EV_MG = 337;
-int BISHOP_EV_MG = 338;
-int ROOK_EV_MG = 467;
-int QUEEN_EV_MG = 1083;
+int PAWN_EV_MG = 143;
+int KNIGHT_EV_MG = 732;
+int BISHOP_EV_MG = 778;
+int ROOK_EV_MG = 841;
+int QUEEN_EV_MG = 2559;
 
-int PAWN_EV_EG = 158;
-int KNIGHT_EV_EG = 334;
-int BISHOP_EV_EG = 380;
-int ROOK_EV_EG = 601;
-int QUEEN_EV_EG = 1083;
+int PAWN_EV_EG = 493;
+int KNIGHT_EV_EG = 636;
+int BISHOP_EV_EG = 679;
+int ROOK_EV_EG = 1248;
+int QUEEN_EV_EG = 1850;
 
 //Mobility bonuses
 int QueenMobilityMG[QUEEN_MOBILITY_N] = {
@@ -43,7 +44,21 @@ int DoubleBishopsBonus() {
     return getScore2(DoubleBishopsBonusMG, DoubleBishopsBonusEG, stage);
 }
 
+int MATE_LIMIT = 29000;
+
 int fullEval(Board *board) {
+    if (NNUE_ENABLED && option.shouldUseNNUE) {
+        recalculateEval(nnue, board->color);
+        int eval = nnue->eval;
+
+        if(eval > MATE_LIMIT) {
+            eval = MATE_LIMIT;
+        } else if(eval < -MATE_LIMIT) {
+            eval = -MATE_LIMIT;
+        }
+
+        return eval;
+    }
     int eval = board->eval;
     stage = stageGame(board);
 
@@ -146,10 +161,10 @@ int mobilityAndKingDangerEval(Board *board, int color) {
     U64 mask = board->pieces[PAWN] & enemy;
     U64 pAttacks;
 
-    if (!color == WHITE)
-        pAttacks = ((mask << 9) & ~files[0]) | ((mask << 7) & ~files[7]);
-    else
+    if (color == WHITE)
         pAttacks = ((mask >> 9) & ~files[7]) | ((mask >> 7) & ~files[0]);
+    else
+        pAttacks = ((mask << 9) & ~files[0]) | ((mask << 7) & ~files[7]);
 
     U64 possibleSq = ~pAttacks;
 
@@ -417,6 +432,8 @@ int pVal(Board* b, int n) {
         case 6:
             return 0;
     }
+
+    return 0;
 }
 
 int stageGame(Board *board) {
