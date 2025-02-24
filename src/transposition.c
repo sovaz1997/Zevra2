@@ -6,13 +6,6 @@ void initTT(int size) {
     tt = (Transposition*) malloc(sizeof(Transposition) * ttSize);
     ttIndex = ttSize - 1;
     clearTT();
-
-    nullTransposition.eval = 0;
-    nullTransposition.depth = 0;
-    nullTransposition.age = 0;
-    nullTransposition.evalType = 0;
-    nullTransposition.move = 0;
-    nullTransposition.key = 0;
 }
 
 void reallocTT(int size) {
@@ -91,10 +84,6 @@ int evalFromTT(int eval, int height) {
 
 Transposition* getTTEntry(U64 key) {
     Transposition* transposition = &tt[key & ttIndex];
-
-//    if (transposition->age != ttAge) {
-//        return &nullTransposition;
-//    }
 
     return transposition;
 }

@@ -18,8 +18,6 @@ struct Transposition {
     U64 key;
 };
 
-Transposition nullTransposition;
-
 Transposition* tt;
 U64 ttSize;
 double ttFilledSize;

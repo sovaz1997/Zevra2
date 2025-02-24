@@ -138,7 +138,6 @@ void runGame(Board* board, FILE* file) {
 
 void createDataset(Board* board, int gamesCount, int seed, char* fileName, char* logFile) {
     temperature = 0;
-    // NNUE_ENABLED = 0;
     SHOULD_HIDE_SEARCH_INFO_LOGS = 1;
     FILE* file = fopen(fileName, "w");
 
