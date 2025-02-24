@@ -16,22 +16,11 @@ int main(int argc, char** argv) {
 
     Board* board = (Board*) malloc(sizeof(Board));
 
-//    if (argc > 2) {
-//        if (strEquals(argv[1], "--weights-file")) {
-//            loadWeights(argv[2]);
-//        }
-//    }
-
-
     printEngineInfo();
 
     if (NNUE_ENABLED) {
-        // loadNNUEWeights();
         loadInnerNNUEWeights();
     }
-
-
-
 
 
     char buff[65536];
@@ -45,23 +34,11 @@ int main(int argc, char** argv) {
     setFen(board, startpos);
 
 
-
-
     if (argc > 4) {
         if (strEquals(argv[1], "--generate-dataset")) {
-          // printf("Generating dataset...\n");
-          // SHOULD_HIDE_SEARCH_INFO_LOGS = 1;
-          // NNUE_ENABLED = 0;
-          // genDataset(board, atoi(argv[2]), atoi(argv[3]), argv[4]);
           createDataset(board, atoi(argv[2]), atoi(argv[3]), argv[4], argv[5]);
         }
     }
-
-//    if (SHOULD_GENERATE_DATASET) {
-//        SHOULD_HIDE_SEARCH_INFO_LOGS = 1;
-//        NNUE_ENABLED = 0;
-//        dataset_gen(board);
-//    }
 
 
     TimeManager tm = initTM();
