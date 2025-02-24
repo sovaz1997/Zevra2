@@ -21,6 +21,8 @@ struct SearchArgs {
 };
 
 long long history[2][64][64];
+U16 counterMoves[64][64][64][64];
+U16 prevMoves[256];
 
 struct SearchInfo {
     U64 nodesCount;
@@ -32,6 +34,7 @@ struct SearchInfo {
     int searchTime;
     int selDepth;
     int eval;
+    U16 prevMove;
 };
 
 //Eval type

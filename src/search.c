@@ -112,6 +112,17 @@ int search(Board *board, SearchInfo *searchInfo, int alpha, int beta, int depth,
     int root = (height ? 0 : 1);
     int pvNode = (beta - alpha > 1);
 
+//    if (pvNode) {
+//        for (int i = 0; i < 256; i++) {
+//          if (prevMoves[i]) {
+//            char moveStr[6];
+//            moveToString(prevMoves[i], moveStr);
+//            printf("%s ", moveStr);
+//            }
+//        }
+//            printf("\n");
+//    }
+
     if (root) {
       for (int i = 0; i < 256; i++) {
         temperatureOffsets[i] = temperature == 0 ? 0 : rand() % temperature;
@@ -226,6 +237,8 @@ int search(Board *board, SearchInfo *searchInfo, int alpha, int beta, int depth,
             continue;
         }
 
+        searchInfo->prevMove = *curMove;
+
         ++movesCount;
 
         int extensions = inCheck(board, board->color) || MovePromotionPiece(*curMove) == QUEEN;
@@ -252,6 +265,8 @@ int search(Board *board, SearchInfo *searchInfo, int alpha, int beta, int depth,
             }
         }
         #endif
+
+        prevMoves[height] = *curMove;
 
         int reductions = lmr[min(depth, MAX_PLY - 1)][min(playedMovesCount, 63)];
         ++playedMovesCount;
@@ -286,6 +301,10 @@ int search(Board *board, SearchInfo *searchInfo, int alpha, int beta, int depth,
             hashType = lowerbound;
 
             if (!undo.capturedPiece) {
+                if (height >= 1 && !undo.capturedPiece) {
+                    counterMoves[MoveFrom(prevMoves[height - 1])][MoveTo(prevMoves[height - 1])][MoveFrom(curBestMove)][MoveTo(curBestMove)] = curBestMove;
+                }
+
                 if (searchInfo->killer[height][0])
                     searchInfo->killer[height][1] = searchInfo->killer[height][0];
 
@@ -461,18 +480,29 @@ void moveOrdering(Board *board, U16 *mvs, SearchInfo *searchInfo, int height, in
             continue;
         }
 
+        int counterBonus = 0;
+
+        if (depth >= 1 && counterMoves[MoveFrom(prevMoves[height - 1])][MoveTo(prevMoves[height - 1])][MoveFrom(*ptr)][MoveTo(*ptr)] == *ptr) {
+            counterBonus = 1000;
+        }
+
         if (toPiece)
             movePrice[height][i] = mvvLvaScores[pieceType(board->squares[MoveFrom(*ptr)])][toPiece] * 1000000000000llu;
-        else if (depth < MAX_PLY && searchInfo->killer[height][0] == *ptr)
+        else if (depth < MAX_PLY && searchInfo->killer[height][0] == *ptr) {
             movePrice[height][i] = 100000000000llu;
-        else if (depth >= 2 && depth < MAX_PLY && searchInfo->killer[height - 2][0] == *ptr)
+            movePrice[height][i] += counterBonus;
+        } else if (depth >= 2 && depth < MAX_PLY && searchInfo->killer[height - 2][0] == *ptr) {
             movePrice[height][i] = 99999000000llu;
-        else if (depth < MAX_PLY && searchInfo->killer[height][1] == *ptr)
+            movePrice[height][i] += counterBonus;
+        } else if (depth < MAX_PLY && searchInfo->killer[height][1] == *ptr) {
             movePrice[height][i] = 99998000000llu;
-        else if (depth >= 2 && depth < MAX_PLY && searchInfo->killer[height - 2][1] == *ptr)
+            movePrice[height][i] += counterBonus;
+        } else if (depth >= 2 && depth < MAX_PLY && searchInfo->killer[height - 2][1] == *ptr) {
             movePrice[height][i] = 99997000000llu;
-        else {
+            movePrice[height][i] += counterBonus;
+        } else {
             movePrice[height][i] = history[board->color][MoveFrom(*ptr)][MoveTo(*ptr)];
+            movePrice[height][i] += counterBonus;
         }
 
         if (MoveType(*ptr) == ENPASSANT_MOVE)
@@ -544,6 +574,15 @@ void resetSearchInfo(SearchInfo *info, TimeManager tm) {
     info->tm = tm;
     setAbort(0);
     compressHistory();
+    memset(prevMoves, 0, 256 * sizeof(U16));
+    memset(counterMoves, 0, 64 * 64 * 64 * 64 * sizeof(U16));
+
+//    for (int i = 0; i < 64; ++i) {
+//      for (int j = 0; j < 64; ++j) {
+//        counterMoves[i][j] = 0;
+//        counterMoves[i][j] = 0;
+//      }
+//    }
 }
 
 void setAbort(int val) {
