@@ -141,7 +141,7 @@ int main(int argc, char** argv) {
             printEngineInfo();
             printf("option name Hash type spin default %d min %d max %d\n", option.defaultHashSize, option.minHashSize, option.maxHashSize);
             printf("option name Temperature type spin default %d min %d max %d\n", option.defaultTemperature, option.minTemperature, option.maxTemperature);
-            printf("option name Use NNUE type check default false\n");
+            printf("option name Use NNUE type check default true\n");
             printf("option name Clear Hash type button\n");
             printf("uciok\n");
         } else if(strEquals(cmd, "eval") && SEARCH_COMPLETE) {

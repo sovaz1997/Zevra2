@@ -29,7 +29,7 @@ debug:
 	$(CC) $(CFLAGS) $(DEBUG) $(WARNINGS) $(SRC) -o $(OUTPUT) $(LIBS)
 
 release:
-	$(CC) $(CFLAGS) -DNDEBUG $(OPTIMIZATIONS) -static $(ARCH_FLAGS) $(SRC) -o $(OUTPUT) $(LIBS)
+	$(CC) $(CFLAGS) -DNDEBUG $(OPTIMIZATIONS) $(ARCH_FLAGS) $(SRC) -o $(OUTPUT) $(LIBS)
 
 clean:
 	rm -rf *.o $(OUTPUT)
