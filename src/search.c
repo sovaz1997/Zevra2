@@ -165,7 +165,7 @@ int search(Board *board, SearchInfo *searchInfo, int alpha, int beta, int depth,
 
     //Null Move pruning
 	#if ENABLE_NULL_MOVE_PRUNING
-    int R = 2 + depth / 4;
+    int R = 1 + depth / 3;
     int pieceCount = popcount(board->colours[WHITE] | board->colours[BLACK]);
     if (!pvNode && pieceCount > 7 && !weInCheck && !root && haveNoPawnMaterial(board) &&
         !searchInfo->nullMoveSearch && depth > R && (staticEval >= beta || depth <= 4)) {

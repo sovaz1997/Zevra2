@@ -54,12 +54,12 @@ int mvvLvaScores[7][7];
 int lmr[MAX_PLY][64];
 
 //Heuristics control
-static const int LmrPruningAllow = 1;
+static const int LmrPruningAllow = 0;
 
-#define ENABLE_REVERSE_FUTILITY_PRUNING 1
-#define ENABLE_RAZORING 1
+#define ENABLE_REVERSE_FUTILITY_PRUNING 0
+#define ENABLE_RAZORING 0
 #define ENABLE_NULL_MOVE_PRUNING 1
-#define ENABLE_FUTILITY_PRUNING 1
+#define ENABLE_FUTILITY_PRUNING 0
 
 void* go(void* thread_data);
 SearchInfo iterativeDeeping(Board* board, TimeManager tm);
