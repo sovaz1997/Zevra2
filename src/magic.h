@@ -7,14 +7,14 @@
 #include "bitboards.h"
 #include "board.h"
 
-U64 rookMagicMask[64];
-U64 bishopMagicMask[64];
+extern U64 rookMagicMask[64];
+extern U64 bishopMagicMask[64];
 
-U64 rookPossibleMoves[64][4096];
-U64 bishopPossibleMoves[64][512];
+extern U64 rookPossibleMoves[64][4096];
+extern U64 bishopPossibleMoves[64][512];
 
-U64 rookPossibleMovesSize[64];
-U64 bishopPossibleMovesSize[64];
+extern U64 rookPossibleMovesSize[64];
+extern U64 bishopPossibleMovesSize[64];
 
 extern const U64 rookMagic[];
 extern const U64 bishopMagic[];

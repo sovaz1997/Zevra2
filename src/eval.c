@@ -3,6 +3,24 @@
 #include <math.h>
 #include "uci.h"
 
+// Definitions for globals declared extern in eval.h
+int* PAWN_EVAL;
+int* KNIGHT_EVAL;
+int* BISHOP_EVAL;
+int* ROOK_EVAL;
+int* QUEEN_EVAL;
+
+int QueenMobility[STAGE_N][QUEEN_MOBILITY_N];
+int RookMobility[STAGE_N][ROOK_MOBILITY_N];
+int BishopMobility[STAGE_N][BISHOP_MOBILITY_N];
+int KnightMobility[STAGE_N][KNIGHT_MOBILITY_N];
+
+int distanceBonus[64][64];
+int IsolatedPawnsHash[256];
+int stage;
+int KingDanger[100];
+int KingDangerFactor;
+
 //Material
 int PAWN_EV_MG = 143;
 int KNIGHT_EV_MG = 732;
@@ -47,7 +65,7 @@ int DoubleBishopsBonus() {
 int MATE_LIMIT = 29000;
 
 int fullEval(Board *board) {
-    if (NNUE_ENABLED && option.shouldUseNNUE) {
+    if (NNUE_ENABLED) {
         recalculateEval(nnue, board->color);
         int eval = nnue->eval;
 
@@ -437,8 +455,11 @@ int pVal(Board* b, int n) {
 }
 
 int stageGame(Board *board) {
-    return popcount(board->pieces[QUEEN]) * 12 + popcount(board->pieces[ROOK]) * 8 +
-           popcount(board->pieces[BISHOP]) * 5 + popcount(board->pieces[KNIGHT]) * 5;
+    int s = popcount(board->pieces[QUEEN]) * 12 + popcount(board->pieces[ROOK]) * 8 +
+            popcount(board->pieces[BISHOP]) * 5 + popcount(board->pieces[KNIGHT]) * 5;
+    // Promotions can create extra heavy pieces, pushing s past 98; every stage-
+    // indexed table (PAWN_EVAL..QUEEN_EVAL, *Mobility) is sized STAGE_N (0..98).
+    return s > STAGE_N - 1 ? STAGE_N - 1 : s;
 }
 
 int rooksEval(Board *board, int color) {

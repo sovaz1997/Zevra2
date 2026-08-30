@@ -14,10 +14,10 @@ typedef struct {
     int positionsCount;
 } Game;
 
-Game game;
+extern Game game;
 
-char fen_for_save[256];
-U16 moveList[256];
+extern char fen_for_save[256];
+extern U16 moveList[256];
 
 TimeManager createFixNodesTm(int nodes);
 

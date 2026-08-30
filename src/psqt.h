@@ -16,7 +16,7 @@ extern int egRookPST[64];
 extern int egQueenPST[64];
 extern int egKingPST[64];
 
-int PST[99][7][64];
+extern int PST[99][7][64];
 void initPSQT();
 
 #endif

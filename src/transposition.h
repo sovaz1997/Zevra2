@@ -18,11 +18,11 @@ struct Transposition {
     U64 key;
 };
 
-Transposition* tt;
-U64 ttSize;
-double ttFilledSize;
-U64 ttIndex;
-int ttAge;
+extern Transposition* tt;
+extern U64 ttSize;
+extern double ttFilledSize;
+extern U64 ttIndex;
+extern int ttAge;
 
 void initTT(int size);
 void reallocTT(int size);

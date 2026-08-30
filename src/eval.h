@@ -25,11 +25,11 @@ extern int BISHOP_EV_EG;
 extern int ROOK_EV_EG;
 extern int QUEEN_EV_EG;
 
-int* PAWN_EVAL;
-int* KNIGHT_EVAL;
-int* BISHOP_EVAL;
-int* ROOK_EVAL;
-int* QUEEN_EVAL;
+extern int* PAWN_EVAL;
+extern int* KNIGHT_EVAL;
+extern int* BISHOP_EVAL;
+extern int* ROOK_EVAL;
+extern int* QUEEN_EVAL;
 
 int pVal(Board* b, int n);
 
@@ -44,10 +44,10 @@ extern int RookMobilityEG[ROOK_MOBILITY_N];
 extern int BishopMobilityEG[BISHOP_MOBILITY_N];
 extern int KnightMobilityEG[KNIGHT_MOBILITY_N];
 
-int QueenMobility[STAGE_N][QUEEN_MOBILITY_N];
-int RookMobility[STAGE_N][ROOK_MOBILITY_N];
-int BishopMobility[STAGE_N][BISHOP_MOBILITY_N];
-int KnightMobility[STAGE_N][KNIGHT_MOBILITY_N];
+extern int QueenMobility[STAGE_N][QUEEN_MOBILITY_N];
+extern int RookMobility[STAGE_N][ROOK_MOBILITY_N];
+extern int BishopMobility[STAGE_N][BISHOP_MOBILITY_N];
+extern int KnightMobility[STAGE_N][KNIGHT_MOBILITY_N];
 
 //additional bonuses and penalties
 extern int PassedPawnBonus[8];
@@ -55,20 +55,20 @@ extern int DoublePawnsPenalty;
 extern int IsolatedPawnPenalty;
 extern int RookOnOpenFileBonus;
 extern int RookOnPartOpenFileBonus;
-int distanceBonus[64][64];
+extern int distanceBonus[64][64];
 
 extern int DoubleBishopsBonusMG;
 extern int DoubleBishopsBonusEG;
 
 //Hash eval
-int IsolatedPawnsHash[256];
+extern int IsolatedPawnsHash[256];
 
 //global (using for speed-up)
-int stage;
+extern int stage;
 
-int KingDanger[100];
+extern int KingDanger[100];
 
-int KingDangerFactor;
+extern int KingDangerFactor;
 
 int fullEval(Board *board);
 
