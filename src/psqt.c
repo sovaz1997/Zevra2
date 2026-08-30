@@ -2,6 +2,9 @@
 #include "psqt.h"
 #include "score.h"
 
+// Definitions for globals declared extern in psqt.h
+int PST[99][7][64];
+
 int pawnPST[64] = {
         0, 0, 0, 0, 0, 0, 0, 0,
         40, 54, 15, 33, 14, 22, 20, -13,

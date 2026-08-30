@@ -1,5 +1,35 @@
 #include "bitboards.h"
 
+// Definitions for globals declared extern in bitboards.h
+U64 files[8];
+U64 ranks[8];
+
+U64 rookAttacks[64];
+U64 bishopAttacks[64];
+U64 knightAttacks[64];
+U64 kingAttacks[64];
+U64 pawnMoves[2][64];
+U64 pawnAttacks[2][64];
+
+U64 plus1[64];
+U64 minus1[64];
+U64 plus8[64];
+U64 minus8[64];
+U64 plus7[64];
+U64 minus7[64];
+U64 plus9[64];
+U64 minus9[64];
+
+U64 squareBitboard[64];
+U64 unSquareBitboard[64];
+
+U64 shortCastlingBitboard[2];
+U64 longCastlingBitboard[2];
+
+U64 squareTable[8][8];
+U64 rankOfTable[64];
+U64 fileOfTable[64];
+
 void initBitboards() {
     for (int sq = 0; sq < 64; sq++) {
         rankOfTable[sq] = sq / 8;
@@ -153,11 +183,11 @@ void attacksGen() {
             pawnAttacks[WHITE][sq] |= ((1ull << (sq + 7)) & ~files[7]);
         }
 
-        if (sq - 9 < 64) {
+        if (sq - 9 >= 0) {
             pawnAttacks[BLACK][sq] |= ((1ull << (sq - 9)) & ~files[7]);
         }
 
-        if (sq - 7 < 64) {
+        if (sq - 7 >= 0) {
             pawnAttacks[BLACK][sq] |= ((1ull << (sq - 7)) & ~files[0]);
         }
     }

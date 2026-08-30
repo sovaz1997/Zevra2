@@ -9,8 +9,7 @@
 extern int SHOULD_GENERATE_DATASET;
 extern int NNUE_ENABLED;
 extern int SHOULD_HIDE_SEARCH_INFO_LOGS;
-extern int shouldUseNNUE;
-int temperature;
+extern int temperature;
 
 struct Option {
     int defaultHashSize;
@@ -19,15 +18,19 @@ struct Option {
     int defaultTemperature;
     int minTemperature;
     int maxTemperature;
-    int shouldUseNNUE;
-    int defaultShouldUseNNUE;
 };
 
-Option option;
+extern Option option;
 
 extern char startpos[];
-extern const int TUNING_ENABLED;
-pthread_mutex_t mutex;
+
+// Compile-time switch: expose the SPSA-tunable search/TM parameters as UCI
+// options. Off in release builds so the tuning knobs stay hidden; enable with
+// `make tune` (or -DTUNING_ENABLED=1) for local SPSA runs.
+#ifndef TUNING_ENABLED
+#define TUNING_ENABLED 0
+#endif
+extern pthread_mutex_t mutex;
 
 int main(int argc, char** argv);
 void makeCommand();

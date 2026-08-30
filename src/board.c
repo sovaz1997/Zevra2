@@ -54,6 +54,9 @@ void setFen(Board* board, char* fen) {
 
     if(board->color == BLACK)
         board->key ^= otherSideKey;
+
+    if (NNUE_ENABLED)
+        nnueUpdateBuckets(board);   // set initial king buckets (pieces were added with bucket 0)
 }
 
 void getFen(Board* board, char* fen) {
@@ -182,8 +185,8 @@ void setPiece(Board* board, int piece, int color, int sq) {
     board->key ^= zobristKeys[board->squares[sq]][sq];
 
     if (NNUE_ENABLED) {
-        setDirectNNUEInput(nnue, getInputIndexOf(color, piece, sq));
-        setPerspectiveNNUEInput(nnue, getInputIndexOf(!color, piece, sq ^ PERSPECTIVE_MASK));
+        setDirectNNUEInput(nnue, getInputIndexOf(nnue->wkBucket, color, piece, sq));
+        setPerspectiveNNUEInput(nnue, getInputIndexOf(nnue->bkBucket, !color, piece, sq ^ PERSPECTIVE_MASK));
     }
 }
 
@@ -201,8 +204,8 @@ void clearPiece(Board* board, int sq) {
     board->squares[sq] = 0;
 
     if (NNUE_ENABLED) {
-        resetDirectNNUEInput(nnue, getInputIndexOf(color, type, sq));
-        resetPerspectiveNNUEInput(nnue, getInputIndexOf(!color, type, sq ^ PERSPECTIVE_MASK));
+        resetDirectNNUEInput(nnue, getInputIndexOf(nnue->wkBucket, color, type, sq));
+        resetPerspectiveNNUEInput(nnue, getInputIndexOf(nnue->bkBucket, !color, type, sq ^ PERSPECTIVE_MASK));
     }
 }
 
@@ -287,6 +290,9 @@ void makeMove(Board* board, U16 move, Undo* undo) {
     board->key ^= otherSideKey;
 
     addMoveToHist(board);
+
+    if (NNUE_ENABLED)
+        nnueUpdateBuckets(board);   // refresh a perspective if its king changed bucket
 }
 
 void unmakeMove(Board* board, U16 move, Undo* undo) {
@@ -327,6 +333,9 @@ void unmakeMove(Board* board, U16 move, Undo* undo) {
     board->key ^= otherSideKey;
 
     revertMoveFromHist(board);
+
+    if (NNUE_ENABLED)
+        nnueUpdateBuckets(board);   // refresh a perspective if its king changed bucket back
 }
 
 void makeNullMove(Board* board) {

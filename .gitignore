@@ -1,0 +1,35 @@
+# --- private tooling / infra (kept out of the public repo) ---
+/nnue/
+/build-exe.sh
+/testing/
+/nnue-learn/
+/gauntlet/
+/engines/
+Regression.xlsx
+results.txt
+test_positions.txt
+
+# --- release build output (binaries go to GitHub Releases, not the repo) ---
+/dist/
+
+# --- local scratch / notes ---
+/config.json
+/ROADMAP.md
+/SEARCH_IMPROVEMENTS.md
+nohup.out
+*.log
+
+# --- build artifacts (the net src/zevra.bin stays tracked) ---
+*.o
+*.exe
+src/zevra
+src/zevra-*
+/zevra
+/zevra.bin
+/zevra-*.bin
+/zevra-*.exe
+*.pgn
+
+# extra: datagen scripts + legacy net dumps in src/
+src/*.bash
+src/nets/

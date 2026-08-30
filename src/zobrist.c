@@ -1,5 +1,12 @@
 #include "zobrist.h"
 
+// Definitions for globals declared extern in zobrist.h
+U64 zobristKeys[15][64];
+U64 zobristCastlingKeys[4];
+U64 zobristEnpassantKeys[64];
+U64 nullMoveKey;
+U64 otherSideKey;
+
 U64 nextSeed = 0x8a432df075f3;
 
 U64 rand64() {	

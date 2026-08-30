@@ -1,5 +1,12 @@
 #include "timemanager.h"
 
+// Definitions for globals declared extern in timemanager.h
+int TmStabPct;
+int TmChangeX100;
+int TmPanicX100;
+int TmPanicDrop;
+int TmMaxMult;
+
 void startTimer(Timer* timer) {
     timer->startTime = clock();
 }
@@ -51,15 +58,32 @@ TimeManager createTournamentTm(Board* board, int wtime, int btime, int winc, int
 }
 
 void setTournamentTime(TimeManager* tm, Board* board) {
+    int remaining = tm->tournamentTime[board->color];
     if(tm->movesToGo) {
-        tm->time = tm->tournamentTime[board->color] / (tm->movesToGo + 1) + tm->tournamentInc[board->color] / 2;
+        tm->time = remaining / (tm->movesToGo + 1) + tm->tournamentInc[board->color] / 2;
     } else {
         int pieceCount = popcount(board->colours[WHITE] | board->colours[BLACK]);
-        tm->time = tm->tournamentTime[board->color] / (40 - (32 - pieceCount)) + tm->tournamentInc[board->color] / 2;
+        tm->time = remaining / (40 - (32 - pieceCount)) + tm->tournamentInc[board->color] / 2;
     }
+    // soft = base allocation; hard = up to TmMaxMult x, but never more than half the clock
+    tm->optimum = tm->time;
+    tm->maximum = tm->optimum * TmMaxMult;
+    U64 hardCap = (U64)(remaining / 2);
+    if (tm->maximum > hardCap) tm->maximum = hardCap;
+    if (tm->maximum < tm->optimum) tm->maximum = tm->optimum;
 }
 
 int testAbort(U64 time, int nodesCount, TimeManager* tm) {
-    return ((tm->searchType == Tournament || tm->searchType == FixedTime) && time >= tm->time)
+    return (tm->searchType == Tournament && time >= tm->maximum)
+    | (tm->searchType == FixedTime && time >= tm->time)
     | (tm->searchType == FixedNodes && nodesCount >= tm->nodes);
+}
+
+int shouldStopDeepening(TimeManager* tm, U64 elapsed, int depth, int stability, int eval, int prevEval) {
+    if (tm->searchType != Tournament || depth < 5)
+        return 0;   // only adapt the tournament clock, and only after a few iterations
+    double factor = 1.0 - (TmStabPct / 100.0) * min(stability, 6);   // stable -> less
+    if (stability == 0) factor *= TmChangeX100 / 100.0;             // best move changed -> more
+    if (eval < prevEval - TmPanicDrop) factor *= TmPanicX100 / 100.0; // score dropped -> more
+    return elapsed >= (U64)(tm->optimum * factor);
 }

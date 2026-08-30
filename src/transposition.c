@@ -1,6 +1,13 @@
 #include "transposition.h"
 #include "search.h"
 
+// Definitions for globals declared extern in transposition.h
+Transposition* tt;
+U64 ttSize;
+double ttFilledSize;
+U64 ttIndex;
+int ttAge;
+
 void initTT(int size) {
     ttSize = sizeToTTCount(size);
     tt = (Transposition*) malloc(sizeof(Transposition) * ttSize);

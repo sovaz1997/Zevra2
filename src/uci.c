@@ -1,12 +1,17 @@
 #include "uci.h"
 #include "dataset.h"
+#include "bench.h"
 
 char startpos[] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
-const int TUNING_ENABLED = 0;
 int SHOULD_GENERATE_DATASET = 0;
 int NNUE_ENABLED = 1;
 int SHOULD_HIDE_SEARCH_INFO_LOGS = 0;
+
+// Definitions for globals declared extern in uci.h
+int temperature;
+Option option;
+pthread_mutex_t mutex;
 
 int main(int argc, char** argv) {
     nnue = (NNUE*) malloc(sizeof(NNUE));
@@ -19,7 +24,11 @@ int main(int argc, char** argv) {
     printEngineInfo();
 
     if (NNUE_ENABLED) {
-        loadInnerNNUEWeights();
+        const char* netPath = getenv("ZEVRA_NET");
+        if (!netPath)
+            netPath = "zevra.bin";
+        if (!loadBulletNet(netPath))
+            printf("info string WARNING: failed to load net '%s'\n", netPath);
     }
 
 
@@ -32,6 +41,14 @@ int main(int argc, char** argv) {
     temperature = option.defaultTemperature;
 
     setFen(board, startpos);
+
+    // CLI bench: `./zevra bench [depth]` runs the signature and exits.
+    if (argc > 1 && strEquals(argv[1], "bench")) {
+        int d = (argc > 2) ? atoi(argv[2]) : 13;
+        benchmark(board, d);
+        free(board);
+        return 0;
+    }
 
 
     if (argc > 4) {
@@ -141,9 +158,32 @@ int main(int argc, char** argv) {
             printEngineInfo();
             printf("option name Hash type spin default %d min %d max %d\n", option.defaultHashSize, option.minHashSize, option.maxHashSize);
             printf("option name Temperature type spin default %d min %d max %d\n", option.defaultTemperature, option.minTemperature, option.maxTemperature);
-            printf("option name Use NNUE type check default true\n");
             printf("option name Clear Hash type button\n");
+            printf("option name EvalFile type string default zevra.bin\n");
+#if TUNING_ENABLED
+            // Tunable search parameters (for SPSA). Defaults from initSearchParams().
+            printf("option name FutilityStep type spin default %d min 10 max 200\n", FutilityStep);
+            printf("option name ReverseFutilityStep type spin default %d min 10 max 200\n", ReverseFutilityStep);
+            printf("option name RazorMargin type spin default %d min 50 max 600\n", RazorMargin);
+            printf("option name LmpPruningAllow type spin default %d min 0 max 1\n", LmpPruningAllow);
+            printf("option name LmpMaxDepth type spin default %d min 2 max 16\n", LmpMaxDepth);
+            printf("option name LmpBase type spin default %d min 1 max 12\n", LmpBase);
+            printf("option name NmpBase type spin default %d min 1 max 5\n", NmpBase);
+            printf("option name NmpDiv type spin default %d min 2 max 8\n", NmpDiv);
+            printf("option name AspirationDelta type spin default %d min 5 max 60\n", AspirationDelta);
+            printf("option name LmrBase type spin default %d min 0 max 200\n", LmrBaseX100);
+            printf("option name LmrDivisor type spin default %d min 100 max 500\n", LmrDivX100);
+            printf("option name TmStabPct type spin default %d min 0 max 15\n", TmStabPct);
+            printf("option name TmChangeX100 type spin default %d min 100 max 200\n", TmChangeX100);
+            printf("option name TmPanicX100 type spin default %d min 100 max 300\n", TmPanicX100);
+            printf("option name TmPanicDrop type spin default %d min 5 max 120\n", TmPanicDrop);
+            printf("option name TmMaxMult type spin default %d min 2 max 10\n", TmMaxMult);
+            printf("option name LmrHistoryDiv type spin default %d min 1000 max 60000\n", LmrHistoryDiv);
+#endif
             printf("uciok\n");
+        } else if(strEquals(cmd, "bench") && SEARCH_COMPLETE) {
+            char* depth_str = strtok(NULL, " ");
+            benchmark(board, depth_str ? atoi(depth_str) : 13);
         } else if(strEquals(cmd, "eval") && SEARCH_COMPLETE) {
             printf("Eval: %d\n", fullEval(board));
         } else if(strEquals(cmd, "isready")) {
@@ -170,21 +210,66 @@ int main(int argc, char** argv) {
                     temperature = max(temperature, option.minTemperature);
                     temperature = min(temperature, option.maxTemperature);
                     printf("info string temperature changed to %d\n", temperature);
-                } else if(strStartsWith(name, "Use NNUE")) {
-                    option.shouldUseNNUE = strEquals(value, "true");
-                    printf("info string Use NNUE changed to %s\n", value);
+                } else if(strStartsWith(name, "EvalFile")) {
+                    if (loadBulletNet(value))
+                        printf("info string loaded net %s\n", value);
+                    else
+                        printf("info string FAILED to load net %s\n", value);
                 }
+#if TUNING_ENABLED
+                else if(strStartsWith(name, "FutilityStep")) {
+                    FutilityStep = atoi(value);
+                } else if(strStartsWith(name, "ReverseFutilityStep")) {
+                    ReverseFutilityStep = atoi(value);
+                } else if(strStartsWith(name, "RazorMargin")) {
+                    RazorMargin = atoi(value);
+                } else if(strStartsWith(name, "LmpPruningAllow")) {
+                    LmpPruningAllow = atoi(value);
+                } else if(strStartsWith(name, "LmpMaxDepth")) {
+                    LmpMaxDepth = atoi(value);
+                } else if(strStartsWith(name, "LmpBase")) {
+                    LmpBase = atoi(value);
+                    refreshDerivedTables();
+                } else if(strStartsWith(name, "NmpBase")) {
+                    NmpBase = atoi(value);
+                } else if(strStartsWith(name, "NmpDiv")) {
+                    NmpDiv = max(1, atoi(value));
+                } else if(strStartsWith(name, "AspirationDelta")) {
+                    AspirationDelta = atoi(value);
+                } else if(strStartsWith(name, "LmrBase")) {
+                    LmrBaseX100 = atoi(value);
+                    refreshDerivedTables();
+                } else if(strStartsWith(name, "LmrDivisor")) {
+                    LmrDivX100 = max(1, atoi(value));
+                    refreshDerivedTables();
+                } else if(strStartsWith(name, "LmrHistoryDiv")) {
+                    LmrHistoryDiv = max(1, atoi(value));
+                } else if(strStartsWith(name, "TmStabPct")) {
+                    TmStabPct = atoi(value);
+                } else if(strStartsWith(name, "TmChangeX100")) {
+                    TmChangeX100 = atoi(value);
+                } else if(strStartsWith(name, "TmPanicX100")) {
+                    TmPanicX100 = atoi(value);
+                } else if(strStartsWith(name, "TmPanicDrop")) {
+                    TmPanicDrop = atoi(value);
+                } else if(strStartsWith(name, "TmMaxMult")) {
+                    TmMaxMult = max(1, atoi(value));
+                }
+#endif
             }
         }
 
         if(makeSearch) {
-            SearchArgs args;
-            args.board = board;
-            args.tm = tm;
-            
+            // Heap-allocate so the detached search thread has a valid pointer
+            // after this scope exits (the thread reads args asynchronously);
+            // go() frees it. A stack local here is a use-after-scope race.
+            SearchArgs *args = malloc(sizeof(SearchArgs));
+            args->board = board;
+            args->tm = tm;
+
             pthread_t searchThread;
             SEARCH_COMPLETE = 0;
-            pthread_create(&searchThread, NULL, &go, &args);
+            pthread_create(&searchThread, NULL, &go, args);
             pthread_detach(searchThread);
         }
 
@@ -198,7 +283,7 @@ int main(int argc, char** argv) {
 }
 
 void printEngineInfo() {
-    printf("id name Zevra v2.6 (NNUE)\nid author Oleg Smirnov\n");
+    printf("id name Zevra 2.7\nid author Oleg Smirnov\n");
 }
 
 void readyok() {
@@ -311,8 +396,6 @@ void initOption() {
     option.minTemperature = 0;
     option.maxTemperature = 100;
     temperature = option.defaultTemperature;
-    option.shouldUseNNUE = 1;
-    option.defaultShouldUseNNUE = 1;
 }
 
 int strEquals(char* str1, char* str2) {
