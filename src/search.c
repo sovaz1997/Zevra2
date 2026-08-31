@@ -744,24 +744,23 @@ void initSearch() {
 
 // Defaults for the tunable search parameters (overridable via UCI setoption).
 void initSearchParams() {
-    // SPSA-tuned (run4, full 11 params + selective LMR, trailing avg); SPRT-gated.
-    FutilityStep = 99;
-    ReverseFutilityStep = 51;
-    RazorMargin = 298;
+    FutilityStep = 103;
+    ReverseFutilityStep = 47;
+    RazorMargin = 297;
     LmpPruningAllow = 1;   // LMP enabled (tuned in the package)
     LmpMaxDepth = 8;
     LmpBase = 6;
-    NmpBase = 3;
-    NmpDiv = 2;
-    AspirationDelta = 27;
-    LmrBaseX100 = 86;    // 0.86
-    LmrDivX100 = 179;    // 1.79
-    LmrHistoryDiv = 13918;
+    NmpBase = 4;
+    NmpDiv = 4;
+    AspirationDelta = 35;
+    LmrBaseX100 = 71;    // 0.71
+    LmrDivX100 = 187;    // 1.87
+    LmrHistoryDiv = 20567;
     // adaptive time-management coefficients
-    TmStabPct = 5;
-    TmChangeX100 = 130;
-    TmPanicX100 = 150;
-    TmPanicDrop = 30;
+    TmStabPct = 6;
+    TmChangeX100 = 154;
+    TmPanicX100 = 133;
+    TmPanicDrop = 24;
     TmMaxMult = 4;
 }
 
